@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <script src="https://amami-harhid.github.io/scratch3LikeJsTrial/lib/scratch3.js"></script>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <meta charset="utf-8" />
+
+  </head>
+  <body style="width:100%;height:100%;">
+    <main id="main">
+      <div id="start-flag" class="start-flag">⚑</div>
+      <div id="canvas"  class="displayNone"></div>
+    </main>
+    <script src="module.js"></script>
+  </body>
+  <script>
+    let startFlag = document.getElementById('start-flag');
+    startFlag.addEventListener('click', function(){
+      startFlag.style.display = 'none';
+      let main = document.getElementById('main');
+      main.style.visibility = 'visible';
+      moduleStart();
+    });
+  </script>
+</html>
