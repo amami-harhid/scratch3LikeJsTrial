@@ -176,7 +176,7 @@ const scratch_setup = function() {
   renderer.setLayerGroupOrdering(['1','2']);
   renderer.resize( W, H);
   renderer.setStageSize(-W/2,W/2,-H/2,+H/2);
-  const costumes = ["./assets/cat.svg","./assets/cat2.svg"];
+  const costumes = ["../assets/cat.svg","../assets/cat2.svg"];
   character = new Character(renderer, "cat", "1", costumes, 0, 0, {x:500, y:500});    
   character2 = new Character(renderer, "cat2", "2", costumes, 0, 100, {x:-150, y:150});
   
