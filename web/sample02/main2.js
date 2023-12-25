@@ -97,68 +97,19 @@ const Character = class {
 const Wait = async function (second) {
   return new Promise(resolve => setTimeout(resolve, second));
 }
-let soundPlayer;
-let soundPlayer2;
-let soundPlayer3;
+const Chill = '../assets/Chill.wav';
+let sound;
 const moduleStart = async() => {
 
   scratch_setup();
   //scratch_drawup();
   setInterval(scratch_drawup, 1000/30);
   
-  const audioEngine = new AudioEngine();
-  // audio file をfetchで読み込む。
-  // responseを arrayBuffer化し Uint8Arrayへ変換
-  // AudioEngine#decodeSoundPlayer へは　{data}として渡す
-  // AudioEngine#_decodeSounde の中で　sound.data として
-  // 参照しているため。
-  {
-    let response = await fetch('../assets/Cat.wav');
-    let buffer = await response.arrayBuffer();
-    let data =  new Uint8Array(buffer);
-    soundPlayer = await audioEngine.decodeSoundPlayer({data});
-    soundPlayer.setPlaybackRate(2);
-    // AudioEngine#createEffectChain で AudioEffectsインスタンスを作る。
-    // effects.volume は VolumeEffect インスタンス
-    // effects.pan は、PanEffect インスタンス
-    // effects.pitch は、PitchEffect インスタンス
-    const effects = audioEngine.createEffectChain(); 
-    effects.set(effects.volume.name, 10);
-    // SoundPlayer#connect で Effect を渡すことで効果が出る。
-    soundPlayer.connect(effects.volume);  
-    // TODO 異なるEffectを 複数connect することは試していないので試すこと！    
-  }
-  {
-    let response = await fetch('../assets/Boing.wav');
-    let buffer = await response.arrayBuffer();
-    let data =  new Uint8Array(buffer);
-  
-    soundPlayer2 = await audioEngine.decodeSoundPlayer({data});
-    soundPlayer2.setPlaybackRate(1);
-    const effects = audioEngine.createEffectChain(); 
-    effects.set(effects.volume.name, 50);
-    soundPlayer2.connect(effects.volume);
-  }
-  {
-    let response = await fetch('../assets/Chill.wav');
-    let buffer = await response.arrayBuffer();
-    let data =  new Uint8Array(buffer);
-  
-    soundPlayer3= await audioEngine.decodeSoundPlayer({data});
-    const effects = audioEngine.createEffectChain(); 
-    console.log(effects);
-    effects.set(effects.volume.name, 10);
-    soundPlayer3.setPlaybackRate(1);
-    soundPlayer3.connect(effects.volume);
-  }
-  // 音を終わるまで待つのは、soundPlayer.play()の後に
-  // await soundPlayer.finished(); とすること
-  // もちろん async関数の中でしか使えない。
-  for(;;) {
-    soundPlayer3.play();
-    await soundPlayer3.finished(); // 終わるまで待つ
-    await Wait(1); //<-- ここの場合ではなくてもよいがブラウザハングをさけるため念のためにつける。
-  }
+  const sound = new Sounds();
+  await sound.createSoundPlayer(Chill);
+  sound.playbackRate = 2;
+  sound.volume = 100;
+  sound.startSoundUntilDone();
 };
 let canvas;
 const W = innerWidth;//759;//480;//innerWidth;  480*2 = 760
@@ -189,7 +140,6 @@ let chara1OutofChara2 = true;
 const scratch_drawup = function () {
 
   if(character.isTouching(character2)) {
-    if(soundPlayer2) soundPlayer2.stop();
     renderer.setBackgroundColor(1,1,1,1);
     character.fisheye = 100;
     if(chara1OutofChara2 === true) {
@@ -211,7 +161,6 @@ const scratch_drawup = function () {
   if( character.x > W/2 || character.x < -W/2) {
     chara1RightSpeed *= -1;
     character.scale.x *= -1;
-    soundPlayer.play();
   }
   character2.y += speed;
   speed += -2;
@@ -222,7 +171,6 @@ const scratch_drawup = function () {
   if( character2.x > W/2 || character2.x < -W/2) {
     chara2RightSpeed *= -1;
     character2.scale.x *= -1;
-    soundPlayer2.play();
   }
   character.nextCostume();
   character2.nextCostume();

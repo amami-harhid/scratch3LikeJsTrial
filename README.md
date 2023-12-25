@@ -7,7 +7,7 @@ ScratchRender, ScratchAudio が使えます。
 
 # サンプル
 
-## 01番目
+## sample01
 
 ### scratch-render
 ScratchRender で 画像(SVG)の取り込み、座標変更、エフェクト効果、などを試行しています。
@@ -15,7 +15,16 @@ ScratchRender で 画像(SVG)の取り込み、座標変更、エフェクト効
 ### scratch-audio
 ScratchAudio でサウンド(wav,mp3)の取り込み、再生、などを試行しています。「終わるまで鳴らす」、音の大きさを変更、などを試行しています。
 
-### サンプル
+### WEBページ
 https://amami-harhid.github.io/scratch3LikeJsTrial/web/sample01/
 
-## 今後に続く
+## sample02
+
+### scratch-audio
+クラスにまとめてみました。
+scratch-audioの Volume, Pitch, Pan のエフェクトの設定がうまくいかない。
+使い方を間違えているのかもしれない、これは今後の継続調査課題である。
+
+### WEBページ
+https://amami-harhid.github.io/scratch3LikeJsTrial/web/sample02/
+
