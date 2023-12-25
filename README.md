@@ -21,7 +21,7 @@ https://amami-harhid.github.io/scratch3LikeJsTrial/web/sample01/
 ## sample02
 
 ### scratch-audio
-クラスにまとめてみました。
+クラスSoundsとしてまとめ中( sample02/main.js )
 scratch-audioの Volume, Pitch, Pan のエフェクトの設定がうまくいかない。
 使い方を間違えているのかもしれない、これは今後の継続調査課題である。
 
