@@ -36,7 +36,7 @@ module.exports = [
             'scratch3': './src/scratch3.js'
         },
         output: {
-            path: path.resolve(__dirname, 'dist'),
+            path: path.resolve(__dirname, 'lib'),
             filename: '[name].js'
         },
         plugins: base.plugins.concat([
