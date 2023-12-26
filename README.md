@@ -22,9 +22,24 @@ https://amami-harhid.github.io/scratch3LikeJsTrial/web/sample01/
 
 ### scratch-audio
 クラスSoundsとしてまとめ中( sample02/main.js )
-scratch-audioの Volume, Pitch, Pan のエフェクトの設定がうまくいかない。
+scratch-audioの  Pan のエフェクトの設定がうまくいかない（未調査）。
 使い方を間違えているのかもしれない、これは今後の継続調査課題である。
+
+#### 音量
+Sounds#volume = 〇〇〇; // 〇〇〇は数字
+再生中でも音量を変化させることができる
+
+#### ピッチ
+Sounds#pitch = 〇〇〇; // 〇〇〇は数字
+再生中でもピッチを変化させることができる
+
+#### パン
+未調査
+
 
 ### WEBページ
 https://amami-harhid.github.io/scratch3LikeJsTrial/web/sample02/
 
+
+### 緑の旗
+今後の改善課題：表示可能なウィンドウ域が狭いとき 旗表示が崩れてしまう。

@@ -16,67 +16,117 @@ const Sounds = class {
   static set AudioEngine(obj) {
     Sounds._audioEngine = obj;
   }
+
   constructor() {
     this._cancel = false;
   }
 
-  async startSound(untilDone = false) {
-    this._cancel = false;
-    if( untilDone ) {
-      for(;;) {
-        this.soundPlayer.play();
-        await this.soundPlayer.finished(); // 終わるまで待つ
-        if(this._cancel) break;
-        await Sounds.Wait();
-      }
-    }else{
-      this.soundPlayer.play();
-    }
-  }
-  startSoundUntilDone() {
-    this.startSound(true);
-  }
-  stop() {
-    this._cancel = true;
-    this.soundPlayer.stop();
+  /**
+   * Start sound.
+   */
+  startSound() {
+    this.soundPlayer.play();
   }
 
-  async createSoundPlayer(soundPath) {
-    const data = await this._loadSound(soundPath);
+  /**
+   * Start sound until done forEver.
+   */
+  async soundForever() {
+    this._cancel = false;
+    for(;;) {
+      this.soundPlayer.play();
+      await this.soundPlayer.finished(); // 終わるまで待つ
+      if(this._cancel) break;
+      await Sounds.Wait();
+    }
+  }
+
+  /**
+   * Start sound until done.
+   */
+  async startSoundUntilDone() {
+    this.soundPlayer.play();
+    await this.soundPlayer.finished(); // 終わるまで待つ
+  }
+
+  /**
+   * Stop immediately without fading out. May cause audible clipping
+   */
+  stopImmediately() {
+    this._cancel = true;
+    this.soundPlayer.stopImmediately();
+  }
+
+  /**
+   * Stop playback after quickly fading out.
+   * if immediately is specified, stop immediately without fading out. May cause audible clipping
+   * @param {boolean} - immediately.
+   */
+  stop(immediately = false) {    
+    this._cancel = true;
+    if(immediately) {
+      this.soundPlayer.stopImmediately();
+    }else{
+      this.soundPlayer.stop();
+    }
+  }
+
+  /**
+   * create sound player.
+   * @param {string} - soundUrl.
+   * @returns {SoundPlayer} - soundPlayer.
+   */
+  async createSoundPlayer(soundUrl) {
+    const data = await this._loadSound(soundUrl);
     const soundPlayer = await Sounds.AudioEngine.decodeSoundPlayer({data});
     this.soundPlayer = soundPlayer;
     const soundEffectChain = Sounds.soundEffectChain;
     Sounds.soundEffectChain = soundEffectChain;
-    Sounds.soundEffectChain.set(Sounds.soundEffectChain.pitch.name, 150);
+//    Sounds.soundEffectChain.set(Sounds.soundEffectChain.pitch.name, 150);
 //    this.soundPlayer.connect(Sounds.soundEffectChain.pan);
-    this.volume = 0;
+//    this.volume = 0;
 //    this.soundPlayer.connect(Sounds.soundEffectChain.pitch);
     this.soundPlayer.connect(Sounds.soundEffectChain);
     // Volume 以外のエフェクトが効かない。どうして？
     return soundPlayer;
   }
 
-  set playbackRate(value) {
-    this.soundPlayer.setPlaybackRate(value);
-  }
+  /**
+   * volume setter.
+   * @param {number} - volume of sound.
+   */
   set volume(value) {
     Sounds.soundEffectChain.set(Sounds.soundEffectChain.volume.name, value);
+//    Sounds.soundEffectChain.update();
+    Sounds.soundEffectChain.volume.update();
   }
+  /**
+   * volume getter
+   * @returns {number} - volume of sound.
+   */
   get volume() {
-    const volume = Sounds.soundEffectChain.get(Sounds.soundEffectChain.volume.name);
+    const volume = Sounds.soundEffectChain[Sounds.soundEffectChain.volume.name].value;
     return volume;
   }
-  volumeUp(value) {
-    let _volume = this.volume;
-    this.volume = _volume + value;
-  }
 
+  /**
+   * soundPlayer getter
+   * @returns {SoundPlayer} - _soundPlayer.
+   */
   get soundPlayer() {
     return this._soundPlayer;
   }
-  set soundPlayer(obj) {
-    this._soundPlayer = obj;
+  /**
+   * soundPlayer setter
+   * @param {SoundPlayer} - _soundPlayer.
+   */
+  set soundPlayer(_soundPlayer) {
+    this._soundPlayer = _soundPlayer;
   }
+  /**
+   * effectChain getter
+   * @returns {EffectChain} - effectChain.
+   */
   static get soundEffectChain() {
     if( Sounds._soundEffectChain ) {
       return Sounds._soundEffectChain;
@@ -84,17 +134,35 @@ const Sounds = class {
     const soundEffectChain = Sounds.AudioEngine.createEffectChain();
     return soundEffectChain;
   }
-  static set soundEffectChain(obj) {
-    Sounds._soundEffectChain = obj;
+  /**
+   * effectChain setter
+   * @param {EffectChain} _effectChain - effectChain.
+   */
+  static set soundEffectChain(_effectChain) {
+    Sounds._soundEffectChain = _effectChain;
   }
-  async _loadSound(soundPath) {
-    let response = await fetch(soundPath);
+  /**
+   * load sound data
+   * @param {string} soundUrl - url of sound data.
+   * @returns {Unit8Array} - sound's arayBuffer.
+   */
+  async _loadSound(soundUrl) {
+    let response = await fetch(soundUrl);
     let buffer = await response.arrayBuffer();
     let data =  new Uint8Array(buffer);
     return data;
   }
 
-  setPlaybackRate(value) {
+  /**
+   * Set the sound's playback rate.
+   * @param {number} value - pitch rate. Default is 1.
+   */
+  set pitch(value = 1) {
+    /*
+    Sounds.soundEffectChain.set(Sounds.soundEffectChain.pitch.name, value);
+    Sounds.soundEffectChain.pitch.value = value;
+    Sounds.soundEffectChain.pitch.update();
+    */
     this.soundPlayer.setPlaybackRate(value);
   }
 

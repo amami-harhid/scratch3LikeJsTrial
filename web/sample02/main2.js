@@ -107,9 +107,26 @@ const moduleStart = async() => {
   
   const sound = new Sounds();
   await sound.createSoundPlayer(Chill);
-  sound.playbackRate = 2;
-  sound.volume = 100;
-  sound.startSoundUntilDone();
+  let _playbackRate = 0.5;
+  sound.pitch = 0.5;
+  sound.volume = 50;
+  setInterval(function(){
+    if( sound.volume == 10 ){
+        sound.volume = 100;
+    }else{
+        sound.volume = 10;
+    }
+  },500);
+  setInterval(function(){
+    if( _playbackRate > 2) {
+      _playbackRate = 0.5;
+    }
+    _playbackRate += 0.1;
+    sound.pitch = _playbackRate;
+  },20);
+  for(;;){
+    await sound.startSoundUntilDone();
+  }
 };
 let canvas;
 const W = innerWidth;//759;//480;//innerWidth;  480*2 = 760
