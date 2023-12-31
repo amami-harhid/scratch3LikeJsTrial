@@ -36,7 +36,7 @@ module.exports = [
             'likeScratch': './src/likeScratch.js'
         },
         output: {
-            path: path.resolve(__dirname, 'out'),
+            path: path.resolve(__dirname, 'web/dist'),
             filename: '[name].js'
         },
         plugins: base.plugins.concat([
