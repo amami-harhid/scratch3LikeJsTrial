@@ -1,45 +1,32 @@
-# scratch3LikeJsTrial
-Support for using Scratch3 libraries
+# likeScratch3 
 
-Scratch3 の各種ライブラリを試すための実験場です。
+Supporting for using Scratch3 libraries
 
-ScratchRender, ScratchAudio が使えます。
+## Version
+
+0.0.1  ( 作成中 )
 
 # サンプル
 
 ## sample01
 
-### scratch-render
-ScratchRender で 画像(SVG)の取り込み、座標変更、エフェクト効果、などを試行しています。
+ステージの背景画像を読み込み表示します。
 
-### scratch-audio
-ScratchAudio でサウンド(wav,mp3)の取り込み、再生、などを試行しています。「終わるまで鳴らす」、音の大きさを変更、などを試行しています。
-
-### WEBページ
+### WEB Page
 https://amami-harhid.github.io/scratch3LikeJsTrial/web/sample01/
 
 ## sample02
 
-### scratch-audio
-クラスSoundsとしてまとめ中( sample02/main.js )
-scratch-audioの  Pan のエフェクトの設定がうまくいかない（未調査）。
-使い方を間違えているのかもしれない、これは今後の継続調査課題である。
+スプライトの画像(SVG)を読み込み表示します。
 
-#### 音量
-Sounds#volume = 〇〇〇; // 〇〇〇は数字
-再生中でも音量を変化させることができる
+サイズを大きくしたり小さくしたりします。
 
-#### ピッチ
-Sounds#pitch = 〇〇〇; // 〇〇〇は数字
-再生中でもピッチを変化させることができる
+これと同じ効果です。
 
-#### パン
-未調査
+![Alt text](./README_Images/image01.png)
 
+### WEB Page
 
-### WEBページ
 https://amami-harhid.github.io/scratch3LikeJsTrial/web/sample02/
 
 
-### 緑の旗
-今後の改善課題：表示可能なウィンドウ域が狭いとき 旗表示が崩れてしまう。
