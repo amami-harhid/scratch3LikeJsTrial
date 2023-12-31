@@ -33,10 +33,10 @@ module.exports = [
     Object.assign({}, base, {
         target: 'web',
         entry: {
-            'scratch3': './src/scratch3.js'
+            'likeScratch': './src/likeScratch.js'
         },
         output: {
-            path: path.resolve(__dirname, 'lib'),
+            path: path.resolve(__dirname, 'out'),
             filename: '[name].js'
         },
         plugins: base.plugins.concat([

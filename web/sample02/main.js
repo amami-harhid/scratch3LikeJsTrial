@@ -99,7 +99,7 @@ const Wait = async function (second) {
 }
 const Chill = '../assets/Chill.wav';
 let sound;
-const moduleStart = async() => {
+const start = async() => {
 
   scratch_setup();
   //scratch_drawup();
@@ -137,7 +137,7 @@ let character2;
 let renderer;
 
 const scratch_setup = function() {
-  const main = document.getElementById('canvas');
+  const main = document.getElementById('main');
   const canvas = document.createElement('canvas');
   main.appendChild(canvas);
   renderer = new ScratchRenderer(canvas);
