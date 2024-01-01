@@ -17,7 +17,7 @@ https://amami-harhid.github.io/scratch3LikeJsTrial/web/sample01/
 
 ## sample02
 
-スプライトの画像(SVG)を読み込み表示します。
+スプライトの画像(PNG)を読み込み表示します。
 
 サイズを大きくしたり小さくしたりします。
 
@@ -29,4 +29,14 @@ https://amami-harhid.github.io/scratch3LikeJsTrial/web/sample01/
 
 https://amami-harhid.github.io/scratch3LikeJsTrial/web/sample02/
 
+## sample03
 
+スプライトの画像(SVG)を読み込み表示します。
+
+これと同じ動きをします。
+
+![Alt text](./README_Images/image02.png)
+
+### WEB Page
+
+https://amami-harhid.github.io/scratch3LikeJsTrial/web/sample03/
