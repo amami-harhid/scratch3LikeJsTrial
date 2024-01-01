@@ -1,13 +1,12 @@
 let stage, spriteA;
 const wait_time = LS.Env.pace;
-const LayerGroup = ["1", "2"];
 LS.process.staging = async function() {
 
-  const render = new LS.Render(LayerGroup);
-  stage = new LS.Stage(render, "stage", LayerGroup[0]);
+  const render = new LS.Render();
+  stage = new LS.Stage(render, "stage");
   await stage.backdrops.loadImage('mural', '../assets/Mural.png');
 
-  spriteA = new LS.Sprite(render, "spriteA",  LayerGroup[1]);
+  spriteA = new LS.Sprite(render, "spriteA");
   await spriteA.costumes.loadImage('cat', '../assets/cat.svg');
   stage.addSprite(spriteA)
   stage.scale = {x:100,y:100};

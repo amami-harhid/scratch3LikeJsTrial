@@ -1,13 +1,12 @@
 let stage, spriteA;
-const LayerGroup = ["1","2"];
 const wait_time = LS.Env.pace;
 
 LS.process.staging = async function() {
-  const render = new LS.Render(LayerGroup);
-  stage = new LS.Stage(render, "stage", LayerGroup[0]);
+  const render = new LS.Render();
+  stage = new LS.Stage(render, "stage");
   await stage.backdrops.loadImage('jurassic', '../assets/Jurassic.svg');
   stage.scale = {x:100,y:100};
-  spriteA = new LS.Sprite(render, "spriteA",  LayerGroup[1]);
+  spriteA = new LS.Sprite(render, "spriteA");
   spriteA.scale = {x:80,y:80};
   await spriteA.costumes.loadImage('pico', '../assets/pico.png');
   stage.addSprite(spriteA);
