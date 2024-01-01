@@ -32,6 +32,10 @@ https://amami-harhid.github.io/scratch3LikeJsTrial/web/sample02/
 ## sample03
 
 スプライトの画像(SVG)を読み込み表示します。
+スプライトサイズを大きく小さくと変更するタイミングで、音(Boing.wav)を鳴らします。
+「プルルル・・・」と聞こえます。
+音量(10)と設定し小さな音にしています。
+音のpitchは速くしたり遅くしたりしています。
 
 これと同じ動きをします。
 
