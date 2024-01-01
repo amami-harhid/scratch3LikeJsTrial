@@ -1,4 +1,5 @@
 const Backdrops = require('../lib/backdrops');
+const Css = require('../lib/css');
 const Costumes = require('../lib/costumes');
 const Element = require('../lib/element');
 const Env = require('../lib/env');
@@ -9,7 +10,7 @@ const Stage = require('../lib/stage');
 const Sprite = require('../lib/sprite');
 const Utils = require('../lib/utils');
 
-const AudioEngine = require('scratch-audio');
+//const AudioEngine = require('scratch-audio');
 
 const LS = {};
 LS.Backdrops = Backdrops;
@@ -22,9 +23,10 @@ LS.Sounds = Sounds;
 LS.Stage = Stage;
 LS.Sprite = Sprite;
 LS.Utils = Utils;
-LS.AudioEngine = AudioEngine;
+//LS.AudioEngine = AudioEngine;
 
 window.LS = LS;
+Element.insertCss();
 
 LS.process = new Process();
 window.onload = async function(){

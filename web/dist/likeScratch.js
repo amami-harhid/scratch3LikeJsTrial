@@ -11030,6 +11030,7 @@ module.exports = Costumes;
 /***/ (function(module, exports, __webpack_require__) {
 
 const Canvas = __webpack_require__(10);
+const CSS = __webpack_require__(20);
 const Env = __webpack_require__(3);
 const Process = __webpack_require__(11);
 const Utils = __webpack_require__(2);
@@ -11082,6 +11083,15 @@ const Element = class {
         //fel.style.display = 'none'
         Element.flag = flag;
         return flag;
+    }
+    static insertCss() {
+        const style = document.createElement('style');
+        style.innerHTML = `
+            ${CSS.documentCss}\n\n
+            ${CSS.flagCss}\n\n
+            ${CSS.canvasCss}\n\n            
+        `;
+        document.getElementsByTagName('head')[0].appendChild(style);
     }
     static async init() {
         const main = Element.createMain(999);
@@ -11831,7 +11841,7 @@ module.exports = g;
 /* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const AudioEngine = __webpack_require__(32);
+const AudioEngine = __webpack_require__(91);
 const Importer = __webpack_require__(19);
 const Process = __webpack_require__(11);
 const Sounds = class {
@@ -12152,6 +12162,68 @@ module.exports = Importer;
 
 /***/ }),
 /* 20 */
+/***/ (function(module, exports) {
+
+const CSS = {
+    documentCss : `
+* { 
+        box-sizing: border-box;
+        -webkit-transform: translate3d(0, 0, 0);
+        -webkit-touch-callout:none;                /* prevent callout to copy image, etc when tap to hold */
+        -webkit-tap-highlight-color:rgba(0,0,0,0); /* prevent tap highlight color / shadow */
+  }
+html, body{
+        margin:0;
+        padding:0;
+        width:100%;
+        height:100%;
+  }
+.displayNone {
+        display:none;
+  }
+`,
+    flagCss : `
+#start-flag{
+        z-index:2147483647;
+  }
+.likeScratch-flag {
+        text-align: center;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 75px;
+        line-height: 65px;
+        padding: 32px;
+        color: #007000;
+        background: #2eff2e;
+        border: 2px solid #007900;;
+        border-radius: 65px;
+        cursor: pointer;
+  }
+#main {
+        position: absolute;
+        width:100%;
+        height:100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+  }
+`,
+    canvasCss : `
+.likeScratch-canvas {
+        display: block;
+        border: 5px solid #444444;
+        border-radius: 20px;
+  }  
+`,
+        
+
+
+};
+
+
+module.exports = CSS;
+
+/***/ }),
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const RenderWebGL = __webpack_require__(37);
@@ -12164,7 +12236,7 @@ module.exports = RenderWebGL;
 
 
 /***/ }),
-/* 21 */
+/* 22 */
 /***/ (function(module, exports) {
 
 class Rectangle {
@@ -12366,7 +12438,7 @@ module.exports = Rectangle;
 
 
 /***/ }),
-/* 22 */
+/* 23 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -12569,7 +12641,7 @@ module.exports = EffectTransform;
 
 
 /***/ }),
-/* 23 */
+/* 24 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const minilog = __webpack_require__(13);
@@ -12579,7 +12651,7 @@ module.exports = minilog('scratch-render');
 
 
 /***/ }),
-/* 24 */
+/* 25 */
 /***/ (function(module, exports) {
 
 var hex = {
@@ -12605,13 +12677,13 @@ module.exports = color;
 
 
 /***/ }),
-/* 25 */
+/* 26 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const DOMPurify = __webpack_require__(26);
+const DOMPurify = __webpack_require__(27);
 const SvgElement = __webpack_require__(14);
-const convertFonts = __webpack_require__(27);
-const fixupSvgString = __webpack_require__(28);
+const convertFonts = __webpack_require__(28);
+const fixupSvgString = __webpack_require__(29);
 const transformStrokeWidths = __webpack_require__(62);
 
 /**
@@ -12945,7 +13017,7 @@ module.exports = loadSvgString;
 
 
 /***/ }),
-/* 26 */
+/* 27 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*! @license DOMPurify | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/2.2.2/LICENSE */
@@ -14297,7 +14369,7 @@ module.exports = loadSvgString;
 
 
 /***/ }),
-/* 27 */
+/* 28 */
 /***/ (function(module, exports) {
 
 /**
@@ -14341,7 +14413,7 @@ module.exports = convertFonts;
 
 
 /***/ }),
-/* 28 */
+/* 29 */
 /***/ (function(module, exports) {
 
 /**
@@ -14408,10 +14480,10 @@ module.exports = function (svgString) {
 
 
 /***/ }),
-/* 29 */
+/* 30 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const inlineSvgFonts = __webpack_require__(30);
+const inlineSvgFonts = __webpack_require__(31);
 
 /**
  * Serialize a given SVG DOM to a string.
@@ -14433,7 +14505,7 @@ module.exports = serializeSvgToString;
 
 
 /***/ }),
-/* 30 */
+/* 31 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -14489,7 +14561,7 @@ module.exports = inlineSvgFonts;
 
 
 /***/ }),
-/* 31 */
+/* 32 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.7.1
@@ -14583,21 +14655,6 @@ UnicodeTrie = (function() {
 })();
 
 module.exports = UnicodeTrie;
-
-
-/***/ }),
-/* 32 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/**
- * @fileOverview Scratch Audio is divided into a single AudioEngine, that
- * handles global functionality, and AudioPlayers, belonging to individual
- * sprites and clones.
- */
-
-const AudioEngine = __webpack_require__(91);
-
-module.exports = AudioEngine;
 
 
 /***/ }),
@@ -14809,17 +14866,18 @@ module.exports = Entity;
 
 
 var Backdrops = __webpack_require__(18);
+var Css = __webpack_require__(20);
 var Costumes = __webpack_require__(8);
 var Element = __webpack_require__(9);
 var Env = __webpack_require__(3);
 var Process = __webpack_require__(11);
 var Render = __webpack_require__(36);
 var Sounds = __webpack_require__(16);
-var Stage = __webpack_require__(105);
-var Sprite = __webpack_require__(107);
+var Stage = __webpack_require__(106);
+var Sprite = __webpack_require__(108);
 var Utils = __webpack_require__(2);
 
-var AudioEngine = __webpack_require__(32);
+//const AudioEngine = require('scratch-audio');
 
 var LS = {};
 LS.Backdrops = Backdrops;
@@ -14832,9 +14890,10 @@ LS.Sounds = Sounds;
 LS.Stage = Stage;
 LS.Sprite = Sprite;
 LS.Utils = Utils;
-LS.AudioEngine = AudioEngine;
+//LS.AudioEngine = AudioEngine;
 
 window.LS = LS;
+Element.insertCss();
 
 LS.process = new Process();
 window.onload = async function () {
@@ -14849,7 +14908,7 @@ window.onload = async function () {
 
 const Element = __webpack_require__(9);
 const Env = __webpack_require__(3);
-const ScratchRenderer = __webpack_require__(20);
+const ScratchRenderer = __webpack_require__(21);
 const Render = class {
 
     static get W() {
@@ -14891,14 +14950,14 @@ const twgl = __webpack_require__(0);
 
 const BitmapSkin = __webpack_require__(43);
 const Drawable = __webpack_require__(45);
-const Rectangle = __webpack_require__(21);
+const Rectangle = __webpack_require__(22);
 const PenSkin = __webpack_require__(58);
 const RenderConstants = __webpack_require__(6);
 const ShaderManager = __webpack_require__(5);
 const SVGSkin = __webpack_require__(59);
 const TextBubbleSkin = __webpack_require__(77);
-const EffectTransform = __webpack_require__(22);
-const log = __webpack_require__(23);
+const EffectTransform = __webpack_require__(23);
+const log = __webpack_require__(24);
 
 const __isTouchingDrawablesPoint = twgl.v3.create();
 const __candidatesBounds = new Rectangle();
@@ -17695,12 +17754,12 @@ module.exports = Silhouette;
 
 const twgl = __webpack_require__(0);
 
-const Rectangle = __webpack_require__(21);
+const Rectangle = __webpack_require__(22);
 const RenderConstants = __webpack_require__(6);
 const ShaderManager = __webpack_require__(5);
 const Skin = __webpack_require__(4);
-const EffectTransform = __webpack_require__(22);
-const log = __webpack_require__(23);
+const EffectTransform = __webpack_require__(23);
+const log = __webpack_require__(24);
 
 /**
  * An internal workspace for calculating texture locations from world vectors
@@ -18756,7 +18815,7 @@ module.exports = logger;
 /***/ (function(module, exports, __webpack_require__) {
 
 var Transform = __webpack_require__(1),
-    color = __webpack_require__(24);
+    color = __webpack_require__(25);
 
 var colors = { debug: ['cyan'], info: ['purple' ], warn: [ 'yellow', true ], error: [ 'red', true ] },
     logger = new Transform();
@@ -18780,7 +18839,7 @@ module.exports = logger;
 /***/ (function(module, exports, __webpack_require__) {
 
 var Transform = __webpack_require__(1),
-    color = __webpack_require__(24),
+    color = __webpack_require__(25),
     colors = { debug: ['gray'], info: ['purple' ], warn: [ 'yellow', true ], error: [ 'red', true ] },
     logger = new Transform();
 
@@ -19534,12 +19593,12 @@ module.exports = SVGSkin;
 
 const SVGRenderer = __webpack_require__(61);
 const BitmapAdapter = __webpack_require__(73);
-const inlineSvgFonts = __webpack_require__(30);
-const loadSvgString = __webpack_require__(25);
+const inlineSvgFonts = __webpack_require__(31);
+const loadSvgString = __webpack_require__(26);
 const sanitizeSvg = __webpack_require__(75);
-const serializeSvgToString = __webpack_require__(29);
+const serializeSvgToString = __webpack_require__(30);
 const SvgElement = __webpack_require__(14);
-const convertFonts = __webpack_require__(27);
+const convertFonts = __webpack_require__(28);
 // /**
 //  * Export for NPM & Node.js
 //  * @type {RenderWebGL}
@@ -19560,8 +19619,8 @@ module.exports = {
 /* 61 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const loadSvgString = __webpack_require__(25);
-const serializeSvgToString = __webpack_require__(29);
+const loadSvgString = __webpack_require__(26);
+const serializeSvgToString = __webpack_require__(30);
 
 /**
  * Main quirks-mode SVG rendering code.
@@ -20760,8 +20819,8 @@ function fromByteArray (uint8) {
  * @fileOverview Sanitize the content of an SVG aggressively, to make it as safe
  * as possible
  */
-const fixupSvgString = __webpack_require__(28);
-const DOMPurify = __webpack_require__(26);
+const fixupSvgString = __webpack_require__(29);
+const DOMPurify = __webpack_require__(27);
 
 const sanitizeSvg = {};
 
@@ -21271,7 +21330,7 @@ module.exports = TextWrapper;
 (function() {
   var AI, AL, BA, BK, CB, CI_BRK, CJ, CP_BRK, CR, DI_BRK, ID, IN_BRK, LF, LineBreaker, NL, NS, PR_BRK, SA, SG, SP, UnicodeTrie, WJ, XX, base64, characterClasses, classTrie, data, fs, pairTable, _ref, _ref1;
 
-  UnicodeTrie = __webpack_require__(31);
+  UnicodeTrie = __webpack_require__(32);
 
   
 
@@ -22065,7 +22124,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
   _ref = __webpack_require__(89), CR = _ref.CR, LF = _ref.LF, Control = _ref.Control, Extend = _ref.Extend, Regional_Indicator = _ref.Regional_Indicator, SpacingMark = _ref.SpacingMark, L = _ref.L, V = _ref.V, T = _ref.T, LV = _ref.LV, LVT = _ref.LVT;
 
-  UnicodeTrie = __webpack_require__(31);
+  UnicodeTrie = __webpack_require__(32);
 
   
 
@@ -24313,22 +24372,37 @@ module.exports = CanvasMeasurementProvider;
 /* 91 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const StartAudioContext = __webpack_require__(92);
-const AudioContext = __webpack_require__(94);
+/**
+ * @fileOverview Scratch Audio is divided into a single AudioEngine, that
+ * handles global functionality, and AudioPlayers, belonging to individual
+ * sprites and clones.
+ */
+
+const AudioEngine = __webpack_require__(92);
+
+module.exports = AudioEngine;
+
+
+/***/ }),
+/* 92 */
+/***/ (function(module, exports, __webpack_require__) {
+
+const StartAudioContext = __webpack_require__(93);
+const AudioContext = __webpack_require__(95);
 
 const log = __webpack_require__(7);
-const uid = __webpack_require__(96);
+const uid = __webpack_require__(97);
 
-const ADPCMSoundDecoder = __webpack_require__(97);
-const Loudness = __webpack_require__(99);
-const SoundPlayer = __webpack_require__(100);
+const ADPCMSoundDecoder = __webpack_require__(98);
+const Loudness = __webpack_require__(100);
+const SoundPlayer = __webpack_require__(101);
 
-const EffectChain = __webpack_require__(101);
-const PanEffect = __webpack_require__(102);
-const PitchEffect = __webpack_require__(103);
+const EffectChain = __webpack_require__(102);
+const PanEffect = __webpack_require__(103);
+const PitchEffect = __webpack_require__(104);
 const VolumeEffect = __webpack_require__(33);
 
-const SoundBank = __webpack_require__(104);
+const SoundBank = __webpack_require__(105);
 
 /**
  * Wrapper to ensure that audioContext.decodeAudioData is a promise
@@ -24574,13 +24648,13 @@ module.exports = AudioEngine;
 
 
 /***/ }),
-/* 92 */
+/* 93 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // StartAudioContext assumes that we are in a window/document setting and messes with the unit
 // tests, this is our own version just checking to see if we have a global document to listen
 // to before we even try to "start" it.  Our test api audio context is started by default.
-const StartAudioContext = __webpack_require__(93);
+const StartAudioContext = __webpack_require__(94);
 
 module.exports = function (context) {
     if (typeof document !== 'undefined') {
@@ -24590,7 +24664,7 @@ module.exports = function (context) {
 
 
 /***/ }),
-/* 93 */
+/* 94 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/**
@@ -24788,13 +24862,13 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 }))
 
 /***/ }),
-/* 94 */
+/* 95 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var window = __webpack_require__(95)
+var window = __webpack_require__(96)
 
 var OfflineContext = window.OfflineAudioContext || window.webkitOfflineAudioContext
 var Context = window.AudioContext || window.webkitAudioContext
@@ -24839,7 +24913,7 @@ module.exports = function getContext (options) {
 
 
 /***/ }),
-/* 95 */
+/* 96 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {var win;
@@ -24859,7 +24933,7 @@ module.exports = win;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(15)))
 
 /***/ }),
-/* 96 */
+/* 97 */
 /***/ (function(module, exports) {
 
 /**
@@ -24894,10 +24968,10 @@ module.exports = uid;
 
 
 /***/ }),
-/* 97 */
+/* 98 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const ArrayBufferStream = __webpack_require__(98);
+const ArrayBufferStream = __webpack_require__(99);
 const log = __webpack_require__(7);
 
 /**
@@ -25148,7 +25222,7 @@ module.exports = ADPCMSoundDecoder;
 
 
 /***/ }),
-/* 98 */
+/* 99 */
 /***/ (function(module, exports) {
 
 class ArrayBufferStream {
@@ -25331,7 +25405,7 @@ module.exports = ArrayBufferStream;
 
 
 /***/ }),
-/* 99 */
+/* 100 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const log = __webpack_require__(7);
@@ -25419,7 +25493,7 @@ module.exports = Loudness;
 
 
 /***/ }),
-/* 100 */
+/* 101 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const {EventEmitter} = __webpack_require__(12);
@@ -25770,7 +25844,7 @@ module.exports = SoundPlayer;
 
 
 /***/ }),
-/* 101 */
+/* 102 */
 /***/ (function(module, exports) {
 
 class EffectChain {
@@ -25958,7 +26032,7 @@ module.exports = EffectChain;
 
 
 /***/ }),
-/* 102 */
+/* 103 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const Effect = __webpack_require__(17);
@@ -26062,7 +26136,7 @@ module.exports = PanEffect;
 
 
 /***/ }),
-/* 103 */
+/* 104 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const Effect = __webpack_require__(17);
@@ -26196,7 +26270,7 @@ module.exports = PitchEffect;
 
 
 /***/ }),
-/* 104 */
+/* 105 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const log = __webpack_require__(7);
@@ -26364,12 +26438,12 @@ module.exports = SoundBank;
 
 
 /***/ }),
-/* 105 */
+/* 106 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const Backdrops = __webpack_require__(18);
 const Entity = __webpack_require__(34);
-const Sensing = __webpack_require__(106);
+const Sensing = __webpack_require__(107);
 const Sounds = __webpack_require__(16);
 const Utils = __webpack_require__(2);
 const Stage = class extends Entity {
@@ -26450,10 +26524,10 @@ const Stage = class extends Entity {
 module.exports = Stage;
 
 /***/ }),
-/* 106 */
+/* 107 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const ScratchRenderer = __webpack_require__(20);
+const ScratchRenderer = __webpack_require__(21);
 const Utils = __webpack_require__(2);
 const Sensing = {
     enable: function(stage) {
@@ -26530,7 +26604,7 @@ const Sensing = {
 module.exports = Sensing;
 
 /***/ }),
-/* 107 */
+/* 108 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const Canvas = __webpack_require__(10);
