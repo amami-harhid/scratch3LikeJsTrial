@@ -1,4 +1,5 @@
 const Backdrops = require('../lib/backdrops');
+const Canvas = require('../lib/canvas');
 const Css = require('../lib/css');
 const Costumes = require('../lib/costumes');
 const Element = require('../lib/element');
@@ -14,6 +15,7 @@ const Utils = require('../lib/utils');
 
 const LS = {};
 LS.Backdrops = Backdrops;
+//LS.Canvas = Canvas;
 LS.Costumes = Costumes;
 LS.Element = Element;
 LS.Env = Env;

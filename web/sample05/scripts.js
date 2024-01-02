@@ -1,12 +1,3 @@
-/**
- * (1) MyStage, MyCat を 別ファイル化
- * (2) イベント登録を作りこむ ( )
- * 
- * 
- * 
- */
-
-
 let stage, spriteA;
 let spriteAClone1;
 let spriteAClone2;
@@ -22,9 +13,12 @@ LS.process.staging = async function() {
   await spriteA.loadImage();
   stage.addSprite(spriteA)
   stage.scale = {x:100,y:100};
-  spriteAClone1 = spriteA.clone({'position':{x:spriteA.position.x+30, y:spriteA.position.y-40}});
+  spriteAClone1 = spriteA.clone(
+    {'position':{x:spriteA.position.x+30, y:spriteA.position.y-40}, 
+     'scale':{x:-250,y:250}
+    });
   spriteAClone2 = spriteA.clone();
-  spriteAClone1.setScale(150);  
+//  spriteAClone1.setScale(150);  
   stage.update();
   stage.draw();
   stage.whenFlag(function(){
@@ -40,9 +34,12 @@ LS.process.staging = async function() {
       await LS.Utils.wait(wait_time);
     }
   });
-}
+  stage.whenFlag(async function(){
+    start();
+  });
 
-LS.process.start = async ()=> {
+}
+const start = async function(){
   const sounds = new LS.Sounds();
   await sounds.loadSound('boing','../assets/Boing.wav');
   sounds.volume = 5;
@@ -79,24 +76,7 @@ LS.process.start = async ()=> {
     await LS.Utils.wait(wait_time);
   }
 
-};
+}
 LS.process.draw = async function() {
   stage.draw();
-}
-
-const MyStage = class extends LS.Stage {
-  constructor() {
-
-  }
-}
-
-const MyCat = class extends LS.Sprite {
-  constructor(render, name) {
-    super(render,name);
-  }
-  async loadImage() {
-    await this.costumes.loadImage('cat', '../assets/cat.svg');
-    await this.costumes.loadImage('cat2', '../assets/cat2.svg');
-  }
-
 }

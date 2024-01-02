@@ -10420,13 +10420,36 @@ module.exports = Env;
 
 /***/ }),
 /* 4 */
+/***/ (function(module, exports) {
+
+const Canvas = class{
+
+    static createCanvas(main) {
+        if( Canvas.canvas ) {
+            return;
+        }
+        let canvas = document.getElementById('canvas');
+        if( canvas == undefined) {
+            canvas = document.createElement('canvas');
+            canvas.id = 'canvas';
+            main.appendChild(canvas);
+        }
+        Canvas.canvas = canvas;
+        return canvas;
+    }
+}
+
+module.exports = Canvas;
+
+/***/ }),
+/* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const EventEmitter = __webpack_require__(12);
 
 const twgl = __webpack_require__(0);
 
-const RenderConstants = __webpack_require__(6);
+const RenderConstants = __webpack_require__(7);
 const Silhouette = __webpack_require__(45);
 
 class Skin extends EventEmitter {
@@ -10660,7 +10683,7 @@ module.exports = Skin;
 
 
 /***/ }),
-/* 5 */
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const twgl = __webpack_require__(0);
@@ -10853,7 +10876,7 @@ module.exports = ShaderManager;
 
 
 /***/ }),
-/* 6 */
+/* 7 */
 /***/ (function(module, exports) {
 
 /** @module RenderConstants */
@@ -10893,7 +10916,7 @@ module.exports = {
 
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const minilog = __webpack_require__(13);
@@ -10903,7 +10926,7 @@ module.exports = minilog('scratch-audioengine');
 
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const Env = __webpack_require__(3);
@@ -10981,11 +11004,7 @@ const Costumes = class {
         // do nothing
     }
     nextCostume() {
-        //console.log('Costumes#nextcostume')
-        //console.log('this.costumes', this.costumes)
-        //console.log('this.skinId', this.skinId)
         const costumesKeys = Array.from(this.costumes.keys());
-        //console.log('costumesKeys', costumesKeys)
         if(costumesKeys.length == 0) {
             return; // do nothing
         }
@@ -10997,21 +11016,16 @@ const Costumes = class {
         }
         // search next skinId
         let _idx = 0;
-//        const me = this;
         for(const _name of costumesKeys) {
             const _skinId = this.costumes.get(_name);
             if(_skinId == this.skinId) {
-//                console.log('_idx, _skinId, _name', _idx, _skinId, _name);
-//                const _idx = costumesKeys.indexOf(_name);
                 if( _idx == (costumesKeys.length - 1) ){
                     const nextName = costumesKeys[0];
                     this.skinId = this.costumes.get(nextName);
                 }else{
                     const nextName = costumesKeys[_idx+1];
-//                    console.log('nextName', nextName);
                     this.skinId = this.costumes.get(nextName);
                 }
-//                console.log('this.skinId after', me.skinId)
                 return;
             }
             _idx += 1;
@@ -11036,10 +11050,10 @@ const Costumes = class {
 module.exports = Costumes;
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const Canvas = __webpack_require__(10);
+const Canvas = __webpack_require__(4);
 const CSS = __webpack_require__(21);
 const Env = __webpack_require__(3);
 const Process = __webpack_require__(11);
@@ -11125,29 +11139,6 @@ const Element = class {
 
 module.exports = Element;
 
-
-/***/ }),
-/* 10 */
-/***/ (function(module, exports) {
-
-const Canvas = class{
-
-    static createCanvas(main) {
-        if( Canvas.canvas ) {
-            return;
-        }
-        let canvas = document.getElementById('canvas');
-        if( canvas == undefined) {
-            canvas = document.createElement('canvas');
-            canvas.id = 'canvas';
-            main.appendChild(canvas);
-        }
-        Canvas.canvas = canvas;
-        return canvas;
-    }
-}
-
-module.exports = Canvas;
 
 /***/ }),
 /* 11 */
@@ -12129,7 +12120,7 @@ module.exports = Effect;
 /* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const Costumes = __webpack_require__(8);
+const Costumes = __webpack_require__(9);
 const Backdrops = class extends Costumes {
 
 
@@ -12238,9 +12229,9 @@ html, body{
         font-size: 75px;
         line-height: 65px;
         padding: 32px;
-        color: #007000;
+        color: #005e00;
         background: #2eff2e;
-        border: 2px solid #007900;;
+        border: 2px solid #007900;
         border-radius: 65px;
         cursor: pointer;
   }
@@ -12496,7 +12487,7 @@ module.exports = Rectangle;
 const twgl = __webpack_require__(0);
 
 const {rgbToHsv, hsvToRgb} = __webpack_require__(49);
-const ShaderManager = __webpack_require__(5);
+const ShaderManager = __webpack_require__(6);
 
 /**
  * A texture coordinate is between 0 and 1. 0.5 is the center position.
@@ -14780,9 +14771,9 @@ module.exports = VolumeEffect;
 /* 35 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const Canvas = __webpack_require__(10);
+const Canvas = __webpack_require__(4);
 const Env = __webpack_require__(3);
-const Element = __webpack_require__(9);
+const Element = __webpack_require__(10);
 const Entity = class {
     constructor (render, name, layer){
         this.pace = Env.pace;
@@ -14895,6 +14886,33 @@ const Entity = class {
             })
         }
     }
+    /**
+    * whenEvent - adds the specified event listener to sprite/stage.
+    * When triggered will invoke user supplied function.
+    *
+    * @example
+    * let stage = new LS.Stage();
+    * let sprite = new LS.Sprite();
+    *
+    * sprite.addTo(stage);
+    * sprite.whenEvent('mouseover', (e) => {
+    *   console.log(e);
+    * });
+    *
+    * @param {string} eventStr - the named event (mosemove etc.).
+    * @param {function} func - a function to rewrite and execute.
+    */
+    whenEvent( eventStr, func ) {
+        const me = this;
+        let attachTo = Canvas.canvas;
+        let options = {};
+        'keydown|keyup|keypress'.indexOf(eventStr) !== -1 ? attachTo = document : null;
+        'touchstart|touchmove'.indexOf(eventStr) !== -1 ? options = { passive: true } : null;
+        attachTo.addEventListener(eventStr, (e) => {
+            func(e);
+            e.stopPropagation()
+        }, options);
+    }
     whenClicked (func) {
         const me = this;
         // this.renderer#pick() で判定すること。
@@ -14912,9 +14930,10 @@ module.exports = Entity;
 
 
 var Backdrops = __webpack_require__(19);
+var Canvas = __webpack_require__(4);
 var Css = __webpack_require__(21);
-var Costumes = __webpack_require__(8);
-var Element = __webpack_require__(9);
+var Costumes = __webpack_require__(9);
+var Element = __webpack_require__(10);
 var Env = __webpack_require__(3);
 var Process = __webpack_require__(11);
 var Render = __webpack_require__(37);
@@ -14927,6 +14946,7 @@ var Utils = __webpack_require__(2);
 
 var LS = {};
 LS.Backdrops = Backdrops;
+//LS.Canvas = Canvas;
 LS.Costumes = Costumes;
 LS.Element = Element;
 LS.Env = Env;
@@ -14952,7 +14972,7 @@ window.onload = async function () {
 /* 37 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const Element = __webpack_require__(9);
+const Element = __webpack_require__(10);
 const Env = __webpack_require__(3);
 const ScratchRenderer = __webpack_require__(22);
 const StageLayering = __webpack_require__(16);
@@ -14999,8 +15019,8 @@ const BitmapSkin = __webpack_require__(44);
 const Drawable = __webpack_require__(46);
 const Rectangle = __webpack_require__(23);
 const PenSkin = __webpack_require__(59);
-const RenderConstants = __webpack_require__(6);
-const ShaderManager = __webpack_require__(5);
+const RenderConstants = __webpack_require__(7);
+const ShaderManager = __webpack_require__(6);
 const SVGSkin = __webpack_require__(60);
 const TextBubbleSkin = __webpack_require__(78);
 const EffectTransform = __webpack_require__(24);
@@ -17412,7 +17432,7 @@ module.exports = convex;
 
 const twgl = __webpack_require__(0);
 
-const Skin = __webpack_require__(4);
+const Skin = __webpack_require__(5);
 
 class BitmapSkin extends Skin {
     /**
@@ -17802,9 +17822,9 @@ module.exports = Silhouette;
 const twgl = __webpack_require__(0);
 
 const Rectangle = __webpack_require__(23);
-const RenderConstants = __webpack_require__(6);
-const ShaderManager = __webpack_require__(5);
-const Skin = __webpack_require__(4);
+const RenderConstants = __webpack_require__(7);
+const ShaderManager = __webpack_require__(6);
+const Skin = __webpack_require__(5);
 const EffectTransform = __webpack_require__(24);
 const log = __webpack_require__(25);
 
@@ -19039,10 +19059,10 @@ module.exports = AjaxLogger;
 
 const twgl = __webpack_require__(0);
 
-const RenderConstants = __webpack_require__(6);
-const Skin = __webpack_require__(4);
+const RenderConstants = __webpack_require__(7);
+const Skin = __webpack_require__(5);
 
-const ShaderManager = __webpack_require__(5);
+const ShaderManager = __webpack_require__(6);
 
 /**
  * Attributes to use when drawing with the pen
@@ -19395,9 +19415,9 @@ module.exports = PenSkin;
 
 const twgl = __webpack_require__(0);
 
-const Skin = __webpack_require__(4);
+const Skin = __webpack_require__(5);
 const {loadSvgString, serializeSvgToString} = __webpack_require__(61);
-const ShaderManager = __webpack_require__(5);
+const ShaderManager = __webpack_require__(6);
 
 const MAX_TEXTURE_DIMENSION = 2048;
 
@@ -20969,7 +20989,7 @@ const twgl = __webpack_require__(0);
 
 const TextWrapper = __webpack_require__(79);
 const CanvasMeasurementProvider = __webpack_require__(91);
-const Skin = __webpack_require__(4);
+const Skin = __webpack_require__(5);
 
 const BubbleStyle = {
     MAX_LINE_WIDTH: 170, // Maximum width, in Scratch pixels, of a single line of text
@@ -24437,7 +24457,7 @@ module.exports = AudioEngine;
 const StartAudioContext = __webpack_require__(94);
 const AudioContext = __webpack_require__(96);
 
-const log = __webpack_require__(7);
+const log = __webpack_require__(8);
 const uid = __webpack_require__(98);
 
 const ADPCMSoundDecoder = __webpack_require__(99);
@@ -25019,7 +25039,7 @@ module.exports = uid;
 /***/ (function(module, exports, __webpack_require__) {
 
 const ArrayBufferStream = __webpack_require__(100);
-const log = __webpack_require__(7);
+const log = __webpack_require__(8);
 
 /**
  * Data used by the decompression algorithm
@@ -25455,7 +25475,7 @@ module.exports = ArrayBufferStream;
 /* 101 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const log = __webpack_require__(7);
+const log = __webpack_require__(8);
 
 class Loudness {
     /**
@@ -26320,7 +26340,7 @@ module.exports = PitchEffect;
 /* 106 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const log = __webpack_require__(7);
+const log = __webpack_require__(8);
 
 /**
  * A symbol indicating all targets are to be effected.
@@ -26489,6 +26509,7 @@ module.exports = SoundBank;
 /***/ (function(module, exports, __webpack_require__) {
 
 const Backdrops = __webpack_require__(19);
+const Canvas = __webpack_require__(4);
 const Entity = __webpack_require__(35);
 const Sensing = __webpack_require__(108);
 const Sounds = __webpack_require__(17);
@@ -26506,13 +26527,21 @@ const Stage = class extends Entity {
         this.position = {x: 0, y:0};
         this.effect = {};
         this.skinIdx = -1;
+        this.mouse = {x:0, y:0};
         Sensing.enable(this);
-    }
+        const me = this;
+        Canvas.canvas.addEventListener('mousemove', (e) => {
+            me.mouse.x = e.offsetX - Canvas.canvas.clientWidth/2;
+            me.mouse.y = e.offsetY - Canvas.canvas.clientHeight/2;
+            e.stopPropagation()
+        }, {});    
+}
 
     addSprite (sprite) {
         const curSprite = sprite
         this.sprites.push(curSprite);
         curSprite.z = this.sprites.length
+        curSprite.setStage(this);
         this._sortSprites();
     }
     removeSprite (sprite) {
@@ -26560,11 +26589,11 @@ const Stage = class extends Entity {
         return match
     }
     move(x,y) {
-        //console.log("x,y=(",x,y,")")
         this.position.x = x;
         this.position.y = y;
         this.backdrops.setPosition(this.position.x, this.position.y);
     }
+
   
 };
 
@@ -26654,9 +26683,9 @@ module.exports = Sensing;
 /* 109 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const Canvas = __webpack_require__(10);
+const Canvas = __webpack_require__(4);
 const Entity = __webpack_require__(35);
-const Costumes = __webpack_require__(8);
+const Costumes = __webpack_require__(9);
 const sounds = __webpack_require__(17);
 const StageLayering = __webpack_require__(16);
 const Utils = __webpack_require__(2);
@@ -26673,16 +26702,30 @@ const Sprite = class extends Entity {
             mosaic : ('mosaic' in actual)? actual.mosaic : 0,
             fisheye : ('fisheye' in actual)? actual.fisheye : 0,
         };
-//        this.position = ('position' in actual)? {x: actual.position.x, y: actual.position.y} : {x:0, y:0};
         this.position = ('position' in actual)? {x: actual.position.x, y: actual.position.y} : {x:0, y:0};
         this.direction = ('direction' in actual)? actual.direction : 90;
         this.scale = ('scale' in actual)? {x: actual.scale.x, y: actual.scale.y} : {x:100, y:100};
         this.z = -1;
         this.clones = [];
-        this.originalSprite = true;
+        this.isClone;
+        this.originalSprite;
+        this.stage = null;
+    }
+    setStage( stage ){
+        this.stage = stage;
+    }
+    remove() {
+        if(this.isClone === true) {
+            const clones = this.originalSprite.clones;
+            this.originalSprite.clones = clones.filter(s=> s.id !== this.id);
+            this.render.renderer.destroyDrawable(this.drawableID, StageLayering.SPRITE_LAYER);
+        }else{
+            this.stage.removeSprite(this);
+            this.render.renderer.destroyDrawable(this.drawableID, StageLayering.SPRITE_LAYER);
+        }
     }
     clone(options = {}) {
-        if(this.originalSprite === true){
+        if(this.isClone == undefined){
             const newName = `${this.name}_${this.clones.length+1}`;
             const _options = {
                 'position': {x: this.position.x, y:this.position.y}, 
@@ -26693,12 +26736,14 @@ const Sprite = class extends Entity {
                 'fisheye': this.effect.fisheye
             };
             const newOptions = Object.assign(_options, options);
-            const newSprite = new Sprite(this.render, newName, newOptions);
-            newSprite.originalSprite = false;
+//            const newSprite = new Sprite(this.render, newName, newOptions);
+            const newSprite = new this.constructor(this.render, newName, newOptions);
+            newSprite.isClone = true;
             // 連想配列のDeepCopy
             newSprite.costumes.costumes = Utils.mapDeepCopy(this.costumes.costumes);
             newSprite.costumes.skinId = this.costumes.skinId;
             newSprite.costumes.name = this.costumes.name;
+            newSprite.originalSprite = this;
             this._costumeProperties(newSprite);
             newSprite.skinIdx = this.skinIdx;
             newSprite.skinId = this.skinId;
@@ -26715,15 +26760,13 @@ const Sprite = class extends Entity {
     }
     update() {
         this._costumeProperties(this);
-        if(this.originalSprite === true){
+        if(this.isClone == undefined){
             for(const _sprite of this.clones) {
                 _sprite.update();
             }    
         }
     }
     _costumeUpdate() {
-        console.log('_costumeUpdate', this.skinId, this.skinIdx);
-        console.log('_costumeUpdate', this.costumes);
         if( this.skinId < 0) return;
         if( this.costumes.length > this.skinIdx ) {
             let _currentCostume = this.costumes[this.skinIdx];
