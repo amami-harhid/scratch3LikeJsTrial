@@ -10981,7 +10981,11 @@ const Costumes = class {
         // do nothing
     }
     nextCostume() {
-        const costumesKeys = this.costumes.keys;
+        //console.log('Costumes#nextcostume')
+        //console.log('this.costumes', this.costumes)
+        //console.log('this.skinId', this.skinId)
+        const costumesKeys = Array.from(this.costumes.keys());
+        //console.log('costumesKeys', costumesKeys)
         if(costumesKeys.length == 0) {
             return; // do nothing
         }
@@ -10992,26 +10996,25 @@ const Costumes = class {
             return;
         }
         // search next skinId
-        const _names = costumesKeys.filter(name => { 
-            const _skinId = this.costumes.get(name);
-            return _skinId == this.skinId;
-        });
-        // if exists
-        if(_names.length > 0) {
-            const name = _names[0];
-            const _idx = costumesKeys.indexOf(name);
-            if( _idx < 0) {
-                // Do nothing
-                return;
-            }else{
+        let _idx = 0;
+//        const me = this;
+        for(const _name of costumesKeys) {
+            const _skinId = this.costumes.get(_name);
+            if(_skinId == this.skinId) {
+//                console.log('_idx, _skinId, _name', _idx, _skinId, _name);
+//                const _idx = costumesKeys.indexOf(_name);
                 if( _idx == (costumesKeys.length - 1) ){
                     const nextName = costumesKeys[0];
                     this.skinId = this.costumes.get(nextName);
                 }else{
                     const nextName = costumesKeys[_idx+1];
+//                    console.log('nextName', nextName);
                     this.skinId = this.costumes.get(nextName);
                 }
+//                console.log('this.skinId after', me.skinId)
+                return;
             }
+            _idx += 1;
         }
         // do nothing
 
@@ -26671,7 +26674,7 @@ const Sprite = class extends Entity {
             fisheye : ('fisheye' in actual)? actual.fisheye : 0,
         };
 //        this.position = ('position' in actual)? {x: actual.position.x, y: actual.position.y} : {x:0, y:0};
-        this.position = ('point' in actual)? {x: actual.point.x, y: actual.point.y} : {x:0, y:0};
+        this.position = ('position' in actual)? {x: actual.position.x, y: actual.position.y} : {x:0, y:0};
         this.direction = ('direction' in actual)? actual.direction : 90;
         this.scale = ('scale' in actual)? {x: actual.scale.x, y: actual.scale.y} : {x:100, y:100};
         this.z = -1;
@@ -26682,12 +26685,12 @@ const Sprite = class extends Entity {
         if(this.originalSprite === true){
             const newName = `${this.name}_${this.clones.length+1}`;
             const _options = {
-                point: {x: this.position.x, y:this.position.y}, 
-                scale: this.scale,
-                direction: this.direction,
-                color: this.effect.color,
-                mosaic: this.effect.mosaic,
-                fisheye: this.effect.fisheye
+                'position': {x: this.position.x, y:this.position.y}, 
+                'scale': this.scale,
+                'direction': this.direction,
+                'color': this.effect.color,
+                'mosaic': this.effect.mosaic,
+                'fisheye': this.effect.fisheye
             };
             const newOptions = Object.assign(_options, options);
             const newSprite = new Sprite(this.render, newName, newOptions);
@@ -26697,6 +26700,8 @@ const Sprite = class extends Entity {
             newSprite.costumes.skinId = this.costumes.skinId;
             newSprite.costumes.name = this.costumes.name;
             this._costumeProperties(newSprite);
+            newSprite.skinIdx = this.skinIdx;
+            newSprite.skinId = this.skinId;
             this.clones.push(newSprite);
             return newSprite;
         }
@@ -26710,10 +26715,6 @@ const Sprite = class extends Entity {
     }
     update() {
         this._costumeProperties(this);
-//        this.costumes.setPosition(this.position.x, this.position.y);
-//        this.costumes.setScale(this.scale.x, this.scale.y);
-//        this.costumes.setDirection(this.direction);
-//        this.costumes.update(this.drawableID);
         if(this.originalSprite === true){
             for(const _sprite of this.clones) {
                 _sprite.update();
@@ -26721,6 +26722,8 @@ const Sprite = class extends Entity {
         }
     }
     _costumeUpdate() {
+        console.log('_costumeUpdate', this.skinId, this.skinIdx);
+        console.log('_costumeUpdate', this.costumes);
         if( this.skinId < 0) return;
         if( this.costumes.length > this.skinIdx ) {
             let _currentCostume = this.costumes[this.skinIdx];
@@ -26890,34 +26893,17 @@ const Sprite = class extends Entity {
 
 
     nextCostume() {
-        if( this.costumes.length > 0) {
-            if( this.skinIdx+1 < this.costumes.length ) {
-                this.skinIdx += 1;
-            }else{
-                this.skinIdx = 0;
-            }
-            this._costumeUpdate();
-        }
+        this.costumes.nextCostume();
     }
     switchCostume( val ) {
         if( val ){
             if( typeof val === 'string') {
                 const _name = val;
-                const _r = this.costumes.map((e)=>{
-                    return e.name === _name;
-                });
-                const _this = this;
-                _r.map((value,idx)=>{
-                    _this.skinIdx = idx;
-                    _this._costumeUpdate();
-                });
+                this.costumes.switchCostumeByName(_name);
  
             }else if( Number.isInteger(val)) {
                 const _idx = val;
-                if( _idx < this.costumes.length ) {
-                    this.skinIdx = _idx;
-                    this._costumeUpdate();
-                }
+                this.costumes.switchCostumeByNumber(_idx);
             }    
         }
     }
