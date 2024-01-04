@@ -14886,6 +14886,49 @@ const Entity = class {
             })
         }
     }
+    whenClicked (func) {
+        const me = this;
+        Canvas.canvas.addEventListener('click', (e) => {
+            const mouseX = e.offsetX;
+            const mouseY = e.offsetY;
+            const _touchDrawableId = me.render.renderer.pick(mouseX,mouseY);
+            console.log(_touchDrawableId);
+            if(me.drawableID == _touchDrawableId){
+                func();
+            }
+            e.stopPropagation()
+        }, {});        
+    }
+    whenTouchingTarget(targets, func){
+        const me = this;
+        setInterval(function(){
+            const touching = me.isTouchingTarget(me, targets);
+            if(touching === true){
+                func();
+            }
+        },0);
+    }
+    isTouchingTargetToTarget(src, targets) {
+        const targetIds = [];
+        if(Array.isArray(targets)){
+            for(const _t of targets) {
+                targetIds.push(_t.drawableID);
+            }    
+        }else{
+            targetIds.push(targets.drawableID);
+        }
+        const touching = src.render.renderer.isTouchingDrawables(src.drawableID, targetIds);
+        return touching;
+    }
+    isTouchingTarget(targets) {
+        const src = this;
+        const touching = this.isTouchingTargetToTarget(src,targets);
+        return touching;
+    }
+    whenCloned(func) {
+        const me = this;
+
+    }
     /**
     * whenEvent - adds the specified event listener to sprite/stage.
     * When triggered will invoke user supplied function.
@@ -14912,10 +14955,6 @@ const Entity = class {
             func(e);
             e.stopPropagation()
         }, options);
-    }
-    whenClicked (func) {
-        const me = this;
-        // this.renderer#pick() で判定すること。
     }
 }
 
@@ -14986,6 +15025,8 @@ const Render = class {
     }
     constructor(layerGroups = StageLayering.LAYER_GROUPS) {
         this.layerGroups = layerGroups;
+        this.stageWidth = 0;
+        this.stageHeight = 0;
         this.createRenderer();
     }
 
@@ -14996,6 +15037,9 @@ const Render = class {
         this.renderer.resize( w, h );
         // ↓ ないほうがよい。理由は追及していない。
         //this.renderer.setStageSize( - w/2, w/2, - h/2, h/2 );
+        const _nativeSize = this.renderer.getNativeSize ();
+        this.stageWidth = _nativeSize[0];
+        this.stageHeight = _nativeSize[1];
     }
 
     createDrawable(layer) {
@@ -26516,16 +26560,22 @@ const Sounds = __webpack_require__(17);
 const StageLayering = __webpack_require__(16);
 const Utils = __webpack_require__(2);
 const Stage = class extends Entity {
-    constructor(render, name) {
+    constructor(render, name, options={}) {
         super(render, name, StageLayering.BACKGROUND_LAYER);    
+        this.effect = {
+            color : ('effect' in options)? (('color' in options.effect)? options.effect.color : 0) : 0,
+            mosaic : ('effect' in options)? (('mosaic' in options.effect)? options.effect.mosaic : 0) : 0,
+            fisheye : ('effect' in options)? (('fisheye' in options.effect)? options.effect.fisheye : 0) : 0,
+        };
+        this.position =  ('position' in options)? {x: options.position.x, y: options.position.y} : {x:0, y:0};
+        this.direction = ('direction' in options)? options.direction : 90;
+        this.scale = ('scale' in options)? {x: options.scale.x, y: options.scale.y} : {x:100, y:100};
+
         this.sprites = [];
         this.keysCode = [];
         this.keysKey = [];
         this.backdrops = new Backdrops(render);
         this.sprites = [];
-        this.scale = {x:100, y:100};
-        this.position = {x: 0, y:0};
-        this.effect = {};
         this.skinIdx = -1;
         this.mouse = {x:0, y:0};
         Sensing.enable(this);
@@ -26686,6 +26736,7 @@ module.exports = Sensing;
 const Canvas = __webpack_require__(4);
 const Entity = __webpack_require__(35);
 const Costumes = __webpack_require__(9);
+const MathUtils = __webpack_require__(110);
 const sounds = __webpack_require__(17);
 const StageLayering = __webpack_require__(16);
 const Utils = __webpack_require__(2);
@@ -26693,18 +26744,17 @@ const Sprite = class extends Entity {
 
     constructor(render, name, options = {}) {
         super(render, name, StageLayering.SPRITE_LAYER);
-        let actual = (typeof options === 'object')? options : {};
         this.costumes = new Costumes(render);
         this.skinId = null;
         this.skinIdx = -1;
         this.effect = {
-            color : ('color' in actual)? actual.color : 0,
-            mosaic : ('mosaic' in actual)? actual.mosaic : 0,
-            fisheye : ('fisheye' in actual)? actual.fisheye : 0,
+            color : ('effect' in options)? (('color' in options.effect)? options.effect.color : 0) : 0,
+            mosaic : ('effect' in options)? (('mosaic' in options.effect)? options.effect.mosaic : 0) : 0,
+            fisheye : ('effect' in options)? (('fisheye' in options.effect)? options.effect.fisheye : 0) : 0,
         };
-        this.position = ('position' in actual)? {x: actual.position.x, y: actual.position.y} : {x:0, y:0};
-        this.direction = ('direction' in actual)? actual.direction : 90;
-        this.scale = ('scale' in actual)? {x: actual.scale.x, y: actual.scale.y} : {x:100, y:100};
+        this.position =  ('position' in options)? {x: options.position.x, y: options.position.y} : {x:0, y:0};
+        this.direction = ('direction' in options)? options.direction : 90;
+        this.scale = ('scale' in options)? {x: options.scale.x, y: options.scale.y} : {x:100, y:100};
         this.z = -1;
         this.clones = [];
         this.isClone;
@@ -26781,7 +26831,13 @@ const Sprite = class extends Entity {
         let _text = await svg.text();
         return _text;
     }
-
+    moveSteps(steps) {
+        const radians = MathUtils.degToRad(90 - this.direction);
+        const dx = steps * Math.cos(radians);
+        const dy = steps * Math.sin(radians);
+        this.position.x += dx;
+        this.position.y += dy;
+    }
     move( _step ) {
         if ( !Number.isNumber(_step)) {
             return;
@@ -26804,13 +26860,111 @@ const Sprite = class extends Entity {
             this.y -= _step;
             return;
         }
-        const _radian = (_degree / 180.0) * Math.PI;
+        const _radian = MathUtils.degToRad(_degree);
         const _x = Math.sin(_radian) * _step;
         const _y = Math.cos(_radian) * _step;
         this.position.x += _x;
         this.position.y += _y;
     }
+    ifOnEdgeBounds() {
+        const bounds = this.render.renderer.getBounds(this.drawableID);
+        if (!bounds) return;
+        const stageWidth = this.render.stageWidth;
+        const stageHeight = this.render.stageHeight;
+        const distLeft = Math.max(0, (stageWidth / 2) + bounds.left);
+        const distTop = Math.max(0, (stageHeight / 2) - bounds.top);
+        const distRight = Math.max(0, (stageWidth / 2) - bounds.right);
+        const distBottom = Math.max(0, (stageHeight / 2) + bounds.bottom);
+        // find nearest edge
+        let nearestEdge = '';
+        let minDist = Infinity;
+        if (distLeft < minDist) {
+            minDist = distLeft;
+            nearestEdge = 'left';
+        }
+        if (distTop < minDist) {
+            minDist = distTop;
+            nearestEdge = 'top';
+        }
+        if (distRight < minDist) {
+            minDist = distRight;
+            nearestEdge = 'right';
+        }
+        if (distBottom < minDist) {
+            minDist = distBottom;
+            nearestEdge = 'bottom';
+        }
+        if (minDist > 0) {
+            return;// Not touching any edge
+        }
+        // Point away from the nearest edge.
+        const radians = MathUtils.degToRad(90 - this.direction);
+        let dx = Math.cos(radians);
+        let dy = -Math.sin(radians);
+        if (nearestEdge === 'left') {
+            dx = Math.max(0.2, Math.abs(dx));
+        } else if (nearestEdge === 'top') {
+            dy = Math.max(0.2, Math.abs(dy));
+        } else if (nearestEdge === 'right') {
+            dx = 0 - Math.max(0.2, Math.abs(dx));
+        } else if (nearestEdge === 'bottom') {
+            dy = 0 - Math.max(0.2, Math.abs(dy));
+        }
+        const newDirection = MathUtils.radToDeg(Math.atan2(dy, dx)) + 90;
+        this.direction = newDirection;
+        // Keep within the stage.
+        const fencedPosition = this._keepInFence(this.position.x, this.position.y);
+        if(fencedPosition){
+            this.position.x = fencedPosition[0];
+            this.position.y = fencedPosition[1];    
+        }
 
+    }
+    isTouchingEdge (){
+        const stageWidth = this.render.stageWidth;
+        const stageHeight = this.render.stageHeight;
+        const bounds = this.render.renderer.getBounds(this.drawableID);
+        if (bounds.left < -stageWidth / 2 ||
+            bounds.right > stageWidth / 2 ||
+            bounds.top > stageHeight / 2 ||
+            bounds.bottom < -stageHeight / 2) {
+            return true;
+        }
+        return false;
+    }
+    _keepInFence(newX,newY){
+        const bounds = this.render.renderer.getBounds(this.drawableID);
+        if(!bounds) return;
+        const stageWidth = this.render.stageWidth;
+        const stageHeight = this.render.stageHeight;
+        const fence = {
+            left: -stageWidth / 2,
+            right: stageWidth / 2,
+            top: stageHeight / 2,
+            bottom: -stageHeight / 2
+        };
+        // Adjust the known bounds to the target position.
+        bounds.left += (newX - this.x);
+        bounds.right += (newX - this.x);
+        bounds.top += (newY - this.y);
+        bounds.bottom += (newY - this.y);
+        // Find how far we need to move the target position.
+        let dx = 0;
+        let dy = 0;
+        if (bounds.left < fence.left) {
+            dx += fence.left - bounds.left;
+        }
+        if (bounds.right > fence.right) {
+            dx += fence.right - bounds.right;
+        }
+        if (bounds.top > fence.top) {
+            dy += fence.top - bounds.top;
+        }
+        if (bounds.bottom < fence.bottom) {
+            dy += fence.bottom - bounds.bottom;
+        }
+        return [newX + dx, newY + dy];
+    }
     turnRight( _degree ) {
         let _d = this.direction;
         _d += _degree;
@@ -26952,6 +27106,20 @@ const Sprite = class extends Entity {
     }
 };
 module.exports = Sprite;
+
+/***/ }),
+/* 110 */
+/***/ (function(module, exports) {
+
+class MathUtils {
+    static degToRad (deg) {
+        return deg * Math.PI / 180;
+    }
+    static radToDeg (rad) {
+        return rad * 180 / Math.PI;
+    }
+}
+module.exports = MathUtils;
 
 /***/ })
 /******/ ]);

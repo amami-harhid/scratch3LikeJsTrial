@@ -1,7 +1,6 @@
 let stage, spriteA;
 const wait_time = LS.Env.pace;
 LS.process.staging = async function() {
-
   const render = new LS.Render();
   stage = new LS.Stage(render, "stage");
   await stage.backdrops.loadImage('mural', '../assets/Mural.png');
