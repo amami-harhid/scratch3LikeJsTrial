@@ -22,11 +22,16 @@ LS.process.staging = async function() {
 //  spriteAClone1.setScale(150);  
   _p.stage.update();
   _p.stage.draw();
-  _p.stage.whenFlag(function(){
-    console.log('stage when flag');
-  });
-  _p.stage.whenFlag(function(){
-    console.log('stage when flag2');
+  _p.stage.whenFlag(async function(){
+    await _p.stage.loadSound('Chill', '../assets/Chill.wav',{'volume':5});
+    await _p.stage.loadSound('BossaNova', '../assets/Bossa Nova.wav',{'volume':100});
+    await _p.spriteAClone1.loadSound('boing','../assets/Boing.wav',{'volume':5});
+    await _p.spriteAClone2.loadSound('Alert','../assets/Alert.mp3',{'volume':5});
+    start(_p);
+    for(;;){
+      await _p.stage.startSoundUntilDone();
+      await LS.Utils.wait(_p.wait_time);
+    }
   });
   _p.stage.whenFlag(async function(){
     for(;;) {
@@ -35,9 +40,6 @@ LS.process.staging = async function() {
       _p.spriteAClone2.nextCostume();
       await LS.Utils.wait(_p.wait_time);
     }
-  });
-  _p.stage.whenFlag(async function(){
-    start(_p);
   });
   _p.spriteA.whenClicked(async function(){
     const scale = _p.spriteA.scale;
@@ -54,7 +56,9 @@ LS.process.staging = async function() {
   _p.stage.whenClicked(async function(){
     const scale = _p.stage.scale;
     _p.stage.setScale(scale.x * -1, scale.y);
+    _p.stage.nextSound();
   });
+ 
 
   /*
   _p.spriteAClone1.whenTouchingTarget(_p.spriteA,async function(){
@@ -67,12 +71,11 @@ LS.process.staging = async function() {
 */
 }
 const start = async function(_p){
-  const sounds = new LS.Sounds();
-  await sounds.loadSound('boing','../assets/Boing.wav');
-  sounds.volume = 5;
+  
   let pitch = 1;
   let picthPower = 0.01;
-  sounds.pitch = pitch;
+  _p.spriteAClone1.setSoundPitch(pitch);
+  _p.spriteAClone2.setSoundPitch(pitch);
   const times = Array(40).fill();
   const MoveSteps = 20;
   const Clone1MoveSteps = 10;
@@ -83,7 +86,8 @@ const start = async function(_p){
       pitch += picthPower;
       if(pitch > 3 || pitch < 0.5) picthPower *= -1;
 
-      sounds.pitch = pitch;
+      _p.spriteAClone1.setSoundPitch(pitch);
+      _p.spriteAClone2.setSoundPitch(pitch);
       _p.spriteA.moveSteps(MoveSteps);
       _p.spriteA.ifOnEdgeBounds();
       _p.spriteAClone1.moveSteps(Clone1MoveSteps);
@@ -94,7 +98,7 @@ const start = async function(_p){
       }
       _p.spriteAClone1.ifOnEdgeBounds();
       if(_p.spriteAClone1.isTouchingEdge()){
-          sounds.play();
+        _p.spriteAClone1.soundPlay();
       }
       _p.spriteAClone2.moveSteps(Clone2MoveSteps);
       if(_p.spriteAClone2.isTouchingTarget(_p.spriteA)) {
@@ -110,7 +114,7 @@ const start = async function(_p){
       _p.spriteAClone2.ifOnEdgeBounds();
       //_p.spriteAClone2.position.x += _p.spriteAClone2.moveSteps;
       if(_p.spriteAClone2.isTouchingEdge()){
-        sounds.play();
+        _p.spriteAClone2.soundPlay();
       }
       _p.stage.update();
       await LS.Utils.wait(_p.wait_time);

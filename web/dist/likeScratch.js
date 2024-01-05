@@ -11066,12 +11066,16 @@ const Element = class {
             main.id = 'main';
             document.body.appendChild(main);
         }
-        main.style.width = `${innerWidth}px`
-        main.style.height = `${innerHeight}px`
         main.style.zIndex = zIndex
         main.style.position = 'absolute'
         main.style.touchAction = 'manipulation'
+        Element.main = main;
+        Element.mainPositioning(main);
         return main
+    }
+    static mainPositioning(main=Element.main) {
+        main.style.width = `${innerWidth}px`
+        main.style.height = `${innerHeight}px`
     }
     static createCanvas(main) {
         const canvas = Canvas.createCanvas(main);
@@ -11083,14 +11087,24 @@ const Element = class {
         if (Element.flag) {
             return Element.flag;
         }
-        const flagSize = 130;
         let flag = document.getElementById('start-flag');
         if( flag ) {
             main.removeChild(flag);
         }
-        flag = document.createElement('div')
+        flag = document.createElement('div');
         flag.id = 'start-flag';
+        flag.className = 'likeScratch-flag';
         main.appendChild(flag);
+        Element.flag = flag;
+        Element.flagPositioning(flag);
+        // looks
+        flag.style.position = 'absolute';
+        flag.innerHTML = '&#9873;'; // 旗マーク
+  
+        return flag;
+    }
+    static flagPositioning(flag = Element.flag) {
+        const flagSize = 130;
         // Convert the center based x coordinate to a left based one.
         const x = -(flagSize / 2);
         // Convert the center based y coordinate to a left based one.
@@ -11098,15 +11112,9 @@ const Element = class {
         // looks
         flag.style.width = `${flagSize}px`;
         flag.style.height = `${flagSize}px`;
-        flag.style.position = 'absolute';
-        flag.innerHTML = '&#9873;'; // 旗マーク
-  
         flag.style.left = `${(innerWidth / 2) + x}px`;
         flag.style.top = `${(innerHeight / 2) + y}px`;
-        flag.className = 'likeScratch-flag';
-        //fel.style.display = 'none'
-        Element.flag = flag;
-        return flag;
+
     }
     static insertCss() {
         const style = document.createElement('style');
@@ -11881,51 +11889,104 @@ module.exports = StageLayering;
 const AudioEngine = __webpack_require__(92);
 const Importer = __webpack_require__(20);
 const Process = __webpack_require__(11);
+const SoundPlayer = __webpack_require__(107);
 const Sounds = class {
 
     constructor() {
         this.audioEngine = new AudioEngine();
-        this.effects = this.audioEngine.createEffectChain();
         this.soundPlayers = new Map();
         this.soundPlayer = null;
+        this.soundIdx = 0;
     }
 
-    async loadSound( name, sound ) {
+    async loadSound( name, sound , options = {}) {
         const data = await Importer.loadSound(sound);
-        const soundPlayer = await this.audioEngine.decodeSoundPlayer({data});
+        const _effects = this.audioEngine.createEffectChain();
+        const _soundPlayer = await this.audioEngine.decodeSoundPlayer({data});
+        const _options = options;
+        _options.effects = _effects;
+        const soundPlayer = new SoundPlayer(name, _soundPlayer, _options);
         if(this.soundPlayer == null){
             this.soundPlayer = soundPlayer;
         }
         this.soundPlayers.set(name, soundPlayer);
-        this.soundPlayer.connect(this.effects);
+        // effects は インスタンスを作るときに渡しているので引数省略。
+        soundPlayer.connect(_effects);
 
     }
     switch(name) {
-        const soundPlayer = this.soundPlayers.get(name);
-        if(soundPlayer){
-            this.soundPlayer = soundPlayer;
-        }
+        const me = this;
+        const _keys = Array.from(this.soundPlayers.keys());
+        if( _keys.length > 1) {
+            _keys.map((_name,_idx) => {
+                if(_name == name) {
+                    me.soundIdx = _idx;
+                    const soundPlayer = me.soundPlayers.get(name);
+                    me.soundPlayer = soundPlayer;
+                }
+            });
 
+        } 
     }
-
+    nextSound() {
+        const me = this;
+        const _keys = Array.from(this.soundPlayers.keys());
+        if( _keys.length > 1) {
+            const _nextIdx = this.soundIdx + 1;
+            if(_nextIdx < _keys.length) {
+                this.soundIdx = _nextIdx;
+            }else{
+                this.soundIdx = 0;
+            }
+            _keys.map( (_name, _idx) => {
+                if (_idx == me.soundIdx ) {
+                    me.soundPlayer = me.soundPlayers.get(_name);
+                }
+            });
+        }
+    }
     play() {
-        this.soundPlayer.connect(this.effects);
+        const _effects = this.soundPlayer.effects;
+        this.soundPlayer.connect(_effects);
         this.soundPlayer.play();
     }
-    set volume(value) {
-        this.effects.set(this.effects.volume.name, value);
-        this.effects.volume.update();
+    setVolume(volume, name) {
+        if(name) {
+            const me = this;
+            const _keys = Array.from(this.soundPlayers.keys());
+            if ( _keys.length > 0 ) {
+                _keys.map((_name,_idx)=>{
+                    if ( _name == name ) {
+                        const _soundPlayer = this.soundPlayers.get(name);
+                        _soundPlayer.volume = volume;               
+                    }
+                });
+            } else {
+                // soundPlayerがない
+                return;
+            }
+        } else {
+            this.soundPlayer.volume = volume;
+        }
+    }
+    set volume(volume = 100) {
+        // 現在選択中の soundPlayerへ設定する
+        this.soundPlayer.volume = volume;
     }
     get volume(){
-        const volume = this.effects[this.effects.volume.name].value;
-        return volume;
+        // 現在選択中の soundPlayerから取得する
+        return this.soundPlayer.volume;
     }
-    set pitch(value = 1) {
-        this.soundPlayer.setPlaybackRate(value);
+    set pitch(pitch = 1) {
+        // 現在選択中の soundPlayerへ設定する
+        this.soundPlayer.pitch = pitch;
+    }
+    get pitch() {
+        // 現在選択中の soundPlayerから取得する
+        return this.soundPlayer.pitch;
     }
     async startSoundUntilDone() {
-        this.soundPlayer.play();
-        await this.soundPlayer.finished(); // 終わるまで待つ
+        await this.soundPlayer.startSoundUntilDone(); // 終わるまで待つ
     }
     stop() {
         this.soundPlayer.stop();
@@ -14782,7 +14843,6 @@ const Entity = class {
         this.layer = layer;
         this.drawableID = this.render.createDrawable(this.layer);
         Entity.messageListeners = [];
-        this.sounds = []; // sound-player の配列
         this.id = this._generateUUID();
         this.evented = [
             'whenFlag',
@@ -14798,6 +14858,51 @@ const Entity = class {
         this.position = {x:0, y:0};
         this.scale = {x:100,y:100};
         this.direction = 90;
+        this.sound = null;
+    }
+    async loadSound(name, soundUrl, options={}) {
+        if ( this.sounds == undefined ) this.sounds = new LS.Sounds();
+        await this.sounds.loadSound(name,soundUrl, options);
+    }
+    soundSwitch(name){
+        if ( this.sounds == undefined ) return;
+        this.sound.switch(name);
+    }
+    nextSound() {
+        if ( this.sounds == undefined ) return;
+        this.soundStop();    
+        this.sounds.nextSound();
+    }
+    soundPlay(name) {
+        if ( this.sounds == undefined ) return;
+        if( name ) {
+            this.soundSwitch(name);
+        } 
+        this.sounds.play();
+    }
+    setSoundVolume(volume) {
+        if ( this.sounds == undefined ) return;
+        this.sounds.volume = volume;
+    }
+    setSoundVolumeByName(name, volume) {
+        if ( this.sounds == undefined ) return;
+        this.sounds.volume = volume;
+    }
+    setSoundPitch(pitch) {
+        if ( this.sounds == undefined ) return;
+        this.sounds.pitch = pitch;
+    }
+    soundStop() {
+        if ( this.sounds == undefined ) return;
+        this.sounds.stop();
+    }
+    soundStopImmediately() {
+        if ( this.sounds == undefined ) return;
+        this.sounds.soundStopImmediately();
+    }
+    async startSoundUntilDone() {
+        if ( this.sounds == undefined ) return;
+        await this.sounds.startSoundUntilDone();
     }
     setPosition(x, y) {
         this.position.x = x;
@@ -14892,7 +14997,6 @@ const Entity = class {
             const mouseX = e.offsetX;
             const mouseY = e.offsetY;
             const _touchDrawableId = me.render.renderer.pick(mouseX,mouseY);
-            console.log(_touchDrawableId);
             if(me.drawableID == _touchDrawableId){
                 func();
             }
@@ -14977,8 +15081,8 @@ var Env = __webpack_require__(3);
 var Process = __webpack_require__(11);
 var Render = __webpack_require__(37);
 var Sounds = __webpack_require__(17);
-var Stage = __webpack_require__(107);
-var Sprite = __webpack_require__(109);
+var Stage = __webpack_require__(108);
+var Sprite = __webpack_require__(110);
 var Utils = __webpack_require__(2);
 
 //const AudioEngine = require('scratch-audio');
@@ -15018,28 +15122,50 @@ const StageLayering = __webpack_require__(16);
 const Render = class {
 
     static get W() {
-        return innerWidth;
+        let w = Math.max(innerWidth * 0.8, 240);
+        let h = w * 0.75;
+        const hLimit = innerHeight * 0.95;
+        if( h > hLimit ) {
+            h = hLimit;
+            w = h / 0.75
+        }
+        return w;
     }
     static get H() {
-        return innerHeight;
+        return Render.W * 0.75;
     }
     constructor(layerGroups = StageLayering.LAYER_GROUPS) {
         this.layerGroups = layerGroups;
         this.stageWidth = 0;
         this.stageHeight = 0;
         this.createRenderer();
-    }
+        const me = this;
+        const main = Element.main;
+        const flag = Element.flag;
+        const resizeWindow = function() {
+            Element.mainPositioning(main);
+            if(flag){
+                Element.flagPositioning(flag);
+            }
 
-    createRenderer (w = Render.W , h = Render.H ) {
-        this.canvas = Element.canvas;
-        this.renderer = new ScratchRenderer(canvas);
-        this.renderer.setLayerGroupOrdering(this.layerGroups);
+            me.stageResize();
+        };
+        window.addEventListener('resize', resizeWindow);
+    }
+    stageResize(w = Render.W , h = Render.H) {
         this.renderer.resize( w, h );
         // ↓ ないほうがよい。理由は追及していない。
         //this.renderer.setStageSize( - w/2, w/2, - h/2, h/2 );
         const _nativeSize = this.renderer.getNativeSize ();
         this.stageWidth = _nativeSize[0];
         this.stageHeight = _nativeSize[1];
+
+    }
+    createRenderer (w = Render.W , h = Render.H ) {
+        this.canvas = Element.canvas;
+        this.renderer = new ScratchRenderer(canvas);
+        this.renderer.setLayerGroupOrdering(this.layerGroups);
+        this.stageResize(w,h);
     }
 
     createDrawable(layer) {
@@ -26550,12 +26676,88 @@ module.exports = SoundBank;
 
 /***/ }),
 /* 107 */
+/***/ (function(module, exports) {
+
+const SoundPlayer = class {
+
+    constructor(name, soundPlayer, options = {}) {
+        this._name = name;
+        this._soundPlayer = soundPlayer;
+        this._volume = ('volume' in options)? options.volume: 100;
+        this._pitch = ('pitch' in options)? options.pitch: 1;
+        this.connectDone = false;
+        if('effects' in options) {
+            this._effects = options.effects;
+            this._soundPlayer.setPlaybackRate(this._pitch);
+            this._effects.set(this._effects.volume.name, this._volume);
+            this._effects.volume.update();
+            this.connect();
+        }
+    }
+    set pitch( pitch ) {
+        this._pitch = pitch;
+        this._soundPlayer.setPlaybackRate(pitch);
+    }
+    get pitch() {
+        return this._pitch;
+    }
+    set volume( volume) {
+        this._volume = volume;
+        this._effects.set(this._effects.volume.name, this._volume);
+        this._effects.volume.update();
+    }
+    get volume() {
+        return this._volume;
+    }
+
+    get soundPlayer() {
+        return this._soundPlayer;
+
+    }
+    get name() {
+        return this._name;
+    }
+    set effects ( effects ){
+        this._effects = effects;
+    }
+    get effects() {
+        return this._effects;
+    }
+    connect(effects) {
+        if(this.connectDone === false) {
+            if(effects) {
+                this._effects = effects;
+            }
+            this._soundPlayer.connect(this._effects);
+            this.connectDone = true;
+        }
+    }
+    play() {
+        this._soundPlayer.play();
+    }
+    async startSoundUntilDone() {
+        this.play();
+        await this._soundPlayer.finished();
+    }
+    stop() {
+        this._soundPlayer.stop();
+    }
+    stopImmediately() {
+        this._soundPlayer.stopImmediately();
+    }
+
+}
+
+module.exports = SoundPlayer;
+
+/***/ }),
+/* 108 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const Backdrops = __webpack_require__(19);
 const Canvas = __webpack_require__(4);
 const Entity = __webpack_require__(35);
-const Sensing = __webpack_require__(108);
+const Sensing = __webpack_require__(109);
 const Sounds = __webpack_require__(17);
 const StageLayering = __webpack_require__(16);
 const Utils = __webpack_require__(2);
@@ -26650,7 +26852,7 @@ const Stage = class extends Entity {
 module.exports = Stage;
 
 /***/ }),
-/* 108 */
+/* 109 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const ScratchRenderer = __webpack_require__(22);
@@ -26730,13 +26932,13 @@ const Sensing = {
 module.exports = Sensing;
 
 /***/ }),
-/* 109 */
+/* 110 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const Canvas = __webpack_require__(4);
 const Entity = __webpack_require__(35);
 const Costumes = __webpack_require__(9);
-const MathUtils = __webpack_require__(110);
+const MathUtils = __webpack_require__(111);
 const sounds = __webpack_require__(17);
 const StageLayering = __webpack_require__(16);
 const Utils = __webpack_require__(2);
@@ -27108,7 +27310,7 @@ const Sprite = class extends Entity {
 module.exports = Sprite;
 
 /***/ }),
-/* 110 */
+/* 111 */
 /***/ (function(module, exports) {
 
 class MathUtils {
