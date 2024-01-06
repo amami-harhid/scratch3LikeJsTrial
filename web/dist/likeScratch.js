@@ -15122,12 +15122,16 @@ const StageLayering = __webpack_require__(16);
 const Render = class {
 
     static get W() {
-        let w = Math.max(innerWidth * 0.8, 240);
-        let h = w * 0.75;
-        const hLimit = innerHeight * 0.95;
+        const Scratch3StageWidth = 240;
+        const WHRate = 0.75; // ( 3/4 )
+        const InnerWidthRate = 1;// 0.95; //0.8;
+        const InnerHeightRate = 1;
+        let w = innerWidth * InnerWidthRate;
+        let h = w * WHRate;
+        const hLimit = innerHeight * InnerHeightRate;
         if( h > hLimit ) {
             h = hLimit;
-            w = h / 0.75
+            w = h / WHRate;
         }
         return w;
     }
