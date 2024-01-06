@@ -15120,15 +15120,17 @@ const Env = __webpack_require__(3);
 const ScratchRenderer = __webpack_require__(22);
 const StageLayering = __webpack_require__(16);
 const Render = class {
-
+    static get WHRate() {
+        return 0.75;
+    }
     static get W() {
         const Scratch3StageWidth = 240;
-        const WHRate = 0.75; // ( 3/4 )
-        const InnerWidthRate = 1;// 0.95; //0.8;
-        const InnerHeightRate = 1;
-        let w = innerWidth * InnerWidthRate;
+        const WHRate = Render.WHRate; // ( 3/4 )
+        const InnerWidthRate = 0.9;// 0.95; //0.8;
+        const InnerHeightRate = 0.9;
+        let w = innerWidth / devicePixelRatio * InnerWidthRate;
         let h = w * WHRate;
-        const hLimit = innerHeight * InnerHeightRate;
+        const hLimit = innerHeight / devicePixelRatio * InnerHeightRate;
         if( h > hLimit ) {
             h = hLimit;
             w = h / WHRate;
@@ -15136,7 +15138,7 @@ const Render = class {
         return w;
     }
     static get H() {
-        return Render.W * 0.75;
+        return Render.W * Render.WHRate;
     }
     constructor(layerGroups = StageLayering.LAYER_GROUPS) {
         this.layerGroups = layerGroups;
@@ -15157,6 +15159,7 @@ const Render = class {
         window.addEventListener('resize', resizeWindow);
     }
     stageResize(w = Render.W , h = Render.H) {
+        console.log(`innerWidth=${innerWidth}, innerHeight=${innerHeight}, devicePixelRatio=${devicePixelRatio}`)
         this.renderer.resize( w, h );
         // ↓ ないほうがよい。理由は追及していない。
         //this.renderer.setStageSize( - w/2, w/2, - h/2, h/2 );
