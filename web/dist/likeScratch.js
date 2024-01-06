@@ -15124,10 +15124,10 @@ const Render = class {
         return 0.75;
     }
     static get W() {
-        const Scratch3StageWidth = 240;
+        //const Scratch3StageWidth = 240;
         const WHRate = Render.WHRate; // ( 3/4 )
-        const InnerWidthRate = 0.9;// 0.95; //0.8;
-        const InnerHeightRate = 0.9;
+        const InnerWidthRate = 0.95;// 0.95; //0.8;
+        const InnerHeightRate = 0.95;
         let w = innerWidth / devicePixelRatio * InnerWidthRate;
         let h = w * WHRate;
         const hLimit = innerHeight / devicePixelRatio * InnerHeightRate;
@@ -15159,7 +15159,7 @@ const Render = class {
         window.addEventListener('resize', resizeWindow);
     }
     stageResize(w = Render.W , h = Render.H) {
-        console.log(`innerWidth=${innerWidth}, innerHeight=${innerHeight}, devicePixelRatio=${devicePixelRatio}`)
+        //console.log(`innerWidth=${innerWidth}, innerHeight=${innerHeight}, devicePixelRatio=${devicePixelRatio}`)
         this.renderer.resize( w, h );
         // ↓ ないほうがよい。理由は追及していない。
         //this.renderer.setStageSize( - w/2, w/2, - h/2, h/2 );
