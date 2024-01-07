@@ -33,8 +33,6 @@ LS.Utils = Utils;
 window.LS = LS;
 */
 window.P = Process.default; //.getInstance();
-console.log(P);
-console.log(P.id);
 const Element = P.Element;
 Element.insertCss();
 
