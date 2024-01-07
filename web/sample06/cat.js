@@ -1,6 +1,6 @@
-const MyCat = class extends LS.Sprite {
-  constructor(render, name, options) {
-    super(render,name, options);
+const MyCat = class extends P.Sprite {
+  constructor(stage, name, options) {
+    super(stage, name, options);
     this.life = 1000000;
   }
   async loadImage() {
