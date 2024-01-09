@@ -10535,6 +10535,7 @@ const Process = class {
         return this._flag;
     }
 
+    // これは使わない！
     waitImportAllDone () {
 
         return new Promise( async (resolve) => {
@@ -10571,13 +10572,13 @@ const Process = class {
         if(this._preloadImagePromise.length > 0 ) {
             const _images = await Promise.all(this._preloadImagePromise);
             for(const v of _images) {
-                this._images[v.name] = v.data;
+                this._images[v.name] = {'name': v.name, 'data': v.data };
             }    
         }
         if( this._preloadSoundPromise.length > 0 ) {
             const _sounds = await Promise.all(this._preloadSoundPromise);
             for(const v of _sounds) {
-                this._sounds[v.name] = v.data;
+                this._sounds[v.name] = {'name' : v.name, 'data': v.data };
             }    
         }
 
@@ -15133,7 +15134,7 @@ const Entity = class {
         const soundData = await this.sounds.importSound( sound );
         return soundData;
     }
-    async addSound(name, soundData, options={}) {
+    async _addSound(name, soundData, options={}) {
         if ( this.sounds == undefined ) this.sounds = new Sounds();
         await this.sounds.setSound(name, soundData, options);
     }
@@ -27188,9 +27189,15 @@ const Stage = class extends Entity {
     async loadImage(name, imageUrl) {
         this._loadImage(name, imageUrl, this.backdrops);
     }
-    async addImage(name ,image) {
-    
-        await this._addImage(name, image, this.backdrops);
+    async addSound(soundData, options={}) {
+        const name = soundData.name;
+        const data = soundData.data;
+        await this._addSound(name, data, options)
+    }
+    async addImage(imageData) {
+        const name = imageData.name;
+        const data = imageData.data;
+        await this._addImage(name, data, this.backdrops);
 
     }
 
@@ -27885,8 +27892,15 @@ const Sprite = class extends Entity {
     async loadImage(name, imageUrl) {
         this._loadImage(name, imageUrl, this.costumes);
     }
-    async addImage(name ,image) {
-        this._addImage(name, image, this.costumes);
+    async addSound(soundData, options = {}) {
+        const name = soundData.name;
+        const data = soundData.data;
+        await this._addSound(name, data, options);
+    }
+    async addImage(imageData) {
+        const name = imageData.name;
+        const data = imageData.data;
+        await this._addImage(name, data, this.costumes);
     }
 
 };
