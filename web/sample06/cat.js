@@ -2,13 +2,10 @@ const MyCat = class extends P.Sprite {
     constructor(stage, name, options) {
         super(stage, name, options);
         this.life = 1000000;
+        //this.loadImage();
+    
     }
 
-    async loadImage() {
-        await this.costumes.loadImage('cat', '../assets/cat.svg');
-        await this.costumes.loadImage('cat2', '../assets/cat2.svg');
-    }
-    
     update() {
         super.update();
         if(this.isClone === true) {
