@@ -10393,13 +10393,25 @@ const Utils = class {
         return 0.05;
     }    
 
-    static mapDeepCopy(src) {
-        const dist = new Map();
+    static mapDeepCopy(src, dist, defaultValue) {
+        let _dist;
+        if( dist ) {
+            _dist = dist;
+        }else{
+            _dist = new Map();
+        }
+
         for(const k of src.keys()) {
             const v = src.get(k);
-            dist.set(k, v);
+            if(defaultValue){
+                _dist.set(v, defaultValue);
+
+            }else{
+                _dist.set(k, v);
+
+            }
         }
-        return dist;
+        return _dist;
     }
     static generateUUID () {
         let d
@@ -10512,18 +10524,29 @@ const Process = class {
     get stage () {
         return this._stage;
     }
-
-    async _staging () {
+    createThread( func ) {
+        setTimeout(func, 0);
+    }
+    async waitUntil( condition ) {
+        for(;;) {
+            if( condition() ) {
+                break;
+            }
+            await Utils.wait(Env.pace);
+        }
+    }
+    async _staging (render) {
         // ここで フラグとキャンバスを表示する
         const main = this.main;
         main.classList.remove(Element.DISPLAY_NONE);
-        const render = new Render();
         await this.staging(render);
         await P.Utils.wait(Env.pace);
-        this._stage.update();
-        this._stage.draw();
+        if(this._stage) {
+            this._stage.update();
+            this._stage.draw();    
+        }
     }
-    async staging () {
+    async staging (render) {
 
     }
 
@@ -10558,13 +10581,25 @@ const Process = class {
         });
     }
 
-    loadImage(name, imageUrl) {
-        const data = Importer.loadImage(imageUrl, name);
+    loadImage(imageUrl, name) {
+        let _name ;
+        if( name ) {
+            _name = name;
+        }else{
+            _name = imageUrl.replace(/\.[^.]+$/)
+        }
+        const data = Importer.loadImage(imageUrl, _name);
         this._preloadImagePromise.push(data);
         return data;
     }
-    async loadSound(name, soundUrl) {
-        const data = Importer.loadSound(soundUrl, name);
+    loadSound(soundUrl, name) {
+        let _name ;
+        if( name ) {
+            _name = name;
+        }else{
+            _name = imageUrl.replace(/\.[^.]+$/)
+        }
+        const data = Importer.loadSound(soundUrl, _name);
         this._preloadSoundPromise.push(data);
         return data;
     }
@@ -10585,10 +10620,9 @@ const Process = class {
 
     }
     async _preload () {
-        this.preload();
-    }
-    async preload () {
-
+        if( this.preload ) {
+            this.preload();
+        }
     }
     async _init() {
         this._preload();
@@ -10596,31 +10630,49 @@ const Process = class {
         await Element.init();
         const main = this.main;
         main.classList.add(Element.DISPLAY_NONE);
+        this._render = new Render();
         if(this.setup) {
-            await this.setup();
-            await this._staging();
+            await this.setup(this._render);
+            await this._staging(this._render);
         }else{
-            await this._staging();
+            await this._staging(this._render);
         }
 
     }
 
     async _start () {
-        this.start();
+        console.log('---- start -----')
+        this._start();
+    }
+    async drawLoop() {
         for(;;) {
             this._draw();
             await Utils.wait(Env.pace);
         }
     }
+    async _start() {
+        P.start();
+        setInterval(P._draw,Env.pace);
+        if(P._stage) {
+            await P.Utils.wait(Env.pace);
+            P._stage.update();
+            P._stage.draw();    
+        }
+
+    }
     async start () {
 
     }
     _draw () {
-        this.draw();
+        //console.log('_draw')
+        P.draw();
     }
 
     draw () {
-        this.stage.draw();
+        if(this._stage) {
+            this._stage.update();
+            this.stage.draw();
+        }
     }
 
 }
@@ -11161,7 +11213,7 @@ const Costumes = class {
         this.render = render;
         this.skinId = null;
         this.costumes = new Map();
-        this.skinIdDone = new Map();
+        //this.skinIdDone = new Map();
         this._position = {x:0, y:0};
         this._direction = 90;
         this._scale = {x:100, y:100};
@@ -11182,13 +11234,18 @@ const Costumes = class {
             //console.log('costumes _setSkin is Svg')
             // 複数回ロードしたら、その都度 skinId は変わるのか？（変わるはず！）
             const _svgText = _img;
-            const _skinId = await this._setSvgSkin(_svgText);
+            //const _skinId = await this._setSvgSkin(_svgText);
+            this._setSvgSkin(_svgText).then(v=>{
+                const _skinId = v;
+                //this.skinIdDone.set(_skinId, true);
+                this.costumes.set( name , _skinId);
+                if( this.skinId == null) {
+                    this.skinId = _skinId; // 初回のSkinId 
+                }    
+            });
             //console.log('Costumes _setSkin skinId=',_skinId)
-            this.costumes.set( name , _skinId);
-            if( this.skinId == null) {
-                this.skinId = _skinId; // 初回のSkinId 
-            }
         }else{
+            console.log('Costume _setSkin name= ', name);
             const _bitmap = _img;
             const _skinId = await this._setBitmapSkin(_bitmap);        
             this.costumes.set( name , _skinId);
@@ -11199,13 +11256,13 @@ const Costumes = class {
     }
     async _setSvgSkin(_svgText) {
         const skinId = this.render.renderer.createSVGSkin(_svgText);
-        await Utils.wait(10)
-        this.skinIdDone.set(skinId, true);
+        //await Utils.wait(10)
+        //this.skinIdDone.set(skinId, true);
         return skinId;
     }
     async _setBitmapSkin(_bitmap) {
         const skinId = await this.render.renderer.createBitmapSkin(_bitmap);
-        this.skinIdDone.set(skinId, true);
+        //this.skinIdDone.set(skinId, true);
         return skinId;        
     }
     setDirection(_direction) {
@@ -11268,17 +11325,42 @@ const Costumes = class {
 
     }
 
-    update(drawableID, effect = {}) {
-        if(!this.skinIdDone.has(this.skinId)) return;
-        const me = this;
+    update( drawableID, effect = {} ) {
+        const _skinId = this.skinId;
+        if( this.isSvgSkin( _skinId ) ) {
+            if( !this.isSvgComplete( _skinId )) {
+                return;
+            }     
+        }
         const properties = {};
-        const skinObj = {skinId: this.skinId};
-        const directionObj = {direction: this._direction};
-        const scaleObj = {scale: [this._scale.x, this._scale.y]};
-                        //scale: [this.scale.x, this.scale.y],
-        const positionObj = {position: [this._position.x, this._position.y]};
-        Object.assign(properties, skinObj, directionObj, scaleObj, positionObj, effect);
-        this.render.renderer.updateDrawableProperties(drawableID, properties);
+        const skinObj = { skinId: _skinId };
+        const directionObj = { direction: this._direction };
+        const scaleObj = { scale: [ this._scale.x, this._scale.y ] };
+        const positionObj = { position: [this._position.x, this._position.y] };
+        Object.assign( properties, skinObj, directionObj, scaleObj, positionObj, effect );
+        this.render.renderer.updateDrawableProperties( drawableID, properties );
+
+    }
+    isSvgSkin( skinId ) {
+        if( this.render.renderer._allSkins.includes( skinId ) ) {
+            const _skin = this.render.renderer._allSkins[ skinId ];
+            if( _skin.constructor.name == 'SVGSkin' ) {
+                return true;
+            }
+        }
+        return false;
+    }
+    isSvgComplete( skinId ) {
+        if( this.render.renderer._allSkins.includes( skinId ) ) {
+            const _skin = this.render.renderer._allSkins[ skinId ];
+            if( _skin.constructor.name == 'SVGSkin' ) {
+                const _svgImage = _skin._svgImage;
+                if( _svgImage.complete ) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 };
 
@@ -12360,14 +12442,10 @@ const Element = class {
         document.getElementsByTagName('head')[0].appendChild(style);
     }
     static async init() {
-//        const process = window.P;
         const process = Process.default;
         const main = Element.createMain(999);
-//        main.classList.add(DISPLAY_NONE);
         Element.createCanvas(main);
         const flag = Element.createFlag(main);
-//        await process._staging();
-//      await process._draw();
         flag.addEventListener('click', async function() {
             flag.classList.add(Element.DISPLAY_NONE);
             process._start();
@@ -15052,9 +15130,9 @@ const Entity = class {
           ];
         this.canvas = Canvas.canvas;
         this.flag = Process.default.flag;
-        this.position = {x:0, y:0};
-        this.scale = {x:100,y:100};
-        this.direction = 90;
+        this.position = {x:0, y:0}; // 意味なし
+        this.scale = {x:100,y:100}; // 意味なし
+        this.direction = 90; // 意味なし
         this.sound = null;
         this.importAllDone = [];
         this.importIdx = -1;
@@ -15119,7 +15197,9 @@ const Entity = class {
         return _allDone;
     }
     async _addImage(name ,image, costume) {
+//        console.log('Entity _addImage (1)costume.costumes=', costume.costumes);
         await costume.addImage(name, image);
+//        console.log('Entity _addImage (2)costume.costumes=', costume.costumes);
 
     }
     async _loadImage(name, imageUrl, costume) {
@@ -15297,13 +15377,22 @@ const Entity = class {
         const targetIds = [];
         if(Array.isArray(targets)){
             for(const _t of targets) {
-                targetIds.push(_t.drawableID);
+                const _drawableId = _t.drawableID;
+                if( src.render.renderer._allDrawables.includes(_drawableId)){
+                    targetIds.push(_drawableId);
+                }
             }    
         }else{
-            targetIds.push(targets.drawableID);
+            const _drawableId = targets.drawableID;
+            if( src.render.renderer._allDrawables.includes(_drawableId)){
+                targetIds.push(_drawableId);
+            }
         }
-        const touching = src.render.renderer.isTouchingDrawables(src.drawableID, targetIds);
-        return touching;
+        if( targetIds.length > 0 ) {
+            const touching = src.render.renderer.isTouchingDrawables(src.drawableID, targetIds);
+            return touching;    
+        }
+        return false;
     }
     isTouchingTarget(targets) {
         const src = this;
@@ -27115,6 +27204,7 @@ const Stage = class extends Entity {
         this.mouse = {x:0, y:0};
         Sensing.enable(this);
         const me = this;
+        // これは Canvasをつくる Element クラスで実行したほうがよさそう（関連性強いため）
         Canvas.canvas.addEventListener('mousemove', (e) => {
             me.mouse.x = e.offsetX - Canvas.canvas.clientWidth/2;
             me.mouse.y = e.offsetY - Canvas.canvas.clientHeight/2;
@@ -27481,6 +27571,7 @@ module.exports = Sensing;
 
 const Canvas = __webpack_require__(7);
 const Entity = __webpack_require__(35);
+const Env = __webpack_require__(4);
 const Costumes = __webpack_require__(10);
 const Looks = __webpack_require__(12);
 const MathUtils = __webpack_require__(113);
@@ -27492,53 +27583,31 @@ const Sprite = class extends Entity {
 
     constructor(stage, name, options = {}) {
         const render = stage.render;
-        super(render, name, StageLayering.SPRITE_LAYER);
+        super(render, name, StageLayering.SPRITE_LAYER, options);
         this.stage = stage;
         this.costumes = new Costumes(render);
         this.skinId = null;
         this.skinIdx = -1;
-//        this._effect = ('effect' in options )? options.effect: {};
-//        this.position =  ('position' in options)? {x: options.position.x, y: options.position.y} : {x:0, y:0};
-//        this.direction = ('direction' in options)? options.direction : 90;
-//        this.scale = ('scale' in options)? {x: options.scale.x, y: options.scale.y} : {x:100, y:100};
         this.z = -1;
         this.clones = [];
         this.isClone;
         this.originalSprite;
+        this.imageDatas = [];
+        this.soundDatas = [];
+        this.touchingEdge = false;
         stage.addSprite(this);
     }
-/*
-    get effect() {
-        return this._effect;
-    }
-    set effect(_effect) {
-        if(Looks.COLOR in _effect ){
-            this._effect.color = _effect.color;    
-        }
-        if(Looks.MOSAIC in _effect ){
-            this._effect.mosaic = _effect.mosaic;    
-        }
-        if(Looks.FISHEYE in _effect ){
-            this._effect.fisheye = _effect.fisheye;    
-        }
-    }
-    clearEffect() {
-        this._effect.color = 0;    
-        this._effect.mosaic = 0;    
-        this._effect.fisheye = 0; 
-    }
- */
     remove() {
+        this.skinId = null;
         if(this.isClone === true) {
             const clones = this.originalSprite.clones;
             this.originalSprite.clones = clones.filter(s=> s.id !== this.id);
-            this.render.renderer.destroyDrawable(this.drawableID, StageLayering.SPRITE_LAYER);
-        }else{
-            this.stage.removeSprite(this);
-            this.render.renderer.destroyDrawable(this.drawableID, StageLayering.SPRITE_LAYER);
+//            this.render.renderer.destroyDrawable(this.drawableID, StageLayering.SPRITE_LAYER);
         }
+        this.stage.removeSprite(this);
+        this.render.renderer.destroyDrawable(this.drawableID, StageLayering.SPRITE_LAYER);
     }
-    clone(options = {}) {
+    async clone(options = {}) {
         if(this.isClone == undefined){
             const newName = `${this.name}_${this.clones.length+1}`;
             // クローン時にエフェクトを引き継ぐ。
@@ -27554,28 +27623,68 @@ const Sprite = class extends Entity {
             const _options = {
                 'position' : {x: this.position.x, y:this.position.y}, 
                 'scale' : this.scale,
-                'direction' : this.direction,
-                COLOR : this._effect.color,
-                FISHEYE : this._effect.fisheye,
-                WHIRL: this._effect.whirl,
-                PIXELATE: this._effect.pixelate,
-                MOSAIC: this._effect.mosaic,
-                BRIGHTNESS: this._effect.brightness,
-                GHOST: this._effect.ghost,
+                'direction' : (this.direction)? this.direction: 90,
+                COLOR : (this._effect.color)? this._effect.color: 0,
+                FISHEYE : (this._effect.fisheye)? this._effect.fisheye: 0,
+                WHIRL: (this._effect.whirl)? this._effect.whirl: 0,
+                PIXELATE: (this._effect.pixelate)? this._effect.pixelate: 0,
+                MOSAIC: (this._effect.mosaic)? this._effect.mosaic: 0,
+                BRIGHTNESS: (this._effect.brightness)? this._effect.brightness: 0,
+                GHOST: (this._effect.ghost)? this._effect.ghost: 0,
             };
             const newOptions = Object.assign(_options, options);
+            //console.log('Sprite clone newOptions ', newOptions)
 //            const newSprite = new Sprite(this.render, newName, newOptions);
             const newSprite = new this.constructor(this.stage, newName, newOptions);
+            this.clones.push(newSprite);
             newSprite.isClone = true;
+//            console.log('Sprite clone this.imageDatas=', this.imageDatas)
+
+/*
+            for(const d of this.imageDatas) {
+//                console.log(d)
+                newSprite.addImage(d); 
+                // svg image の場合、createSVGSkin の中で非同期になることに注意すること
+                // renderer._allSkins の配列のすべてがSkin._svgImage.complete == trueになるまで待つ必要がある。
+            }
+            for(const d of this.soundDatas) {
+                newSprite.addSound(d); // option をつけてあげたい（引き継ぐ）
+            }
+ */
+//            console.log('Sprite clone this.costumes.costumes=',this.costumes.costumes);
+/*
+            console.log(  this.costumes.costumes.keys().next() );
+            const costumesKeys = Array.from(this.costumes.costumes.keys());
+            console.log('Sprite clone costumesKeys=',costumesKeys);
+            for(const name of this.costumes.costumes.keys()) {
+                const skinId = this.costumes.costumes.get(name);
+                newSprite.costumes.costumes.set(name, skinId);
+                newSprite.costumes.skinIdDone.set(name,true);
+            }
+ */
             // 連想配列のDeepCopy
             newSprite.costumes.costumes = Utils.mapDeepCopy(this.costumes.costumes);
+//            console.log('Sprite clone clone.costumes.costumes=',newSprite.costumes.costumes);
+            //newSprite.costumes.skinIdDone = Utils.mapDeepCopy(this.costumes.costumes, this.costumes.skinIdDone, true);
             newSprite.costumes.skinId = this.costumes.skinId;
             newSprite.costumes.name = this.costumes.name;
+            newSprite.costumes._position = {x: _options.position.x, y: _options.position.y};
+            newSprite.costumes._direction = _options.direction;
+            newSprite.costumes._scale = {x: _options.scale.x, y: _options.scale.y};
+
             newSprite.originalSprite = this;
             this._costumeProperties(newSprite);
             newSprite.skinIdx = this.skinIdx;
-            newSprite.skinId = this.skinId;
-            this.clones.push(newSprite);
+            newSprite.skinId = this.costumes.skinId;
+/*
+            const me = this;
+            setTimeout(async function(){
+                console.log('Sprite clone timeout')
+                await Utils.wait(Env.pace);
+                me.stage.update();
+                me.stage.draw();    
+            },Env.pace);
+*/
             return newSprite;
         }
     }
@@ -27596,6 +27705,7 @@ const Sprite = class extends Entity {
         }
 */
     }
+/* 
     // 呼び出し元がないけど？
     _costumeUpdate() {
         if( this.skinId < 0) return;
@@ -27606,12 +27716,15 @@ const Sprite = class extends Entity {
             _currentCostume.update(this.drawableID, this._effect);
         }
     }
+*/
+/* 
     // これは不要！
     async _svgText(url) {
         let svg = await fetch(url);
         let _text = await svg.text();
         return _text;
     }
+*/
     moveSteps(steps) {
         const radians = MathUtils.degToRad(90 - this.direction);
         const dx = steps * Math.cos(radians);
@@ -27646,8 +27759,57 @@ const Sprite = class extends Entity {
         const _y = Math.cos(_radian) * _step;
         this.position.x += _x;
         this.position.y += _y;
+        
     }
-    ifOnEdgeBounds() {
+    onEdgeBounds() {
+        const drawable = this.render.renderer._allDrawables[this.drawableID];
+        if( drawable == null || drawable.skin == null) return null;
+        const bounds = this.render.renderer.getBounds(this.drawableID);
+        if (!bounds) return null;
+        const stageWidth = this.render.stageWidth;
+        const stageHeight = this.render.stageHeight;
+        const distLeft = Math.max(0, (stageWidth / 2) + bounds.left);
+        const distTop = Math.max(0, (stageHeight / 2) - bounds.top);
+        const distRight = Math.max(0, (stageWidth / 2) - bounds.right);
+        const distBottom = Math.max(0, (stageHeight / 2) + bounds.bottom);
+        // find nearest edge
+        let nearestEdge = '';
+        let minDist = Infinity;
+        if (distLeft < minDist) {
+            minDist = distLeft;
+            nearestEdge = 'left';
+        }
+        if (distTop < minDist) {
+            minDist = distTop;
+            nearestEdge = 'top';
+        }
+        if (distRight < minDist) {
+            minDist = distRight;
+            nearestEdge = 'right';
+        }
+        if (distBottom < minDist) {
+            minDist = distBottom;
+            nearestEdge = 'bottom';
+        }
+        if (minDist > 0) {
+            return null// Not touching any edge
+        }
+        return {'minDist': minDist, 'nearestEdge':nearestEdge};
+    }
+    _ifOnEdgeBounds() {
+        const judge = this.onEdgeBounds();
+        if(judge &&  judge.minDist && judge.minDist == Infinity) return null;
+        return judge;
+    }
+    async ifOnEdgeBounds() {
+        const judge = this.onEdgeBounds();
+        if(judge  == null ) return;
+        const nearestEdge = judge.nearestEdge;
+        if(nearestEdge == '') return;
+/* 
+        const drawable = this.render.renderer._allDrawables[this.drawableID];
+        if( drawable == null || drawable.skin == null) return;
+        //console.log(drawable.skin);
         const bounds = this.render.renderer.getBounds(this.drawableID);
         if (!bounds) return;
         const stageWidth = this.render.stageWidth;
@@ -27678,6 +27840,7 @@ const Sprite = class extends Entity {
         if (minDist > 0) {
             return;// Not touching any edge
         }
+*/
         // Point away from the nearest edge.
         const radians = MathUtils.degToRad(90 - this.direction);
         let dx = Math.cos(radians);
@@ -27694,17 +27857,41 @@ const Sprite = class extends Entity {
         const newDirection = MathUtils.radToDeg(Math.atan2(dy, dx)) + 90;
         this.direction = newDirection;
         // Keep within the stage.
-        const fencedPosition = this._keepInFence(this.position.x, this.position.y);
+        this.keepInFence();
+        //this.moveSteps(5);  // <----- keepInFenceの微調整  本当に 5 でよいのかは疑問。 
+    }
+    keepInFence() {
+//        const fencedPosition = this._keepInFence(this.position.x, this.position.y);
+        const fencedPosition = this._keepInFence(this.costumes._position.x, this.costumes._position.y);
         if(fencedPosition){
+            //console.log(fencedPosition);
             this.position.x = fencedPosition[0];
-            this.position.y = fencedPosition[1];    
+            this.position.y = fencedPosition[1];
+            this.update();
         }
-
     }
     isTouchingEdge (){
+        const judge = this.onEdgeBounds();
+        if(judge  == null )  {
+            if( this.touchingEdge === true) this.touchingEdge = false;
+            return false;
+        }
+        const nearestEdge = judge.nearestEdge;
+        if(nearestEdge == '') {
+            if( this.touchingEdge === true) this.touchingEdge = false;
+            return false;
+        }
+        if(this.touchingEdge === true) return false; 
+        this.touchingEdge = true;
+        this.touchingEdge = false;
+        return true;
+
+        const drawable = this.render.renderer._allDrawables[this.drawableID];
+        if( drawable == null || drawable.skin == null) return;
         const stageWidth = this.render.stageWidth;
         const stageHeight = this.render.stageHeight;
         const bounds = this.render.renderer.getBounds(this.drawableID);
+/* 
         if (bounds.left < -stageWidth / 2 ||
             bounds.right > stageWidth / 2 ||
             bounds.top > stageHeight / 2 ||
@@ -27712,23 +27899,52 @@ const Sprite = class extends Entity {
             return true;
         }
         return false;
+*/
+        if (bounds.left > -stageWidth / 2 &&
+            bounds.right < stageWidth / 2 &&
+            bounds.top < stageHeight / 2 &&
+            bounds.bottom > -stageHeight / 2) {
+            return false;
+        }
+        return true;
     }
     _keepInFence(newX,newY){
+        const drawable = this.render.renderer._allDrawables[this.drawableID];
+        if( drawable == null || drawable.skin == null) return;
         const bounds = this.render.renderer.getBounds(this.drawableID);
         if(!bounds) return;
         const stageWidth = this.render.stageWidth;
         const stageHeight = this.render.stageHeight;
+        // fence を bounds で調整する
+        const distLeft = Math.max(0, (stageWidth / 2) + bounds.left);
+        const distTop = Math.max(0, (stageHeight / 2) - bounds.top);
+        const distRight = Math.max(0, (stageWidth / 2) - bounds.right);
+        const distBottom = Math.max(0, (stageHeight / 2) + bounds.bottom);
         const fence = {
-            left: -stageWidth / 2,
-            right: stageWidth / 2,
+            left: -(stageWidth / 2),
             top: stageHeight / 2,
-            bottom: -stageHeight / 2
+            right: stageWidth / 2,
+            bottom: -(stageHeight / 2),
         };
+/* 
+        const fence = {
+            left: -(stageWidth / 2 + bounds.left),
+            top: stageHeight / 2 - bounds.top,
+            right: stageWidth / 2 - bounds.right,
+            bottom: -(stageHeight / 2 + bounds.bottom),
+        };
+        const fence = {
+            left: -distLeft,
+            top: distTop,
+            right: distRight,
+            bottom: -distBottom,
+        };
+*/
         // Adjust the known bounds to the target position.
-        bounds.left += (newX - this.x);
-        bounds.right += (newX - this.x);
-        bounds.top += (newY - this.y);
-        bounds.bottom += (newY - this.y);
+        bounds.left += (newX - this.costumes._position.x);
+        bounds.right += (newX - this.costumes._position.x);
+        bounds.top += (newY - this.costumes._position.y);
+        bounds.bottom += (newY - this.costumes._position.y);
         // Find how far we need to move the target position.
         let dx = 0;
         let dy = 0;
@@ -27872,6 +28088,7 @@ const Sprite = class extends Entity {
 
     nextCostume() {
         this.costumes.nextCostume();
+        this.ifOnEdgeBounds();
     }
     switchCostume( val ) {
         if( val ){
@@ -27893,11 +28110,13 @@ const Sprite = class extends Entity {
         this._loadImage(name, imageUrl, this.costumes);
     }
     async addSound(soundData, options = {}) {
+        this.soundDatas.push(soundData);
         const name = soundData.name;
         const data = soundData.data;
         await this._addSound(name, data, options);
     }
     async addImage(imageData) {
+        this.imageDatas.push(imageData);
         const name = imageData.name;
         const data = imageData.data;
         await this._addImage(name, data, this.costumes);
