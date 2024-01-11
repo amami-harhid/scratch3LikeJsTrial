@@ -10557,6 +10557,7 @@ const Process = class {
     get flag () {
         return this._flag;
     }
+/*
 
     // これは使わない！
     waitImportAllDone () {
@@ -10580,7 +10581,7 @@ const Process = class {
             resolve();
         });
     }
-
+ */
     loadImage(imageUrl, name) {
         let _name ;
         if( name ) {
@@ -27223,12 +27224,18 @@ const Stage = class extends Entity {
         this._sortSprites();
     }
     _sortSprites() {
-        const n_sprites = this._sprites;
-        this._sprites = n_sprites.sort( function( a, b ) {
+        const n0_sprites = this._sprites;
+        const n1_sprites = n0_sprites.sort( function( a, b ) {
             if (a.z > b.z) return -1;
             if (b.z > a.z) return  1;
             return 0;
         });
+        let _z = -1;
+        n1_sprites.map(s=>{
+            s.z = ++_z;
+        });
+        this._sprites = n1_sprites;
+
     }
     removeSprite ( sprite ) {
         const p = Process.default;
@@ -27250,13 +27257,17 @@ const Stage = class extends Entity {
         this.render.renderer.draw();
     }
     sendSpriteBackwards (sprite) {
+        // 工事中
     
     }
     sendSpriteForward (sprite) {
+        // 工事中
     }
     sendSpriteToFront (sprite) {
+        // 工事中
     }
     sendSpriteToBack (sprite) {
+        // 工事中
     }
     isKeyPressed (userKey) {
         let match = false
@@ -27633,58 +27644,22 @@ const Sprite = class extends Entity {
                 GHOST: (this._effect.ghost)? this._effect.ghost: 0,
             };
             const newOptions = Object.assign(_options, options);
-            //console.log('Sprite clone newOptions ', newOptions)
-//            const newSprite = new Sprite(this.render, newName, newOptions);
             const newSprite = new this.constructor(this.stage, newName, newOptions);
             this.clones.push(newSprite);
             newSprite.isClone = true;
-//            console.log('Sprite clone this.imageDatas=', this.imageDatas)
-
-/*
             for(const d of this.imageDatas) {
-//                console.log(d)
-                newSprite.addImage(d); 
                 // svg image の場合、createSVGSkin の中で非同期になることに注意すること
-                // renderer._allSkins の配列のすべてがSkin._svgImage.complete == trueになるまで待つ必要がある。
+                await newSprite.addImage(d); 
             }
             for(const d of this.soundDatas) {
-                newSprite.addSound(d); // option をつけてあげたい（引き継ぐ）
+                const _soundData = {};
+                _soundData.name = d.name;
+                _soundData.data = d.data;
+                const _options = d.options;
+                await newSprite.addSound(_soundData, _options); // options引き継ぐ
             }
- */
-//            console.log('Sprite clone this.costumes.costumes=',this.costumes.costumes);
-/*
-            console.log(  this.costumes.costumes.keys().next() );
-            const costumesKeys = Array.from(this.costumes.costumes.keys());
-            console.log('Sprite clone costumesKeys=',costumesKeys);
-            for(const name of this.costumes.costumes.keys()) {
-                const skinId = this.costumes.costumes.get(name);
-                newSprite.costumes.costumes.set(name, skinId);
-                newSprite.costumes.skinIdDone.set(name,true);
-            }
- */
-            // 連想配列のDeepCopy
-            newSprite.costumes.costumes = Utils.mapDeepCopy(this.costumes.costumes);
-//            console.log('Sprite clone clone.costumes.costumes=',newSprite.costumes.costumes);
-            //newSprite.costumes.skinIdDone = Utils.mapDeepCopy(this.costumes.costumes, this.costumes.skinIdDone, true);
-            newSprite.costumes.skinId = this.costumes.skinId;
-            newSprite.costumes.name = this.costumes.name;
-            newSprite.costumes._position = {x: _options.position.x, y: _options.position.y};
-            newSprite.costumes._direction = _options.direction;
-            newSprite.costumes._scale = {x: _options.scale.x, y: _options.scale.y};
-
+            newSprite.update(); // update() は不要かもしれない。
             newSprite.originalSprite = this;
-            this._costumeProperties(newSprite);
-            newSprite.skinIdx = this.skinIdx;
-            newSprite.skinId = this.costumes.skinId;
-/*
-            const me = this;
-            setTimeout(async function(){
-                console.log('Sprite clone timeout')
-                await Utils.wait(Env.pace);
-                me.stage.update();
-                me.stage.draw();    
-            },Env.pace);
-*/
             return newSprite;
         }
     }
@@ -27697,40 +27672,15 @@ const Sprite = class extends Entity {
     }
     update() {
         this._costumeProperties(this);
-/* 
-        if(this.isClone == undefined){
-            for(const _sprite of this.clones) {
-                _sprite.update();
-            }    
-        }
-*/
     }
-/* 
-    // 呼び出し元がないけど？
-    _costumeUpdate() {
-        if( this.skinId < 0) return;
-        if( this.costumes.length > this.skinIdx ) {
-            let _currentCostume = this.costumes[this.skinIdx];
-            _currentCostume.setScale(this.scale.x, this.scale.y);
-            _currentCostume.setPosition(this.position.x, this.position.y);
-            _currentCostume.update(this.drawableID, this._effect);
-        }
-    }
-*/
-/* 
-    // これは不要！
-    async _svgText(url) {
-        let svg = await fetch(url);
-        let _text = await svg.text();
-        return _text;
-    }
-*/
-    moveSteps(steps) {
+    async moveSteps(steps) {
         const radians = MathUtils.degToRad(90 - this.direction);
         const dx = steps * Math.cos(radians);
         const dy = steps * Math.sin(radians);
         this.position.x += dx;
         this.position.y += dy;
+        //this.update();
+        //await P.Utils.wait(5);
     }
     move( _step ) {
         if ( !Number.isNumber(_step)) {
@@ -27802,14 +27752,8 @@ const Sprite = class extends Entity {
         return judge;
     }
     async ifOnEdgeBounds() {
-        const judge = this.onEdgeBounds();
-        if(judge  == null ) return;
-        const nearestEdge = judge.nearestEdge;
-        if(nearestEdge == '') return;
-/* 
         const drawable = this.render.renderer._allDrawables[this.drawableID];
         if( drawable == null || drawable.skin == null) return;
-        //console.log(drawable.skin);
         const bounds = this.render.renderer.getBounds(this.drawableID);
         if (!bounds) return;
         const stageWidth = this.render.stageWidth;
@@ -27840,7 +27784,6 @@ const Sprite = class extends Entity {
         if (minDist > 0) {
             return;// Not touching any edge
         }
-*/
         // Point away from the nearest edge.
         const radians = MathUtils.degToRad(90 - this.direction);
         let dx = Math.cos(radians);
@@ -27858,19 +27801,16 @@ const Sprite = class extends Entity {
         this.direction = newDirection;
         // Keep within the stage.
         this.keepInFence();
-        //this.moveSteps(5);  // <----- keepInFenceの微調整  本当に 5 でよいのかは疑問。 
     }
     keepInFence() {
-//        const fencedPosition = this._keepInFence(this.position.x, this.position.y);
         const fencedPosition = this._keepInFence(this.costumes._position.x, this.costumes._position.y);
         if(fencedPosition){
             //console.log(fencedPosition);
             this.position.x = fencedPosition[0];
             this.position.y = fencedPosition[1];
-            this.update();
         }
     }
-    isTouchingEdge (){
+    isTouchingEdge (_callback){
         const judge = this.onEdgeBounds();
         if(judge  == null )  {
             if( this.touchingEdge === true) this.touchingEdge = false;
@@ -27884,28 +27824,11 @@ const Sprite = class extends Entity {
         if(this.touchingEdge === true) return false; 
         this.touchingEdge = true;
         this.touchingEdge = false;
-        return true;
 
-        const drawable = this.render.renderer._allDrawables[this.drawableID];
-        if( drawable == null || drawable.skin == null) return;
-        const stageWidth = this.render.stageWidth;
-        const stageHeight = this.render.stageHeight;
-        const bounds = this.render.renderer.getBounds(this.drawableID);
-/* 
-        if (bounds.left < -stageWidth / 2 ||
-            bounds.right > stageWidth / 2 ||
-            bounds.top > stageHeight / 2 ||
-            bounds.bottom < -stageHeight / 2) {
-            return true;
+        if(_callback) {
+            setTimeout(_callback, 0);
         }
-        return false;
-*/
-        if (bounds.left > -stageWidth / 2 &&
-            bounds.right < stageWidth / 2 &&
-            bounds.top < stageHeight / 2 &&
-            bounds.bottom > -stageHeight / 2) {
-            return false;
-        }
+
         return true;
     }
     _keepInFence(newX,newY){
@@ -27926,20 +27849,6 @@ const Sprite = class extends Entity {
             right: stageWidth / 2,
             bottom: -(stageHeight / 2),
         };
-/* 
-        const fence = {
-            left: -(stageWidth / 2 + bounds.left),
-            top: stageHeight / 2 - bounds.top,
-            right: stageWidth / 2 - bounds.right,
-            bottom: -(stageHeight / 2 + bounds.bottom),
-        };
-        const fence = {
-            left: -distLeft,
-            top: distTop,
-            right: distRight,
-            bottom: -distBottom,
-        };
-*/
         // Adjust the known bounds to the target position.
         bounds.left += (newX - this.costumes._position.x);
         bounds.right += (newX - this.costumes._position.x);
@@ -27989,7 +27898,7 @@ const Sprite = class extends Entity {
         return _d;
     }
     goto( option = 'random_position') {
-        // 他のスプライトの名前も使えるようにしたい。
+        // TODO 他のスプライトの名前も使えるようにしたい。
         if( typeof option === 'string') {
             if( option === 'random_position') {
                 this._gotoRandomPosition();
@@ -28024,12 +27933,14 @@ const Sprite = class extends Entity {
 
     }
     _gotoMousePosition() {
-    
+        // 工事中
     }
     _foundSpriteByName(name){
+        // 工事中
 
     }
     _gotoSprite(sprite) {
+        // 工事中
     
     }
 
@@ -28060,6 +27971,7 @@ const Sprite = class extends Entity {
     }
 
     glide(glidingSec, option = 'random_position'){
+        // 工事中
 
     }
     pointInDerection( _d ) {
@@ -28080,6 +27992,7 @@ const Sprite = class extends Entity {
         }
     }
     pointTowardsMouseCursol( ) {
+        // 工事中
 
 
     }
@@ -28110,9 +28023,11 @@ const Sprite = class extends Entity {
         this._loadImage(name, imageUrl, this.costumes);
     }
     async addSound(soundData, options = {}) {
-        this.soundDatas.push(soundData);
-        const name = soundData.name;
-        const data = soundData.data;
+        const _soundData = soundData;
+        _soundData.options = options;
+        this.soundDatas.push(_soundData);
+        const name = _soundData.name;
+        const data = _soundData.data;
         await this._addSound(name, data, options);
     }
     async addImage(imageData) {

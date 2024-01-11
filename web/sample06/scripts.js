@@ -19,7 +19,7 @@ P.setup = async function(render) {
 
 }
 P.staging = async function( render ) {
-    P.MoveStepsA = 3;
+    P.MoveStepsA = 10;
 
     P.wait_time = P.Env.pace;
 //    const render = new P.Render();
@@ -141,10 +141,10 @@ P.start2 = async function(render) {
     P.spriteC.setSoundPitch(pitch);
     const times = Array(40).fill();
     const MoveSteps = 20;
-    const Clone1MoveSteps = 50;
-    const Clone2MoveSteps = 50;
+    const Clone1MoveSteps = 20;
+    const Clone2MoveSteps = 20;
     let _visible = true;
-    let _spriteAMakeClone = true;
+//    let _spriteAMakeClone = true;
     let _idx = 0;
     for(;;){
         //for( const t in times ){
@@ -163,7 +163,7 @@ P.start2 = async function(render) {
             P.spriteB.setSoundPitch( pitch );
             P.spriteC.setSoundPitch( pitch );
             //P.spriteA.nextCostume()
-            if( P.spriteA.isTouchingEdge() ) {
+            P.spriteA.isTouchingEdge(function(){
                 //P.spriteA.ifOnEdgeBounds();
                 console.log('SpriteA 外に出た', ++_idx)
                 //P.stage.update();
@@ -172,62 +172,67 @@ P.start2 = async function(render) {
 //                P.spriteC.updateVisible(true);
                 //console.log('isTouchingEdge clone', ++_idx)
                 const optionsX = {'position':{x: (Math.random() - 0.5) * 300, y: (Math.random() - 0.5) * 200}, 'scale':{x:200, y:200}, effect:{'color' : 50}}
-                if( _spriteAMakeClone ) {
-                    _spriteAMakeClone = true;
-                    P.spriteA.clone(optionsX).then(async (v)=>{
-                        P.stage.update();
-                        P.stage.draw();
-                        //console.log('SpriteA クローンを作った')
-                        _spriteAMakeClone = true;
-                        const x = v;
-                        x.life = 80;
-                        setInterval(function(){
-                            x.scale.x -= 5;
-                            x.scale.y -= 5;
-                        },50);
-                    });    
-                }
-                // P.spriteA.moveSteps( 5 ); // <= 微調整。 枠外に出て 枠内にキレイに戻らないので、何度も反転を繰り返してしまい、うごかなくなる。
+                P.spriteA.clone(optionsX).then(async (v)=>{
+                    P.stage.update();
+                    P.stage.draw();
+                    //console.log('SpriteA クローンを作った')
+                    //_spriteAMakeClone = true;
+                    const x = v;
+                    x.life = 20;
+                    setInterval(function(){
+                        x.scale.x -= 10;
+                        x.scale.y -= 10;
+                        x.nextCostume();
+                    },33);
+                });    
+            // P.spriteA.moveSteps( 5 ); // <= 微調整。 枠外に出て 枠内にキレイに戻らないので、何度も反転を繰り返してしまい、うごかなくなる。
                 //P.Utils.wait(P.wait_time)
-            }
+
+            });
+            P.spriteA.nextCostume();
             P.spriteA.ifOnEdgeBounds();
-            P.spriteA.moveSteps( P.MoveStepsA);
-            P.stage.update();
-            if( P.spriteA.isTouchingEdge() ) {
+            P.spriteA.moveSteps( P.MoveStepsA );
+//            P.stage.update();
+//            P.stage.update();
+            P.spriteA.isTouchingEdge(async function(){
+                await P.spriteA.moveSteps( P.MoveStepsA );
                 console.log('double isTouchingEdge  ')
                 // ifOnEdgeBounds() のあと double Touching が起こっている！
                 // ifOnEdgeBounds() _keepInFence の引数は 次に移動するポイント（移動予測）かもしれない。
-            }
+
+            });
+            P.spriteB.nextCostume();
+            P.spriteB.ifOnEdgeBounds();
             P.spriteB.moveSteps( Clone1MoveSteps );
             if( P.spriteB.isTouchingTarget( P.spriteA )) {
 //                P.spriteA.direction += ( Math.random() - 0.5 ) * 45;
                 //P.spriteB.moveSteps( Clone1MoveSteps*(-3) );
 //                P.spriteB.direction += 180;
             }
-            P.spriteB.ifOnEdgeBounds();
             //P.stage.update();
             if( P.spriteB.isTouchingEdge() ){
                 //P.spriteB.moveSteps( Clone1MoveSteps );
                 P.spriteB.soundPlay();
             }
-            P.spriteC.moveSteps(Clone2MoveSteps);
             if( P.spriteC.isTouchingTarget( P.spriteA ) ) {
                 //P.spriteC.moveSteps( Clone2MoveSteps*(-3) );
 //                P.spriteC.direction += 180;
             }
-            P.spriteC.ifOnEdgeBounds();
             if( P.spriteB.isTouchingTarget( P.spriteC ) ) {
                 //P.spriteB.moveSteps( Clone1MoveSteps*(-3) );
                 //P.spriteC.moveSteps( Clone2MoveSteps*(-3) );
 //                P.spriteB.direction += 180;
 //                P.spriteC.direction += 180;
             }
+            P.spriteC.nextCostume();
+            P.spriteC.moveSteps(Clone2MoveSteps);
+            P.spriteC.ifOnEdgeBounds();
 //            P.stage.update();
             if( P.spriteC.isTouchingEdge() ){
                 P.spriteC.soundPlay();
             }
-            P.stage.update();
-            P.stage.draw();
+//            P.stage.update();
+//            P.stage.draw();
             await P.Utils.wait( P.wait_time );
         }
         await P.Utils.wait( P.wait_time  );
