@@ -10471,6 +10471,7 @@ const Process = class {
         this._preloadSoundPromise = [];
         this._sounds = {}
         this._images = {};
+        this._preloadDone = false;
     }
     get images() {
         return this._images;
@@ -10604,6 +10605,9 @@ const Process = class {
         this._preloadSoundPromise.push(data);
         return data;
     }
+    get preloadDone() {
+        return this._preloadDone;
+    }
     async _waitUntilPreloadDone() {
         if(this._preloadImagePromise.length > 0 ) {
             const _images = await Promise.all(this._preloadImagePromise);
@@ -10618,7 +10622,7 @@ const Process = class {
             }    
         }
 
-
+        this._preloadDone = true;
     }
     async _preload () {
         if( this.preload ) {
@@ -15329,10 +15333,7 @@ const Entity = class {
         }, 0)
 */
     }
-    async whenFlagDirect (func) {
-        this.whenFlag(func, false);
-    }
-    async whenFlag (func, waitImportAllDone = true) {
+    async whenFlag (func) {
         const process = Process.default;
         const me = this;
         const _func = func.bind(this);
@@ -15340,10 +15341,10 @@ const Entity = class {
             // フラグエレメントへのイベント登録とするべき。
             this.flag.addEventListener('click', async (e) => {
                 //me.flag.remove; // <--- フラグ要素があれば消すとしたい。
-                if(waitImportAllDone === true){
-                    await process.waitImportAllDone();
+                if( process.preloadDone === true ) {
+                    setTimeout(_func, 0);
+//                    _func();
                 }
-                _func();
                 //me._exec(func, [e])
                 e.stopPropagation();  // イベント伝播を停止
             })
@@ -15358,21 +15359,23 @@ const Entity = class {
             const mouseY = e.offsetY;
             const _touchDrawableId = me.render.renderer.pick(mouseX,mouseY);
             if(me.drawableID == _touchDrawableId){
-                await process.waitImportAllDone();
-                _func();
+                if( process.preloadDone === true ) {
+                    _func();
+                }
             }
             e.stopPropagation()
         }, {});        
     }
     whenTouchingTarget(targets, func) {
         const me = this;
-        setInterval(async function(){
-            await process.waitImportAllDone();
-            const touching = me.isTouchingTarget(me, targets);
-            if(touching === true){
-                func();
-            }
-        },0);
+        if( process.preloadDone === true ) {
+            setInterval(async function(){
+                const touching = me.isTouchingTarget(me, targets);
+                if(touching === true){
+                    func();
+                }
+            },0);
+        }
     }
     isTouchingTargetToTarget(src, targets) {
         const targetIds = [];
@@ -27679,7 +27682,9 @@ const Sprite = class extends Entity {
         const dy = steps * Math.sin(radians);
         this.position.x += dx;
         this.position.y += dy;
-        //this.update();
+        this.costumes._position.x += dx;
+        this.costumes._position.y += dy;
+    //this.update();
         //await P.Utils.wait(5);
     }
     move( _step ) {
@@ -27800,36 +27805,28 @@ const Sprite = class extends Entity {
         const newDirection = MathUtils.radToDeg(Math.atan2(dy, dx)) + 90;
         this.direction = newDirection;
         // Keep within the stage.
-        this.keepInFence();
+        let _test = 0;
+        for(;;) {
+            _test += 1;
+            this.keepInFence(this.costumes._position.x, this.costumes._position.y);
+            const touch = this.isTouchingEdge();
+            if( touch === false ) break;
+            await Utils.wait(0);
+        }
+        //console.log(`Sprite#ifOnEdgeBounds, keepInFence retry = ${_test} times.`)
+
     }
-    keepInFence() {
-        const fencedPosition = this._keepInFence(this.costumes._position.x, this.costumes._position.y);
+    keepInFence(x, y) {
+        const fencedPosition = this._keepInFence(x, y);
         if(fencedPosition){
             //console.log(fencedPosition);
             this.position.x = fencedPosition[0];
             this.position.y = fencedPosition[1];
+            this.costumes._position.x = fencedPosition[0];
+            this.costumes._position.y = fencedPosition[1];
+            this.moveSteps(1);
+            this.update();
         }
-    }
-    isTouchingEdge (_callback){
-        const judge = this.onEdgeBounds();
-        if(judge  == null )  {
-            if( this.touchingEdge === true) this.touchingEdge = false;
-            return false;
-        }
-        const nearestEdge = judge.nearestEdge;
-        if(nearestEdge == '') {
-            if( this.touchingEdge === true) this.touchingEdge = false;
-            return false;
-        }
-        if(this.touchingEdge === true) return false; 
-        this.touchingEdge = true;
-        this.touchingEdge = false;
-
-        if(_callback) {
-            setTimeout(_callback, 0);
-        }
-
-        return true;
     }
     _keepInFence(newX,newY){
         const drawable = this.render.renderer._allDrawables[this.drawableID];
@@ -27870,6 +27867,27 @@ const Sprite = class extends Entity {
             dy += fence.bottom - bounds.bottom;
         }
         return [newX + dx, newY + dy];
+    }
+    isTouchingEdge (_callback){
+        const judge = this.onEdgeBounds();
+        if(judge  == null )  {
+            if( this.touchingEdge === true) this.touchingEdge = false;
+            return false;
+        }
+        const nearestEdge = judge.nearestEdge;
+        if(nearestEdge == '') {
+            if( this.touchingEdge === true) this.touchingEdge = false;
+            return false;
+        }
+        if(this.touchingEdge === true) return false; 
+        this.touchingEdge = true;
+        this.touchingEdge = false;
+
+        if(_callback) {
+            setTimeout(_callback, 0);
+        }
+
+        return true;
     }
     turnRight( _degree ) {
         let _d = this.direction;
