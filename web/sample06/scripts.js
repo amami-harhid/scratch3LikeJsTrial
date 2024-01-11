@@ -7,7 +7,14 @@ P.preload = async function() {
     this.loadImage('../assets/cat2.svg','Cat2');
     this.loadImage('../assets/Jurassic.svg','Jurassic');
 }
+
+// 引数で renderを渡さなくても P.render で参照可能
+// MyStage 引数で render 省略したほうが見やすい
+// MyCat 引数で stage 省略したほうが見やすい
 P.setup = async function(render) {
+
+    P.wait_time = P.Env.pace;
+
     P.stage = new MyStage( render, "stage" );
     P.stage.addImage( P.images.Jurassic );
     P.spriteA = new MyCat( P.stage, "spriteA", {'effect': {'color': 100}});
@@ -19,16 +26,42 @@ P.setup = async function(render) {
 
 }
 P.staging = async function( render ) {
-    P.MoveStepsA = 10;
 
-    P.wait_time = P.Env.pace;
-//    const render = new P.Render();
     P.stage.whenFlag(async function(){
         // TODO addSound 処理時間が長いとき、登録順が逆になるときがある。なんとかしたい。
         this.addSound( P.sounds.Chill, { 'volume' : 125 } );
         this.addSound( P.sounds.BossaNova , { 'volume' : 25 } );  
         //P.start2(render);
     });
+    P.stage.whenFlag( async function() {
+        for(;;){
+            await this.startSoundUntilDone();
+            await P.Utils.wait( P.wait_time );
+        }
+    });
+    P.stage.whenFlag( async function() {
+        await P.Utils.wait(500);
+        const _sprites = this.sprites;
+        let pitch = 1;
+        let picthPower = 0.01;
+        for(;;) {
+            pitch += picthPower;
+            if ( pitch > 3 || pitch < 0.5 ) picthPower *= -1;
+            P.spriteB.setSoundPitch( pitch );
+            P.spriteC.setSoundPitch( pitch );
+            P.spriteB.setSoundPitch(pitch);
+            P.spriteC.setSoundPitch(pitch);
+            await P.Utils.wait( P.wait_time );
+        }
+    });
+    P.stage.whenClicked( async function() {
+        // 横向きに反転させる
+        const scale = this.scale;
+        this.setScale( scale.x * -1, scale.y );
+        this.nextSound();
+    });
+
+//    const render = new P.Render();
     P.spriteA.whenFlag(async function(){
         this.addSound( P.sounds.Boing , { 'volume' : 25 } ); 
         this.addSound( P.sounds.Cat , { 'volume' : 25 } ); 
@@ -71,8 +104,8 @@ P.staging = async function( render ) {
     const optionsB = {'position': { x: P.spriteA.position.x+50, y: P.spriteA.position.y }}    
     P.spriteA.clone(optionsB).then(async (v)=>{
         P.spriteB = v;
-        v.addSound( P.sounds.Boing , { 'volume' : 25 } ); 
-        v.addSound( P.sounds.Cat , { 'volume' : 25 } ); 
+        //v.addSound( P.sounds.Boing , { 'volume' : 25 } ); 
+        //v.addSound( P.sounds.Cat , { 'volume' : 25 } ); 
         v.clearEffect();
         v.scale = { x:100, y:100 };
         v.direction = Math.random() * 360;
@@ -93,8 +126,8 @@ P.staging = async function( render ) {
     });
     P.spriteA.clone().then(v=>{
         P.spriteC = v;
-        v.addSound( P.sounds.Boing , { 'volume' : 25 } ); 
-        v.addSound( P.sounds.Cat , { 'volume' : 25 } ); 
+        //v.addSound( P.sounds.Boing , { 'volume' : 25 } ); 
+        //v.addSound( P.sounds.Cat , { 'volume' : 25 } ); 
     
         v.position = {x: P.spriteA.position.x-200, y: P.spriteA.position.y+20 };
         v.scale = {x:50, y:50};
@@ -117,39 +150,12 @@ P.staging = async function( render ) {
         });
     });
 
-    P.stage.whenFlag( async function() {
-        for(;;){
-            await this.startSoundUntilDone();
-            await P.Utils.wait( P.wait_time );
-        }
-    });
-    P.stage.whenFlag( async function() {
-        await P.Utils.wait(500);
-        const _sprites = this.sprites;
-        let pitch = 1;
-        let picthPower = 0.01;
-        for(;;) {
-            pitch += picthPower;
-            if ( pitch > 3 || pitch < 0.5 ) picthPower *= -1;
-            P.spriteB.setSoundPitch( pitch );
-            P.spriteC.setSoundPitch( pitch );
-            P.spriteB.setSoundPitch(pitch);
-            P.spriteC.setSoundPitch(pitch);
-            await P.Utils.wait( P.wait_time );
-        }
-    });
     P.spriteA.whenClicked( async function() {
         if( P.MoveStepsA == 3 ) {
             P.MoveStepsA = 0;
         }else{
             P.MoveStepsA = 3;
         }
-    });
-    P.stage.whenClicked( async function() {
-        // 横向きに反転させる
-        const scale = this.scale;
-        this.setScale( scale.x * -1, scale.y );
-        this.nextSound();
     });
 }
 
