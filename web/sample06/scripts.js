@@ -8,16 +8,12 @@ P.preload = async function() {
     this.loadImage('../assets/Jurassic.svg','Jurassic');
 }
 
-// 引数で renderを渡さなくても P.render で参照可能
-// MyStage 引数で render 省略したほうが見やすい
-// MyCat 引数で stage 省略したほうが見やすい
-P.setup = async function(render) {
-
+P.setup = async function() {
     P.wait_time = P.Env.pace;
 
-    P.stage = new MyStage( render, "stage" );
+    P.stage = new MyStage( "stage" );
     P.stage.addImage( P.images.Jurassic );
-    P.spriteA = new MyCat( P.stage, "spriteA", {'effect': {'color': 100}});
+    P.spriteA = new MyCat( "spriteA", {'effect': {'color': 100}});
     P.spriteA.addImage( P.images.Cat1 );
     P.spriteA.addImage( P.images.Cat2 );
     P.spriteA.position = { x:0, y:0 };
@@ -25,7 +21,7 @@ P.setup = async function(render) {
     P.spriteA.direction = Math.random() * 360;
 
 }
-P.staging = async function( render ) {
+P.flagReady = async function() {
 
     P.stage.whenFlag(async function(){
         // TODO addSound 処理時間が長いとき、登録順が逆になるときがある。なんとかしたい。
@@ -61,7 +57,6 @@ P.staging = async function( render ) {
         this.nextSound();
     });
 
-//    const render = new P.Render();
     P.spriteA.whenFlag(async function(){
         this.addSound( P.sounds.Boing , { 'volume' : 25 } ); 
         this.addSound( P.sounds.Cat , { 'volume' : 25 } ); 

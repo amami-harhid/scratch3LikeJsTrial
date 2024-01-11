@@ -10370,6 +10370,253 @@ module.exports = Transform;
 
 /***/ }),
 /* 2 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+const Backdrops = __webpack_require__(19);
+//const Canvas = require('./canvas');
+//const Css = require('./css');
+const Costumes = __webpack_require__(10);
+const Element = __webpack_require__(20);
+const Env = __webpack_require__(4);
+const Importer = __webpack_require__(11);
+const Looks = __webpack_require__(12);
+const Render = __webpack_require__(38);
+const Sounds = __webpack_require__(33);
+const Stage = __webpack_require__(109);
+const Sprite = __webpack_require__(112);
+const Utils = __webpack_require__(3);
+const Process = class {
+
+    static getInstance() {
+        if( Process._instance == undefined ) {
+            Process._instance = new Process();
+        }
+        return Process._instance;
+    }
+
+    constructor () {
+        this._render = null;
+        this._id = this._generateUUID();
+        this._preloadImagePromise = [];
+        this._preloadSoundPromise = [];
+        this._sounds = {}
+        this._images = {};
+        this._preloadDone = false;
+    }
+    get images() {
+        return this._images;
+    }
+    get sounds() {
+        return this._sounds;
+    }
+    _generateUUID () {
+        return Utils.generateUUID();
+    }
+    get Backdrops () {
+        return Backdrops;
+    }
+    get Costumes () {
+        return Costumes;
+    }
+    get Element () {
+        return Element;
+    }
+    get Env () {
+        return Env;
+    }
+    get Importer () {
+        return Importer;
+    }
+    get Looks () {
+        return Looks;
+    }
+    get Render () {
+        return Render;
+    }
+    get Sounds () {
+        return Sounds;
+    }
+    get Stage () {
+        return Stage;
+    }
+    get Sprite () {
+        return Sprite;
+    }
+    get Utils () {
+        return Utils;
+    }
+    get render () {
+        return this._render;
+    }
+    set render( render ) {
+        // _init() の中で設定される。
+        this._render = render;
+    }
+    set stage ( stage ) {
+        this._stage = stage;
+    }
+
+    get stage () {
+        return this._stage;
+    }
+
+    set flag ( flag ) {
+        this._flag = flag;
+    }
+
+    get flag () {
+        return this._flag;
+    }
+
+
+    async _init() {
+        this._preload();
+        await this._waitUntilPreloadDone();
+        await Element.init();
+        const main = this.main;
+        main.classList.add(Element.DISPLAY_NONE);
+        this._render = new Render();
+        await this._setup();
+        await this._flagReady();
+
+
+    }
+
+    async _preload () {
+        if( P.preload ) {
+            P.preload();
+        }
+    }
+
+    async _setup () {
+        // ここで フラグとキャンバスを表示する
+        const main = this.main;
+        main.classList.remove(Element.DISPLAY_NONE);
+        if( P.setup ) {
+            await P.setup();
+            await P.Utils.wait(Env.pace);
+            if( this._stage ) {
+                this._stage.update();
+                this._stage.draw();
+            }    
+        }
+    }
+    async _flagReady () {
+        if( P.flagReady ) {
+            await P.flagReady ();
+        }
+    }
+    _drawingStart() {
+        if( this._stage ) {
+            const me = this;
+            const pace = this.Env.pace;
+            this._stage.update();
+            setTimeout(async function(){
+                for(;;) {
+                    me._draw();
+                    await me.Utils.wait(pace);
+                }
+            }, pace);
+            }
+    }
+    _draw () {
+        this._stage.update ();
+        if( this._stage ) {
+            if( P.draw ) {
+                P._stage.update();
+                P._stage.draw();
+            }
+        }
+    }
+    
+
+    loadImage(imageUrl, name) {
+        let _name ;
+        if( name ) {
+            _name = name;
+        }else{
+            _name = imageUrl.replace(/\.[^.]+$/)
+        }
+        const data = Importer.loadImage(imageUrl, _name);
+        this._preloadImagePromise.push(data);
+        return data;
+    }
+    loadSound(soundUrl, name) {
+        let _name ;
+        if( name ) {
+            _name = name;
+        }else{
+            _name = imageUrl.replace(/\.[^.]+$/)
+        }
+        const data = Importer.loadSound(soundUrl, _name);
+        this._preloadSoundPromise.push(data);
+        return data;
+    }
+    get preloadDone() {
+        return this._preloadDone;
+    }
+    async _waitUntilPreloadDone() {
+        if(this._preloadImagePromise.length > 0 ) {
+            const _images = await Promise.all(this._preloadImagePromise);
+            for(const v of _images) {
+                this._images[v.name] = {'name': v.name, 'data': v.data };
+            }    
+        }
+        if( this._preloadSoundPromise.length > 0 ) {
+            const _sounds = await Promise.all(this._preloadSoundPromise);
+            for(const v of _sounds) {
+                this._sounds[v.name] = {'name' : v.name, 'data': v.data };
+            }    
+        }
+
+        this._preloadDone = true;
+    }
+/*
+    async _start () {
+        this._start();
+    }
+    async drawLoop() {
+        for(;;) {
+            this._draw();
+            await Utils.wait(Env.pace);
+        }
+    }
+    async _start() {
+        P.start();
+        setInterval(P._draw,Env.pace);
+        if(P._stage) {
+            await P.Utils.wait(Env.pace);
+            P._stage.update();
+            P._stage.draw();    
+        }
+
+    }
+    async start () {
+
+    }
+*/
+    createThread( func ) {
+        setTimeout(func, 0);
+    }
+    async waitUntil( condition ) {
+        for(;;) {
+            if( condition() ) {
+                break;
+            }
+            await Utils.wait(Env.pace);
+        }
+    }
+
+
+}
+
+//module.exports = {default: Process.getInstance()};
+/* harmony default export */ __webpack_exports__["default"] = (Process.getInstance());
+
+/***/ }),
+/* 3 */
 /***/ (function(module, exports) {
 
 const Utils = class {
@@ -10435,255 +10682,6 @@ const Utils = class {
 }
 
 module.exports = Utils;
-
-/***/ }),
-/* 3 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-const Backdrops = __webpack_require__(19);
-//const Canvas = require('./canvas');
-//const Css = require('./css');
-const Costumes = __webpack_require__(10);
-const Element = __webpack_require__(20);
-const Env = __webpack_require__(4);
-const Importer = __webpack_require__(11);
-const Looks = __webpack_require__(12);
-const Render = __webpack_require__(38);
-const Sounds = __webpack_require__(33);
-const Stage = __webpack_require__(109);
-const Sprite = __webpack_require__(112);
-const Utils = __webpack_require__(2);
-const Process = class {
-
-    static getInstance() {
-        if( Process._instance == undefined ) {
-            Process._instance = new Process();
-        }
-        return Process._instance;
-    }
-
-    constructor () {
-        this._render = null;
-        this._id = this._generateUUID();
-        this._preloadImagePromise = [];
-        this._preloadSoundPromise = [];
-        this._sounds = {}
-        this._images = {};
-        this._preloadDone = false;
-    }
-    get images() {
-        return this._images;
-    }
-    get sounds() {
-        return this._sounds;
-    }
-    _generateUUID () {
-        return Utils.generateUUID();
-    }
-    get Backdrops () {
-        return Backdrops;
-    }
-    get Costumes () {
-        return Costumes;
-    }
-    get Element () {
-        return Element;
-    }
-    get Env () {
-        return Env;
-    }
-    get Importer () {
-        return Importer;
-    }
-    get Looks () {
-        return Looks;
-    }
-    get Render () {
-        return Render;
-    }
-    get Sounds () {
-        return Sounds;
-    }
-    get Stage () {
-        return Stage;
-    }
-    get Sprite () {
-        return Sprite;
-    }
-    get Utils () {
-        return Utils;
-    }
-    set render( render ) {
-        this._render = render;
-    }
-    set stage ( stage ) {
-        this._stage = stage;
-    }
-
-    get stage () {
-        return this._stage;
-    }
-    createThread( func ) {
-        setTimeout(func, 0);
-    }
-    async waitUntil( condition ) {
-        for(;;) {
-            if( condition() ) {
-                break;
-            }
-            await Utils.wait(Env.pace);
-        }
-    }
-    async _staging (render) {
-        // ここで フラグとキャンバスを表示する
-        const main = this.main;
-        main.classList.remove(Element.DISPLAY_NONE);
-        await this.staging(render);
-        await P.Utils.wait(Env.pace);
-        if(this._stage) {
-            this._stage.update();
-            this._stage.draw();    
-        }
-    }
-    async staging (render) {
-
-    }
-
-    set flag ( flag ) {
-        this._flag = flag;
-    }
-
-    get flag () {
-        return this._flag;
-    }
-/*
-
-    // これは使わない！
-    waitImportAllDone () {
-
-        return new Promise( async (resolve) => {
-            for(;;){
-                if( this._stage._isImportAllDone ()) {
-                    let _importAllDone = true;
-                    for( let i=0; i< this._stage._sprites.length; i++ ){
-                        const v = this._stage._sprites[i];
-                        if( v._isImportAllDone () === false ) {
-                            _importAllDone = false;
-                        }
-                    }
-                    if(_importAllDone === true) {
-                        break;
-                    }
-                }
-                await Utils.wait(Env.pace);
-            }
-            resolve();
-        });
-    }
- */
-    loadImage(imageUrl, name) {
-        let _name ;
-        if( name ) {
-            _name = name;
-        }else{
-            _name = imageUrl.replace(/\.[^.]+$/)
-        }
-        const data = Importer.loadImage(imageUrl, _name);
-        this._preloadImagePromise.push(data);
-        return data;
-    }
-    loadSound(soundUrl, name) {
-        let _name ;
-        if( name ) {
-            _name = name;
-        }else{
-            _name = imageUrl.replace(/\.[^.]+$/)
-        }
-        const data = Importer.loadSound(soundUrl, _name);
-        this._preloadSoundPromise.push(data);
-        return data;
-    }
-    get preloadDone() {
-        return this._preloadDone;
-    }
-    async _waitUntilPreloadDone() {
-        if(this._preloadImagePromise.length > 0 ) {
-            const _images = await Promise.all(this._preloadImagePromise);
-            for(const v of _images) {
-                this._images[v.name] = {'name': v.name, 'data': v.data };
-            }    
-        }
-        if( this._preloadSoundPromise.length > 0 ) {
-            const _sounds = await Promise.all(this._preloadSoundPromise);
-            for(const v of _sounds) {
-                this._sounds[v.name] = {'name' : v.name, 'data': v.data };
-            }    
-        }
-
-        this._preloadDone = true;
-    }
-    async _preload () {
-        if( this.preload ) {
-            this.preload();
-        }
-    }
-    async _init() {
-        this._preload();
-        await this._waitUntilPreloadDone();
-        await Element.init();
-        const main = this.main;
-        main.classList.add(Element.DISPLAY_NONE);
-        this._render = new Render();
-        if(this.setup) {
-            await this.setup(this._render);
-            await this._staging(this._render);
-        }else{
-            await this._staging(this._render);
-        }
-
-    }
-
-    async _start () {
-        console.log('---- start -----')
-        this._start();
-    }
-    async drawLoop() {
-        for(;;) {
-            this._draw();
-            await Utils.wait(Env.pace);
-        }
-    }
-    async _start() {
-        P.start();
-        setInterval(P._draw,Env.pace);
-        if(P._stage) {
-            await P.Utils.wait(Env.pace);
-            P._stage.update();
-            P._stage.draw();    
-        }
-
-    }
-    async start () {
-
-    }
-    _draw () {
-        //console.log('_draw')
-        P.draw();
-    }
-
-    draw () {
-        if(this._stage) {
-            this._stage.update();
-            this.stage.draw();
-        }
-    }
-
-}
-
-//module.exports = {default: Process.getInstance()};
-/* harmony default export */ __webpack_exports__["default"] = (Process.getInstance());
 
 /***/ }),
 /* 4 */
@@ -11211,14 +11209,14 @@ module.exports = minilog('scratch-audioengine');
 
 const Env = __webpack_require__(4);
 const Importer = __webpack_require__(11);
-const Utils = __webpack_require__(2);
+const Process = __webpack_require__(2);
+const Utils = __webpack_require__(3);
 const Costumes = class {
 
-    constructor(render) {
-        this.render = render;
+    constructor() {
+        this.render = Process.default.render;
         this.skinId = null;
         this.costumes = new Map();
-        //this.skinIdDone = new Map();
         this._position = {x:0, y:0};
         this._direction = 90;
         this._scale = {x:100, y:100};
@@ -11228,29 +11226,21 @@ const Costumes = class {
         await P.Utils.wait(Env.pace);
     }
     async loadImage(name, image) {
-//        this.name = name;
         const _img = await Importer.loadImage(image);
         this.addImage(name,_img);
-//        await this._setSkin(_img);
-//        await P.Utils.wait(Env.pace);
     }
     async _setSkin(name,_img) {
         if(Importer.isSVG(_img)) {
-            //console.log('costumes _setSkin is Svg')
-            // 複数回ロードしたら、その都度 skinId は変わるのか？（変わるはず！）
+            // 複数回ロードしたら、その都度 skinId は変わる
             const _svgText = _img;
-            //const _skinId = await this._setSvgSkin(_svgText);
             this._setSvgSkin(_svgText).then(v=>{
                 const _skinId = v;
-                //this.skinIdDone.set(_skinId, true);
                 this.costumes.set( name , _skinId);
                 if( this.skinId == null) {
                     this.skinId = _skinId; // 初回のSkinId 
                 }    
             });
-            //console.log('Costumes _setSkin skinId=',_skinId)
         }else{
-            console.log('Costume _setSkin name= ', name);
             const _bitmap = _img;
             const _skinId = await this._setBitmapSkin(_bitmap);        
             this.costumes.set( name , _skinId);
@@ -11261,13 +11251,10 @@ const Costumes = class {
     }
     async _setSvgSkin(_svgText) {
         const skinId = this.render.renderer.createSVGSkin(_svgText);
-        //await Utils.wait(10)
-        //this.skinIdDone.set(skinId, true);
         return skinId;
     }
     async _setBitmapSkin(_bitmap) {
         const skinId = await this.render.renderer.createBitmapSkin(_bitmap);
-        //this.skinIdDone.set(skinId, true);
         return skinId;        
     }
     setDirection(_direction) {
@@ -12371,8 +12358,8 @@ module.exports = Backdrops;
 const Canvas = __webpack_require__(7);
 const CSS = __webpack_require__(37);
 const Env = __webpack_require__(4);
-const Process = __webpack_require__(3);
-const Utils = __webpack_require__(2);
+const Process = __webpack_require__(2);
+const Utils = __webpack_require__(3);
 const Element = class {
     static get DISPLAY_NONE () {
         return "displayNone";
@@ -12452,10 +12439,10 @@ const Element = class {
         Element.createCanvas(main);
         const flag = Element.createFlag(main);
         flag.addEventListener('click', async function() {
-            flag.classList.add(Element.DISPLAY_NONE);
-            process._start();
-            //最初は消していたが、将来、再開ボタンとして表示するかもしれず、非表示にするだけとする。
             //flag.remove();
+            //最初は消していたが、将来、再開ボタンとして表示するかもしれず、非表示にするだけとする。
+            flag.classList.add(Element.DISPLAY_NONE);
+            process._drawingStart();
         });
     }
 }
@@ -15112,13 +15099,14 @@ module.exports = VolumeEffect;
 /* WEBPACK VAR INJECTION */(function(process) {const Canvas = __webpack_require__(7);
 const Env = __webpack_require__(4);
 const Looks = __webpack_require__(12);
-const Process = __webpack_require__(3);
+const Process = __webpack_require__(2);
 const Sounds = __webpack_require__(33);
-const Utils = __webpack_require__(2);
+const Utils = __webpack_require__(3);
 const Entity = class {
-    constructor (render, name, layer,  options = {} ){
+    constructor (name, layer, options = {} ){
         this.pace = Env.pace;
-        this.render = render;
+        const _process = Process.default;
+        this.render = _process.render;
         this.name = name;
         this.layer = layer;
         this.drawableID = this.render.createDrawable(this.layer);
@@ -15134,7 +15122,7 @@ const Entity = class {
             'whenCloned'
           ];
         this.canvas = Canvas.canvas;
-        this.flag = Process.default.flag;
+        this.flag = _process.flag;
         this.position = {x:0, y:0}; // 意味なし
         this.scale = {x:100,y:100}; // 意味なし
         this.direction = 90; // 意味なし
@@ -15335,15 +15323,14 @@ const Entity = class {
     }
     async whenFlag (func) {
         const process = Process.default;
-        const me = this;
+        //const me = this;
         const _func = func.bind(this);
-        if (me.flag) {
+        if (process.flag) {
             // フラグエレメントへのイベント登録とするべき。
-            this.flag.addEventListener('click', async (e) => {
+            process.flag.addEventListener('click', async (e) => {
                 //me.flag.remove; // <--- フラグ要素があれば消すとしたい。
                 if( process.preloadDone === true ) {
                     setTimeout(_func, 0);
-//                    _func();
                 }
                 //me._exec(func, [e])
                 e.stopPropagation();  // イベント伝播を停止
@@ -15369,6 +15356,7 @@ const Entity = class {
     whenTouchingTarget(targets, func) {
         const me = this;
         if( process.preloadDone === true ) {
+            const _func = func.bind(this);
             setInterval(async function(){
                 const touching = me.isTouchingTarget(me, targets);
                 if(touching === true){
@@ -15456,7 +15444,7 @@ module.exports = Entity;
 "use strict";
 
 
-var Process = __webpack_require__(3);
+var Process = __webpack_require__(2);
 var _P = Process.default;
 window.P = _P;
 var Element = _P.Element;
@@ -15534,7 +15522,7 @@ module.exports = CSS;
 
 const Element = __webpack_require__(20);
 //const Env = require('./env');
-const Process = __webpack_require__(3);
+const Process = __webpack_require__(2);
 const ScratchRenderer = __webpack_require__(21);
 const StageLayering = __webpack_require__(17);
 const Render = class {
@@ -27183,14 +27171,14 @@ const Backdrops = __webpack_require__(19);
 const Canvas = __webpack_require__(7);
 const Env = __webpack_require__(4);
 const Entity = __webpack_require__(35);
-const Process = __webpack_require__(3);
+const Process = __webpack_require__(2);
 const Sensing = __webpack_require__(111);
 //const Sounds = require('./sounds');
 const StageLayering = __webpack_require__(17);
-const Utils = __webpack_require__(2);
+const Utils = __webpack_require__(3);
 const Stage = class extends Entity {
-    constructor(render, name, options={}) {
-        super(render, name, StageLayering.BACKGROUND_LAYER, options);    
+    constructor( name, options={} ) {
+        super( name, StageLayering.BACKGROUND_LAYER, options );    
         this.effect = {
             color : ('effect' in options)? (('color' in options.effect)? options.effect.color : 0) : 0,
             mosaic : ('effect' in options)? (('mosaic' in options.effect)? options.effect.mosaic : 0) : 0,
@@ -27202,7 +27190,7 @@ const Stage = class extends Entity {
 
         this.keysCode = [];
         this.keysKey = [];
-        this.backdrops = new Backdrops(render);
+        this.backdrops = new Backdrops();
         this._sprites = [];
         this.skinIdx = -1;
         this.mouse = {x:0, y:0};
@@ -27504,7 +27492,7 @@ process.umask = function() { return 0; };
 /***/ (function(module, exports, __webpack_require__) {
 
 const ScratchRenderer = __webpack_require__(21);
-const Utils = __webpack_require__(2);
+const Utils = __webpack_require__(3);
 const Sensing = {
     enable: function(stage) {
         const me = stage
@@ -27589,17 +27577,17 @@ const Env = __webpack_require__(4);
 const Costumes = __webpack_require__(10);
 const Looks = __webpack_require__(12);
 const MathUtils = __webpack_require__(113);
-const Process = __webpack_require__(3);
+const Process = __webpack_require__(2);
 //const sounds = require('./sounds');
 const StageLayering = __webpack_require__(17);
-const Utils = __webpack_require__(2);
+const Utils = __webpack_require__(3);
 const Sprite = class extends Entity {
 
-    constructor(stage, name, options = {}) {
-        const render = stage.render;
-        super(render, name, StageLayering.SPRITE_LAYER, options);
+    constructor(name, options = {}) {
+        super(name, StageLayering.SPRITE_LAYER, options);
+        const stage = Process.default.stage;
         this.stage = stage;
-        this.costumes = new Costumes(render);
+        this.costumes = new Costumes();
         this.skinId = null;
         this.skinIdx = -1;
         this.z = -1;
@@ -27647,7 +27635,7 @@ const Sprite = class extends Entity {
                 GHOST: (this._effect.ghost)? this._effect.ghost: 0,
             };
             const newOptions = Object.assign(_options, options);
-            const newSprite = new this.constructor(this.stage, newName, newOptions);
+            const newSprite = new this.constructor(newName, newOptions);
             this.clones.push(newSprite);
             newSprite.isClone = true;
             for(const d of this.imageDatas) {
