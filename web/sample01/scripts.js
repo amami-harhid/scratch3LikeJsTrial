@@ -1,13 +1,12 @@
-let stage, spriteA;
-const wait_time = 1000/30;
+/**
+ * Sample01
+ * 画像をロードして ステージに表示する
+ */
+P.preload = async function() {
+    this.loadImage('../assets/Jurassic.svg','Jurassic');
+}
 
-LS.process.staging = async function() {
-  const render = new LS.Render();
-  stage = new LS.Stage(render, "stage");
-  await stage.backdrops.loadImage('jurassic', '../assets/Jurassic.svg');
-  stage.scale = {x:100,y:100};
-  stage.update();
-};
-LS.process.draw = function() {
-  stage.draw();
+P.prepare = async function() {
+    P.stage = new P.Stage();
+    P.stage.addImage( P.images.Jurassic );
 }

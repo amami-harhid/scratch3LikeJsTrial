@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 36);
+/******/ 	return __webpack_require__(__webpack_require__.s = 35);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -10292,84 +10292,6 @@ function createVAOFromBufferInfo(gl, programInfo, bufferInfo) {
 
 /***/ }),
 /* 1 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var microee = __webpack_require__(52);
-
-// Implements a subset of Node's stream.Transform - in a cross-platform manner.
-function Transform() {}
-
-microee.mixin(Transform);
-
-// The write() signature is different from Node's
-// --> makes it much easier to work with objects in logs.
-// One of the lessons from v1 was that it's better to target
-// a good browser rather than the lowest common denominator
-// internally.
-// If you want to use external streams, pipe() to ./stringify.js first.
-Transform.prototype.write = function(name, level, args) {
-  this.emit('item', name, level, args);
-};
-
-Transform.prototype.end = function() {
-  this.emit('end');
-  this.removeAllListeners();
-};
-
-Transform.prototype.pipe = function(dest) {
-  var s = this;
-  // prevent double piping
-  s.emit('unpipe', dest);
-  // tell the dest that it's being piped to
-  dest.emit('pipe', s);
-
-  function onItem() {
-    dest.write.apply(dest, Array.prototype.slice.call(arguments));
-  }
-  function onEnd() { !dest._isStdio && dest.end(); }
-
-  s.on('item', onItem);
-  s.on('end', onEnd);
-
-  s.when('unpipe', function(from) {
-    var match = (from === dest) || typeof from == 'undefined';
-    if(match) {
-      s.removeListener('item', onItem);
-      s.removeListener('end', onEnd);
-      dest.emit('unpipe');
-    }
-    return match;
-  });
-
-  return dest;
-};
-
-Transform.prototype.unpipe = function(from) {
-  this.emit('unpipe', from);
-  return this;
-};
-
-Transform.prototype.format = function(dest) {
-  throw new Error([
-    'Warning: .format() is deprecated in Minilog v2! Use .pipe() instead. For example:',
-    'var Minilog = require(\'minilog\');',
-    'Minilog',
-    '  .pipe(Minilog.backends.console.formatClean)',
-    '  .pipe(Minilog.backends.console);'].join('\n'));
-};
-
-Transform.mixin = function(dest) {
-  var o = Transform.prototype, k;
-  for (k in o) {
-    o.hasOwnProperty(k) && (dest.prototype[k] = o[k]);
-  }
-};
-
-module.exports = Transform;
-
-
-/***/ }),
-/* 2 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -10379,14 +10301,15 @@ const Backdrops = __webpack_require__(19);
 //const Css = require('./css');
 const Costumes = __webpack_require__(10);
 const Element = __webpack_require__(20);
-const Env = __webpack_require__(4);
+const Env = __webpack_require__(3);
 const Importer = __webpack_require__(11);
 const Looks = __webpack_require__(12);
-const Render = __webpack_require__(38);
-const Sounds = __webpack_require__(33);
-const Stage = __webpack_require__(109);
+const Render = __webpack_require__(37);
+const Sensing = __webpack_require__(93);
+const Sounds = __webpack_require__(32);
+const Stage = __webpack_require__(110);
 const Sprite = __webpack_require__(112);
-const Utils = __webpack_require__(3);
+const Utils = __webpack_require__(4);
 const Process = class {
 
     static getInstance() {
@@ -10475,6 +10398,7 @@ const Process = class {
         this._preload();
         await this._waitUntilPreloadDone();
         await Element.init();
+        //Sensing.enable();
         const main = this.main;
         main.classList.add(Element.DISPLAY_NONE);
         this._render = new Render();
@@ -10556,6 +10480,18 @@ const Process = class {
         this._preloadSoundPromise.push(data);
         return data;
     }
+
+    spriteClone( src, callback ) {
+        if( src instanceof P.Sprite ) {
+            src.clone().then( async( c ) =>{
+                if( callback ) {
+                    const _callback = callback.bind( c );
+                    _callback();
+                }
+            });
+        }
+    }
+
     get preloadDone() {
         return this._preloadDone;
     }
@@ -10575,9 +10511,6 @@ const Process = class {
 
         this._preloadDone = true;
     }
-    createThread( func ) {
-        setTimeout(func, 0);
-    }
     async waitUntil( condition ) {
         for(;;) {
             if( condition() ) {
@@ -10594,7 +10527,98 @@ const Process = class {
 /* harmony default export */ __webpack_exports__["default"] = (Process.getInstance());
 
 /***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var microee = __webpack_require__(52);
+
+// Implements a subset of Node's stream.Transform - in a cross-platform manner.
+function Transform() {}
+
+microee.mixin(Transform);
+
+// The write() signature is different from Node's
+// --> makes it much easier to work with objects in logs.
+// One of the lessons from v1 was that it's better to target
+// a good browser rather than the lowest common denominator
+// internally.
+// If you want to use external streams, pipe() to ./stringify.js first.
+Transform.prototype.write = function(name, level, args) {
+  this.emit('item', name, level, args);
+};
+
+Transform.prototype.end = function() {
+  this.emit('end');
+  this.removeAllListeners();
+};
+
+Transform.prototype.pipe = function(dest) {
+  var s = this;
+  // prevent double piping
+  s.emit('unpipe', dest);
+  // tell the dest that it's being piped to
+  dest.emit('pipe', s);
+
+  function onItem() {
+    dest.write.apply(dest, Array.prototype.slice.call(arguments));
+  }
+  function onEnd() { !dest._isStdio && dest.end(); }
+
+  s.on('item', onItem);
+  s.on('end', onEnd);
+
+  s.when('unpipe', function(from) {
+    var match = (from === dest) || typeof from == 'undefined';
+    if(match) {
+      s.removeListener('item', onItem);
+      s.removeListener('end', onEnd);
+      dest.emit('unpipe');
+    }
+    return match;
+  });
+
+  return dest;
+};
+
+Transform.prototype.unpipe = function(from) {
+  this.emit('unpipe', from);
+  return this;
+};
+
+Transform.prototype.format = function(dest) {
+  throw new Error([
+    'Warning: .format() is deprecated in Minilog v2! Use .pipe() instead. For example:',
+    'var Minilog = require(\'minilog\');',
+    'Minilog',
+    '  .pipe(Minilog.backends.console.formatClean)',
+    '  .pipe(Minilog.backends.console);'].join('\n'));
+};
+
+Transform.mixin = function(dest) {
+  var o = Transform.prototype, k;
+  for (k in o) {
+    o.hasOwnProperty(k) && (dest.prototype[k] = o[k]);
+  }
+};
+
+module.exports = Transform;
+
+
+/***/ }),
 /* 3 */
+/***/ (function(module, exports) {
+
+const Env = {
+
+    pace : 33,
+
+    WindowSize : {w: innerWidth, h: innerHeight},
+}
+
+module.exports = Env;
+
+/***/ }),
+/* 4 */
 /***/ (function(module, exports) {
 
 const Utils = class {
@@ -10611,11 +10635,29 @@ const Utils = class {
         }
         return false;
     }
-    static async wait (milliSecond = Utils.WAIT_TIME) {
+    static wait (milliSecond = Utils.WAIT_TIME) {
         return new Promise(resolve => setTimeout(resolve, milliSecond));
-      }
+    }
+    static waitUntil ( _condition, _pace, _bind ) {
+        return new Promise( async (resolve) => {
+            let condition;
+            if( _bind ){
+                condition = _condition.bind( _bind );
+            }else{
+                condition = _condition;
+            }
+    
+            for(;;) {
+                if( condition() === true ) {
+                    break;
+                }
+                await Utils.wait( _pace /*Utils.WAIT_TIME*/ );
+            }
+            resolve();
+        });
+    }
     static get WAIT_TIME () {
-        return 0.05;
+        return 5;
     }    
 
     static mapDeepCopy(src, dist, defaultValue) {
@@ -10660,19 +10702,6 @@ const Utils = class {
 }
 
 module.exports = Utils;
-
-/***/ }),
-/* 4 */
-/***/ (function(module, exports) {
-
-const Env = {
-
-    pace : 33,
-
-    WindowSize : {w: innerWidth, h: innerHeight},
-}
-
-module.exports = Env;
 
 /***/ }),
 /* 5 */
@@ -11185,10 +11214,10 @@ module.exports = minilog('scratch-audioengine');
 /* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const Env = __webpack_require__(4);
+const Env = __webpack_require__(3);
 const Importer = __webpack_require__(11);
-const Process = __webpack_require__(2);
-const Utils = __webpack_require__(3);
+const Process = __webpack_require__(1);
+const Utils = __webpack_require__(4);
 const Costumes = class {
 
     constructor() {
@@ -12334,10 +12363,10 @@ module.exports = Backdrops;
 /***/ (function(module, exports, __webpack_require__) {
 
 const Canvas = __webpack_require__(7);
-const CSS = __webpack_require__(37);
-const Env = __webpack_require__(4);
-const Process = __webpack_require__(2);
-const Utils = __webpack_require__(3);
+const CSS = __webpack_require__(36);
+const Env = __webpack_require__(3);
+const Process = __webpack_require__(1);
+const Utils = __webpack_require__(4);
 const Element = class {
     static get DISPLAY_NONE () {
         return "displayNone";
@@ -12365,6 +12394,7 @@ const Element = class {
         const canvas = Canvas.createCanvas(main);
         canvas.classList.add("likeScratch-canvas");
         Element.canvas = canvas;
+        Process.default.canvas = canvas;
         //canvas.getContext('2d', { willReadFrequently: true });
         return canvas;
     }
@@ -12430,19 +12460,6 @@ module.exports = Element;
 
 /***/ }),
 /* 21 */
-/***/ (function(module, exports, __webpack_require__) {
-
-const RenderWebGL = __webpack_require__(39);
-
-/**
- * Export for NPM & Node.js
- * @type {RenderWebGL}
- */
-module.exports = RenderWebGL;
-
-
-/***/ }),
-/* 22 */
 /***/ (function(module, exports) {
 
 class Rectangle {
@@ -12644,7 +12661,7 @@ module.exports = Rectangle;
 
 
 /***/ }),
-/* 23 */
+/* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -12847,7 +12864,7 @@ module.exports = EffectTransform;
 
 
 /***/ }),
-/* 24 */
+/* 23 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const minilog = __webpack_require__(14);
@@ -12857,7 +12874,7 @@ module.exports = minilog('scratch-render');
 
 
 /***/ }),
-/* 25 */
+/* 24 */
 /***/ (function(module, exports) {
 
 var hex = {
@@ -12883,13 +12900,13 @@ module.exports = color;
 
 
 /***/ }),
-/* 26 */
+/* 25 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const DOMPurify = __webpack_require__(27);
+const DOMPurify = __webpack_require__(26);
 const SvgElement = __webpack_require__(15);
-const convertFonts = __webpack_require__(28);
-const fixupSvgString = __webpack_require__(29);
+const convertFonts = __webpack_require__(27);
+const fixupSvgString = __webpack_require__(28);
 const transformStrokeWidths = __webpack_require__(64);
 
 /**
@@ -13223,7 +13240,7 @@ module.exports = loadSvgString;
 
 
 /***/ }),
-/* 27 */
+/* 26 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*! @license DOMPurify | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/2.2.2/LICENSE */
@@ -14575,7 +14592,7 @@ module.exports = loadSvgString;
 
 
 /***/ }),
-/* 28 */
+/* 27 */
 /***/ (function(module, exports) {
 
 /**
@@ -14619,7 +14636,7 @@ module.exports = convertFonts;
 
 
 /***/ }),
-/* 29 */
+/* 28 */
 /***/ (function(module, exports) {
 
 /**
@@ -14686,10 +14703,10 @@ module.exports = function (svgString) {
 
 
 /***/ }),
-/* 30 */
+/* 29 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const inlineSvgFonts = __webpack_require__(31);
+const inlineSvgFonts = __webpack_require__(30);
 
 /**
  * Serialize a given SVG DOM to a string.
@@ -14711,7 +14728,7 @@ module.exports = serializeSvgToString;
 
 
 /***/ }),
-/* 31 */
+/* 30 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -14767,7 +14784,7 @@ module.exports = inlineSvgFonts;
 
 
 /***/ }),
-/* 32 */
+/* 31 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.7.1
@@ -14864,13 +14881,13 @@ module.exports = UnicodeTrie;
 
 
 /***/ }),
-/* 33 */
+/* 32 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const AudioEngine = __webpack_require__(93);
+const AudioEngine = __webpack_require__(94);
 const Importer = __webpack_require__(11);
 //const Process = require('./process');
-const SoundPlayer = __webpack_require__(108);
+const SoundPlayer = __webpack_require__(109);
 const Sounds = class {
 
     constructor() {
@@ -14998,7 +15015,7 @@ const Sounds = class {
 module.exports = Sounds;
 
 /***/ }),
-/* 34 */
+/* 33 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const Effect = __webpack_require__(18);
@@ -15071,15 +15088,15 @@ module.exports = VolumeEffect;
 
 
 /***/ }),
-/* 35 */
+/* 34 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(process) {const Canvas = __webpack_require__(7);
-const Env = __webpack_require__(4);
+const Env = __webpack_require__(3);
 const Looks = __webpack_require__(12);
-const Process = __webpack_require__(2);
-const Sounds = __webpack_require__(33);
-const Utils = __webpack_require__(3);
+const Process = __webpack_require__(1);
+const Sounds = __webpack_require__(32);
+const Utils = __webpack_require__(4);
 const Entity = class {
     constructor (name, layer, options = {} ){
         this.pace = Env.pace;
@@ -15256,6 +15273,7 @@ const Entity = class {
     _generateUUID () {
         return Utils.generateUUID();
     }
+/* 
     _releaseWaited (triggeringId) {
         const event = new window.CustomEvent(`blockLike.waited.${triggeringId}`, { detail: { value: 0 } })
         document.dispatchEvent(event)
@@ -15267,6 +15285,7 @@ const Entity = class {
             throw ('BlockLike.js Error: Variables accepting a value must be declared in the global scope.') // eslint-disable-line no-throw-literal
         }
     }
+*/
     _exec (func, argsArr) {
         const me = this
         me.triggeringId = this._generateUUID()
@@ -15315,6 +15334,37 @@ const Entity = class {
             })
         }
     }
+    whenMouseTouched (func) {
+        const process = Process.default;
+        const me = this;
+        const _func = func.bind(this);
+        Canvas.canvas.addEventListener('mousemove', async(e) => {
+            const mouseX = e.offsetX;
+            const mouseY = e.offsetY;
+            const _touchDrawableId = me.render.renderer.pick(mouseX,mouseY);
+            if(me.drawableID == _touchDrawableId){
+                if( process.preloadDone === true ) {
+                    _func();
+                }
+            }
+            e.stopPropagation()
+        }, {});
+
+    }
+    isNotMouseTouching() {
+        return !(this.isMouseTouching());
+    }
+    isMouseTouching() {
+        const p = Process.default;
+        const mouseX = p.stage.mouse.x;
+        const mouseY = p.stage.mouse.y;
+        const _touchDrawableId = p.render.renderer.pick(mouseX,mouseY, 3, 3, [this.drawableID]); 
+        if(this.drawableID == _touchDrawableId){
+            return true;
+        }
+        return false;
+
+    }
     whenClicked (func) {
         const process = Process.default;
         const me = this;
@@ -15329,7 +15379,7 @@ const Entity = class {
                 }
             }
             e.stopPropagation()
-        }, {});        
+        }, {});
     }
     whenTouchingTarget(targets, func) {
         const me = this;
@@ -15410,6 +15460,17 @@ const Entity = class {
 
     }
 
+    startThread( func ) {
+        const _func = func.bind(this);
+        let t = setTimeout(_func, 0);
+        return t;
+    }
+    
+    stopThread( t ) {
+        clearTimeout( t );
+    }
+
+
     update() {
         if(this.life != Infinity) {
             this.life -= 1 / Process.default.Env.pace * 1000;
@@ -15422,16 +15483,16 @@ const Entity = class {
 
 module.exports = Entity;
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(110)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(111)))
 
 /***/ }),
-/* 36 */
+/* 35 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var Process = __webpack_require__(2);
+var Process = __webpack_require__(1);
 var _P = Process.default;
 window.P = _P;
 var Element = _P.Element;
@@ -15442,7 +15503,7 @@ window.onload = async function () {
 };
 
 /***/ }),
-/* 37 */
+/* 36 */
 /***/ (function(module, exports) {
 
 const CSS = {
@@ -15504,13 +15565,13 @@ html, body{
 module.exports = CSS;
 
 /***/ }),
-/* 38 */
+/* 37 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const Element = __webpack_require__(20);
 //const Env = require('./env');
-const Process = __webpack_require__(2);
-const ScratchRenderer = __webpack_require__(21);
+const Process = __webpack_require__(1);
+const ScratchRenderer = __webpack_require__(38);
 const StageLayering = __webpack_require__(17);
 const Render = class {
     static get WHRate() {
@@ -15576,6 +15637,19 @@ const Render = class {
 module.exports = Render;
 
 /***/ }),
+/* 38 */
+/***/ (function(module, exports, __webpack_require__) {
+
+const RenderWebGL = __webpack_require__(39);
+
+/**
+ * Export for NPM & Node.js
+ * @type {RenderWebGL}
+ */
+module.exports = RenderWebGL;
+
+
+/***/ }),
 /* 39 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -15586,14 +15660,14 @@ const twgl = __webpack_require__(0);
 
 const BitmapSkin = __webpack_require__(45);
 const Drawable = __webpack_require__(47);
-const Rectangle = __webpack_require__(22);
+const Rectangle = __webpack_require__(21);
 const PenSkin = __webpack_require__(60);
 const RenderConstants = __webpack_require__(8);
 const ShaderManager = __webpack_require__(6);
 const SVGSkin = __webpack_require__(61);
 const TextBubbleSkin = __webpack_require__(79);
-const EffectTransform = __webpack_require__(23);
-const log = __webpack_require__(24);
+const EffectTransform = __webpack_require__(22);
+const log = __webpack_require__(23);
 
 const __isTouchingDrawablesPoint = twgl.v3.create();
 const __candidatesBounds = new Rectangle();
@@ -18390,12 +18464,12 @@ module.exports = Silhouette;
 
 const twgl = __webpack_require__(0);
 
-const Rectangle = __webpack_require__(22);
+const Rectangle = __webpack_require__(21);
 const RenderConstants = __webpack_require__(8);
 const ShaderManager = __webpack_require__(6);
 const Skin = __webpack_require__(5);
-const EffectTransform = __webpack_require__(23);
-const log = __webpack_require__(24);
+const EffectTransform = __webpack_require__(22);
+const log = __webpack_require__(23);
 
 /**
  * An internal workspace for calculating texture locations from world vectors
@@ -19243,7 +19317,7 @@ module.exports = {rgbToHsv, hsvToRgb};
 /* 51 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var Transform = __webpack_require__(1),
+var Transform = __webpack_require__(2),
     Filter = __webpack_require__(53);
 
 var log = new Transform(),
@@ -19351,7 +19425,7 @@ module.exports = M;
 /***/ (function(module, exports, __webpack_require__) {
 
 // default filter
-var Transform = __webpack_require__(1);
+var Transform = __webpack_require__(2);
 
 var levelMap = { debug: 1, info: 2, warn: 3, error: 4 };
 
@@ -19412,7 +19486,7 @@ module.exports = Filter;
 /* 54 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var Transform = __webpack_require__(1);
+var Transform = __webpack_require__(2);
 
 var newlines = /\n+$/,
     logger = new Transform();
@@ -19450,8 +19524,8 @@ module.exports = logger;
 /* 55 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var Transform = __webpack_require__(1),
-    color = __webpack_require__(25);
+var Transform = __webpack_require__(2),
+    color = __webpack_require__(24);
 
 var colors = { debug: ['cyan'], info: ['purple' ], warn: [ 'yellow', true ], error: [ 'red', true ] },
     logger = new Transform();
@@ -19474,8 +19548,8 @@ module.exports = logger;
 /* 56 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var Transform = __webpack_require__(1),
-    color = __webpack_require__(25),
+var Transform = __webpack_require__(2),
+    color = __webpack_require__(24),
     colors = { debug: ['gray'], info: ['purple' ], warn: [ 'yellow', true ], error: [ 'red', true ] },
     logger = new Transform();
 
@@ -19506,7 +19580,7 @@ module.exports = logger;
 /* 57 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var Transform = __webpack_require__(1),
+var Transform = __webpack_require__(2),
     cache = [ ];
 
 var logger = new Transform();
@@ -19526,7 +19600,7 @@ module.exports = logger;
 /* 58 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var Transform = __webpack_require__(1),
+var Transform = __webpack_require__(2),
     cache = false;
 
 var logger = new Transform();
@@ -19546,7 +19620,7 @@ module.exports = logger;
 /* 59 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var Transform = __webpack_require__(1);
+var Transform = __webpack_require__(2);
 
 var cid = new Date().valueOf().toString(36);
 
@@ -20229,12 +20303,12 @@ module.exports = SVGSkin;
 
 const SVGRenderer = __webpack_require__(63);
 const BitmapAdapter = __webpack_require__(75);
-const inlineSvgFonts = __webpack_require__(31);
-const loadSvgString = __webpack_require__(26);
+const inlineSvgFonts = __webpack_require__(30);
+const loadSvgString = __webpack_require__(25);
 const sanitizeSvg = __webpack_require__(77);
-const serializeSvgToString = __webpack_require__(30);
+const serializeSvgToString = __webpack_require__(29);
 const SvgElement = __webpack_require__(15);
-const convertFonts = __webpack_require__(28);
+const convertFonts = __webpack_require__(27);
 // /**
 //  * Export for NPM & Node.js
 //  * @type {RenderWebGL}
@@ -20255,8 +20329,8 @@ module.exports = {
 /* 63 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const loadSvgString = __webpack_require__(26);
-const serializeSvgToString = __webpack_require__(30);
+const loadSvgString = __webpack_require__(25);
+const serializeSvgToString = __webpack_require__(29);
 
 /**
  * Main quirks-mode SVG rendering code.
@@ -21455,8 +21529,8 @@ function fromByteArray (uint8) {
  * @fileOverview Sanitize the content of an SVG aggressively, to make it as safe
  * as possible
  */
-const fixupSvgString = __webpack_require__(29);
-const DOMPurify = __webpack_require__(27);
+const fixupSvgString = __webpack_require__(28);
+const DOMPurify = __webpack_require__(26);
 
 const sanitizeSvg = {};
 
@@ -21966,7 +22040,7 @@ module.exports = TextWrapper;
 (function() {
   var AI, AL, BA, BK, CB, CI_BRK, CJ, CP_BRK, CR, DI_BRK, ID, IN_BRK, LF, LineBreaker, NL, NS, PR_BRK, SA, SG, SP, UnicodeTrie, WJ, XX, base64, characterClasses, classTrie, data, fs, pairTable, _ref, _ref1;
 
-  UnicodeTrie = __webpack_require__(32);
+  UnicodeTrie = __webpack_require__(31);
 
   
 
@@ -22760,7 +22834,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
   _ref = __webpack_require__(91), CR = _ref.CR, LF = _ref.LF, Control = _ref.Control, Extend = _ref.Extend, Regional_Indicator = _ref.Regional_Indicator, SpacingMark = _ref.SpacingMark, L = _ref.L, V = _ref.V, T = _ref.T, LV = _ref.LV, LVT = _ref.LVT;
 
-  UnicodeTrie = __webpack_require__(32);
+  UnicodeTrie = __webpack_require__(31);
 
   
 
@@ -25008,37 +25082,117 @@ module.exports = CanvasMeasurementProvider;
 /* 93 */
 /***/ (function(module, exports, __webpack_require__) {
 
+const Process = __webpack_require__(1)
+const Utils = __webpack_require__(4);
+const Sensing = {
+    enable: function() {
+        const me = Process.default;
+        console.log(me);
+        const render = me.render.renderer;
+        /**
+        * decimalRound - rounds a number too decimal points.
+        *
+        * @param {number} value - the value to round.
+        * @param {number} points - how many decimal points to leave.
+        */
+        function decimalRound (value, points) {
+          return Math.round(value * (10 ** points)) / (10 ** points)
+        }
+      
+        /**
+        * computeX - Computes centered x based on x extracted from event.
+        */
+        function computeX (x) {
+          const mag = 1;//me.canvas.magnification / 100
+          return decimalRound((x - (me.canvas.offsetLeft) - (render.stageWidth / 2)) / mag, 2)
+        }
+      
+        /**
+        * computeY - Computes centered y based on y extracted from event.
+        */
+        function computeY (y) {
+          const mag = 1;// me.canvas.magnification / 100
+          return decimalRound((-y + me.canvas.offsetTop + (render.stageHeight / 2)) / mag, 2)
+        }
+      
+        document.addEventListener('keydown', (e) => {
+          e.key && me.keysKey.indexOf(e.key.toLowerCase()) === -1 ? me.keysKey.push(e.key.toLowerCase()) : null
+          e.code && me.keysCode.indexOf(e.code.toLowerCase()) === -1 ? me.keysCode.push(e.code.toLowerCase()) : null
+        })
+      
+        document.addEventListener('keyup', (e) => {
+          e.key ? me.keysKey = me.keysKey.filter((item) => item !== e.key.toLowerCase()) : null
+          e.code ? me.keysCode = me.keysCode.filter((item) => item !== e.code.toLowerCase()) : null
+        })
+      
+        me.canvas.addEventListener('mousemove', (e) => {
+          me.mouseX = computeX(e.clientX)
+          me.mouseY = computeY(e.clientY)
+        })
+      
+        me.canvas.addEventListener('touchmove', (e) => {
+          me.mouseX = computeX(e.changedTouches[0].clientX)
+          me.mouseY = computeY(e.changedTouches[0].clientY)
+        }, { passive: true })
+      
+        me.canvas.addEventListener('mousedown', () => {
+          me.mouseDown = true
+        })
+        me.canvas.addEventListener('mouseup', () => {
+          me.mouseDown = false
+        })
+      
+        me.canvas.addEventListener('touchstart', (e) => {
+          me.mouseX = computeX(e.touches[0].clientX)
+          me.mouseY = computeY(e.touches[0].clientY)
+          me.mouseDown = true
+        }, { passive: true })
+      
+        me.canvas.addEventListener('touchend', () => {
+          me.mouseDown = false
+          me.mouseX = null
+          me.mouseY = null
+        })
+    }
+}
+
+module.exports = Sensing;
+
+/***/ }),
+/* 94 */
+/***/ (function(module, exports, __webpack_require__) {
+
 /**
  * @fileOverview Scratch Audio is divided into a single AudioEngine, that
  * handles global functionality, and AudioPlayers, belonging to individual
  * sprites and clones.
  */
 
-const AudioEngine = __webpack_require__(94);
+const AudioEngine = __webpack_require__(95);
 
 module.exports = AudioEngine;
 
 
 /***/ }),
-/* 94 */
+/* 95 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const StartAudioContext = __webpack_require__(95);
-const AudioContext = __webpack_require__(97);
+const StartAudioContext = __webpack_require__(96);
+const AudioContext = __webpack_require__(98);
 
 const log = __webpack_require__(9);
-const uid = __webpack_require__(99);
+const uid = __webpack_require__(100);
 
-const ADPCMSoundDecoder = __webpack_require__(100);
-const Loudness = __webpack_require__(102);
-const SoundPlayer = __webpack_require__(103);
+const ADPCMSoundDecoder = __webpack_require__(101);
+const Loudness = __webpack_require__(103);
+const SoundPlayer = __webpack_require__(104);
 
-const EffectChain = __webpack_require__(104);
-const PanEffect = __webpack_require__(105);
-const PitchEffect = __webpack_require__(106);
-const VolumeEffect = __webpack_require__(34);
+const EffectChain = __webpack_require__(105);
+const PanEffect = __webpack_require__(106);
+const PitchEffect = __webpack_require__(107);
+const VolumeEffect = __webpack_require__(33);
 
-const SoundBank = __webpack_require__(107);
+const SoundBank = __webpack_require__(108);
 
 /**
  * Wrapper to ensure that audioContext.decodeAudioData is a promise
@@ -25284,13 +25438,13 @@ module.exports = AudioEngine;
 
 
 /***/ }),
-/* 95 */
+/* 96 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // StartAudioContext assumes that we are in a window/document setting and messes with the unit
 // tests, this is our own version just checking to see if we have a global document to listen
 // to before we even try to "start" it.  Our test api audio context is started by default.
-const StartAudioContext = __webpack_require__(96);
+const StartAudioContext = __webpack_require__(97);
 
 module.exports = function (context) {
     if (typeof document !== 'undefined') {
@@ -25300,7 +25454,7 @@ module.exports = function (context) {
 
 
 /***/ }),
-/* 96 */
+/* 97 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/**
@@ -25498,13 +25652,13 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 }))
 
 /***/ }),
-/* 97 */
+/* 98 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var window = __webpack_require__(98)
+var window = __webpack_require__(99)
 
 var OfflineContext = window.OfflineAudioContext || window.webkitOfflineAudioContext
 var Context = window.AudioContext || window.webkitAudioContext
@@ -25549,7 +25703,7 @@ module.exports = function getContext (options) {
 
 
 /***/ }),
-/* 98 */
+/* 99 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {var win;
@@ -25569,7 +25723,7 @@ module.exports = win;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(16)))
 
 /***/ }),
-/* 99 */
+/* 100 */
 /***/ (function(module, exports) {
 
 /**
@@ -25604,10 +25758,10 @@ module.exports = uid;
 
 
 /***/ }),
-/* 100 */
+/* 101 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const ArrayBufferStream = __webpack_require__(101);
+const ArrayBufferStream = __webpack_require__(102);
 const log = __webpack_require__(9);
 
 /**
@@ -25858,7 +26012,7 @@ module.exports = ADPCMSoundDecoder;
 
 
 /***/ }),
-/* 101 */
+/* 102 */
 /***/ (function(module, exports) {
 
 class ArrayBufferStream {
@@ -26041,7 +26195,7 @@ module.exports = ArrayBufferStream;
 
 
 /***/ }),
-/* 102 */
+/* 103 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const log = __webpack_require__(9);
@@ -26129,12 +26283,12 @@ module.exports = Loudness;
 
 
 /***/ }),
-/* 103 */
+/* 104 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const {EventEmitter} = __webpack_require__(13);
 
-const VolumeEffect = __webpack_require__(34);
+const VolumeEffect = __webpack_require__(33);
 
 /**
  * Name of event that indicates playback has ended.
@@ -26480,7 +26634,7 @@ module.exports = SoundPlayer;
 
 
 /***/ }),
-/* 104 */
+/* 105 */
 /***/ (function(module, exports) {
 
 class EffectChain {
@@ -26668,7 +26822,7 @@ module.exports = EffectChain;
 
 
 /***/ }),
-/* 105 */
+/* 106 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const Effect = __webpack_require__(18);
@@ -26772,7 +26926,7 @@ module.exports = PanEffect;
 
 
 /***/ }),
-/* 106 */
+/* 107 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const Effect = __webpack_require__(18);
@@ -26906,7 +27060,7 @@ module.exports = PitchEffect;
 
 
 /***/ }),
-/* 107 */
+/* 108 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const log = __webpack_require__(9);
@@ -27074,7 +27228,7 @@ module.exports = SoundBank;
 
 
 /***/ }),
-/* 108 */
+/* 109 */
 /***/ (function(module, exports) {
 
 const SoundPlayer = class {
@@ -27151,20 +27305,17 @@ const SoundPlayer = class {
 module.exports = SoundPlayer;
 
 /***/ }),
-/* 109 */
+/* 110 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const Backdrops = __webpack_require__(19);
 const Canvas = __webpack_require__(7);
-const Env = __webpack_require__(4);
-const Entity = __webpack_require__(35);
-const Process = __webpack_require__(2);
-const Sensing = __webpack_require__(111);
-//const Sounds = require('./sounds');
+const Env = __webpack_require__(3);
+const Entity = __webpack_require__(34);
+const Process = __webpack_require__(1);
 const StageLayering = __webpack_require__(17);
-const Utils = __webpack_require__(3);
 const Stage = class extends Entity {
-    constructor( name, options={} ) {
+    constructor( name='stage', options={} ) {
         super( name, StageLayering.BACKGROUND_LAYER, options );    
         this.effect = {
             color : ('effect' in options)? (('color' in options.effect)? options.effect.color : 0) : 0,
@@ -27181,12 +27332,12 @@ const Stage = class extends Entity {
         this._sprites = [];
         this.skinIdx = -1;
         this.mouse = {x:0, y:0};
-        Sensing.enable(this);
         const me = this;
         // これは Canvasをつくる Element クラスで実行したほうがよさそう（関連性強いため）
-        Canvas.canvas.addEventListener('mousemove', (e) => {
-            me.mouse.x = e.offsetX - Canvas.canvas.clientWidth/2;
-            me.mouse.y = e.offsetY - Canvas.canvas.clientHeight/2;
+        const p = Process.default;
+        p.canvas.addEventListener('mousemove', (e) => {
+            me.mouse.x = e.offsetX; // - Canvas.canvas.clientWidth / 2;
+            me.mouse.y = e.offsetY; // - Canvas.canvas.clientHeight / 2;
             e.stopPropagation()
         }, {});    
         Process.default.stage = this;
@@ -27286,7 +27437,7 @@ const Stage = class extends Entity {
 module.exports = Stage;
 
 /***/ }),
-/* 110 */
+/* 111 */
 /***/ (function(module, exports) {
 
 // shim for using process in browser
@@ -27476,99 +27627,19 @@ process.umask = function() { return 0; };
 
 
 /***/ }),
-/* 111 */
-/***/ (function(module, exports, __webpack_require__) {
-
-const ScratchRenderer = __webpack_require__(21);
-const Utils = __webpack_require__(3);
-const Sensing = {
-    enable: function(stage) {
-        const me = stage
-        me.sensing = true
-      
-        /**
-        * decimalRound - rounds a number too decimal points.
-        *
-        * @param {number} value - the value to round.
-        * @param {number} points - how many decimal points to leave.
-        */
-        function decimalRound (value, points) {
-          return Math.round(value * (10 ** points)) / (10 ** points)
-        }
-      
-        /**
-        * computeX - Computes centered x based on x extracted from event.
-        */
-        function computeX (x) {
-          const mag = me.magnification / 100
-          return decimalRound((x - (me.canvas.offsetLeft) - (me.width / 2)) / mag, 2)
-        }
-      
-        /**
-        * computeY - Computes centered y based on y extracted from event.
-        */
-        function computeY (y) {
-          const mag = me.magnification / 100
-          return decimalRound((-y + me.canvas.offsetTop + (me.height / 2)) / mag, 2)
-        }
-      
-        document.addEventListener('keydown', (e) => {
-          e.key && me.keysKey.indexOf(e.key.toLowerCase()) === -1 ? me.keysKey.push(e.key.toLowerCase()) : null
-          e.code && me.keysCode.indexOf(e.code.toLowerCase()) === -1 ? me.keysCode.push(e.code.toLowerCase()) : null
-        })
-      
-        document.addEventListener('keyup', (e) => {
-          e.key ? me.keysKey = me.keysKey.filter((item) => item !== e.key.toLowerCase()) : null
-          e.code ? me.keysCode = me.keysCode.filter((item) => item !== e.code.toLowerCase()) : null
-        })
-      
-        me.canvas.addEventListener('mousemove', (e) => {
-          me.mouseX = computeX(e.clientX)
-          me.mouseY = computeY(e.clientY)
-        })
-      
-        me.canvas.addEventListener('touchmove', (e) => {
-          me.mouseX = computeX(e.changedTouches[0].clientX)
-          me.mouseY = computeY(e.changedTouches[0].clientY)
-        }, { passive: true })
-      
-        me.canvas.addEventListener('mousedown', () => {
-          me.mouseDown = true
-        })
-        me.canvas.addEventListener('mouseup', () => {
-          me.mouseDown = false
-        })
-      
-        me.canvas.addEventListener('touchstart', (e) => {
-          me.mouseX = computeX(e.touches[0].clientX)
-          me.mouseY = computeY(e.touches[0].clientY)
-          me.mouseDown = true
-        }, { passive: true })
-      
-        me.canvas.addEventListener('touchend', () => {
-          me.mouseDown = false
-          me.mouseX = null
-          me.mouseY = null
-        })
-    }
-}
-
-module.exports = Sensing;
-
-/***/ }),
 /* 112 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const Canvas = __webpack_require__(7);
-const Entity = __webpack_require__(35);
-const Env = __webpack_require__(4);
+const Entity = __webpack_require__(34);
+const Env = __webpack_require__(3);
 const Costumes = __webpack_require__(10);
 const Looks = __webpack_require__(12);
 const MathUtils = __webpack_require__(113);
-const Process = __webpack_require__(2);
+const Process = __webpack_require__(1);
 //const sounds = require('./sounds');
 const StageLayering = __webpack_require__(17);
-const Utils = __webpack_require__(3);
+const Utils = __webpack_require__(4);
 const Sprite = class extends Entity {
 
     constructor(name, options = {}) {
@@ -27855,11 +27926,10 @@ const Sprite = class extends Entity {
             return false;
         }
         if(this.touchingEdge === true) return false; 
-        this.touchingEdge = true;
-        this.touchingEdge = false;
 
         if(_callback) {
-            setTimeout(_callback, 0);
+            const callback = _callback.bind(this);
+            setTimeout(callback, 0);
         }
 
         return true;

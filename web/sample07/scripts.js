@@ -1,6 +1,6 @@
 /**
- * Sample06
- * スプライトを作る
+ * Sample07
+ * スプライトを 動かす ( 端に触れたら )
  */
 P.preload = async function() {
     this.loadImage('../assets/Jurassic.svg','Jurassic');
@@ -19,7 +19,7 @@ P.setting = async function() {
 
     P.stage.whenFlag(async function() {
         // 音を登録する
-        this.addSound( P.sounds.Chill, { 'volume' : 100 } );
+        this.addSound( P.sounds.Chill, { 'volume' : 50 } );
     });
     P.stage.whenFlag(async function() {
         // 「終わるまで音を鳴らす」をずっと繰り返す、スレッドを起動する
@@ -29,5 +29,19 @@ P.setting = async function() {
                 await P.Utils.wait(P.Env.pace);
             }
         });
+    });
+
+    const steps = 10;
+    P.cat.whenFlag( async function() {
+        this.direction = (Math.random()-0.5) * 180;
+        // 「終わるまで音を鳴らす」をずっと繰り返す、スレッドを起動する
+        this.startThread( async function() {
+            for(;;) {
+                this.moveSteps( steps );
+                this.ifOnEdgeBounds();
+                await P.Utils.wait(P.Env.pace);
+            }
+        });
+
     });
 }

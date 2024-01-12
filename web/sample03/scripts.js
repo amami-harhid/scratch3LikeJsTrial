@@ -1,50 +1,32 @@
-let stage, spriteA;
-const wait_time = LS.Env.pace;
-LS.process.staging = async function() {
-  const render = new LS.Render();
-  stage = new LS.Stage(render, "stage");
-  await stage.backdrops.loadImage('mural', '../assets/Mural.png');
+/**
+ * Sample03
+ *  非同期処理と await 
+ * 「終わるまで音を鳴らす」をずっと繰り返す
+ */
 
-  spriteA = new LS.Sprite(render, "spriteA");
-  await spriteA.costumes.loadImage('cat', '../assets/cat.svg');
-  stage.addSprite(spriteA)
-  stage.scale = {x:100,y:100};
-  stage.update();
-  stage.draw();
-}
-LS.process.start = async ()=> {
-  const sounds = new LS.Sounds();
-  //this.sounds = sounds;
-  await sounds.loadSound('boing','../assets/Boing.wav');
-  sounds.volume = 5;
-  let pitch = 1;
-  sounds.pitch = pitch;
-  const times = Array(40).fill();
-  for(;;){
-
-    for(const t in times){
-      pitch += 0.01;
-      sounds.pitch = pitch;
-      spriteA.setScale(spriteA.scale.x + 5);
-      stage.update();
-      //stage.draw();
-      sounds.play();
-      await LS.Utils.wait(wait_time);
-    }
-    for(const t in times){
-      pitch -= 0.01;
-      sounds.pitch = pitch;
-      spriteA.setScale(spriteA.scale.x - 5);
-      stage.update();
-      //stage.draw();
-      sounds.play();
-      await LS.Utils.wait(wait_time);
-    }
-    await LS.Utils.wait(wait_time);
-  }
-
-};
-LS.process.draw = async function() {
-  stage.draw();
+P.preload = async function() {
+    this.loadImage('../assets/Jurassic.svg','Jurassic');
+    this.loadSound('../assets/Chill.wav','Chill');
 }
 
+P.prepare = async function() {
+    P.stage = new P.Stage();
+    P.stage.addImage( P.images.Jurassic );
+}
+
+P.setting = async function() {
+
+    // フラグクリック時のステージの動作
+    P.stage.whenFlag(async function() {
+        // 音を登録する
+        this.addSound( P.sounds.Chill, { 'volume' : 100 } );
+        // 「終わるまで音を鳴らす」をずっと繰り返す、スレッドを起動する
+        this.startThread( async function() {
+            for(;;) {
+                // 非同期処理に awaitをつけると、処理が終わるまで待つことができる
+                await this.startSoundUntilDone();
+                await P.Utils.wait(P.Env.pace);
+            }
+        });
+    });
+}
