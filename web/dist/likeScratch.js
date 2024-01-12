@@ -10509,6 +10509,7 @@ const Process = class {
             await P.setting ();
         }
     }
+    // Element.init() 内から呼び出される。
     _drawingStart() {
         if( this._stage ) {
             const me = this;
@@ -10520,7 +10521,7 @@ const Process = class {
                     await me.Utils.wait(pace);
                 }
             }, pace);
-            }
+        }
     }
     _draw () {
         if( this._stage ) {
@@ -15113,7 +15114,7 @@ const Entity = class {
         this.position =  ('position' in options)? {x: options.position.x, y: options.position.y} : {x:0, y:0};
         this.direction = ('direction' in options)? options.direction : 90;
         this.scale = ('scale' in options)? {x: options.scale.x, y: options.scale.y} : {x:100, y:100};
-
+        this.life = Infinity;
     }
     get effect() {
         return this._effect;
@@ -15407,6 +15408,15 @@ const Entity = class {
 
     setRotationStyle () {
 
+    }
+
+    update() {
+        if(this.life != Infinity) {
+            this.life -= 1 / Process.default.Env.pace * 1000;
+            if( this.life < 0 ) {
+                this.remove();
+            }    
+        }
     }
 }
 
@@ -27213,6 +27223,7 @@ const Stage = class extends Entity {
         this._sortSprites();
     }
     update() {
+        super.update();
         this.backdrops.setPosition(this.position.x, this.position.y);
         this.backdrops.setScale(this.scale.x, this.scale.y);
         this.backdrops.setDirection(this.direction);
@@ -27639,6 +27650,7 @@ const Sprite = class extends Entity {
 
     }
     update() {
+        super.update();
         this._costumeProperties(this);
     }
     async moveSteps(steps) {
@@ -27770,9 +27782,7 @@ const Sprite = class extends Entity {
         const newDirection = MathUtils.radToDeg(Math.atan2(dy, dx)) + 90;
         this.direction = newDirection;
         // Keep within the stage.
-        let _test = 0;
         for(;;) {
-            _test += 1;
             this.keepInFence(this.costumes._position.x, this.costumes._position.y);
             const touch = this.isTouchingEdge();
             if( touch === false ) break;

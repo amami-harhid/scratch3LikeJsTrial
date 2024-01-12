@@ -78,7 +78,7 @@ P.setting = async function() {
                     P.stage.draw();
                     //console.log('SpriteA クローンを作った')
                     const x = v;
-                    x.life = 50;
+                    x.life = 1000; // およそ １秒間
                     const cloneSteps = 10;
                     setTimeout(async function(){
                         for(;;) {
