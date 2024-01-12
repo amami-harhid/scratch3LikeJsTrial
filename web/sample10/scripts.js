@@ -14,22 +14,9 @@ P.prepare = async function() {
     P.stage = new P.Stage("stage");
     P.stage.addImage( P.images.Jurassic );
     P.cat = new P.Sprite("Cat");
+    P.cat.position.x = 200;
+    P.cat.position.y = 150;
     P.cat.addImage( P.images.Cat );
-}
-
-function WaitUntil ( condition, src ) {
-    return new Promise( async (resolve) => {
-        const _condition = condition.bind(src);
-
-        for(;;) {
-            console.log('WaitUntil loop')
-            if( _condition() === true ) {
-                resolve();
-                break;
-            }
-            await P.Utils.wait(500);
-        }
-    });
 }
 
 P.setting = async function() {
