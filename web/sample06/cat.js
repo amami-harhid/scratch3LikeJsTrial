@@ -9,9 +9,11 @@ const MyCat = class extends P.Sprite {
     update() {
         super.update();
         if(this.life != Infinity) {
+            this.soundSwitch(P.sounds.Cat)
             this.life -= 1;
             if( this.life < 0 ) {
                 //console.log(`remove (${this.name})`);
+                this.soundPlay();
                 this.remove();
             }    
         }

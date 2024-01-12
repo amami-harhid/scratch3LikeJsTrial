@@ -10478,8 +10478,8 @@ const Process = class {
         const main = this.main;
         main.classList.add(Element.DISPLAY_NONE);
         this._render = new Render();
-        await this._setup();
-        await this._flagReady();
+        await this._prepare();
+        await this._setting();
 
 
     }
@@ -10490,12 +10490,13 @@ const Process = class {
         }
     }
 
-    async _setup () {
-        // ここで フラグとキャンバスを表示する
+    async _prepare () {
+        // Mainタグから非表示のクラスを除去しフラグとキャンバスを表示する
         const main = this.main;
         main.classList.remove(Element.DISPLAY_NONE);
-        if( P.setup ) {
-            await P.setup();
+        // prepareメソッドの実行を開始する
+        if( P.prepare ) {
+            await P.prepare();
             await P.Utils.wait(Env.pace);
             if( this._stage ) {
                 this._stage.update();
@@ -10503,9 +10504,9 @@ const Process = class {
             }    
         }
     }
-    async _flagReady () {
-        if( P.flagReady ) {
-            await P.flagReady ();
+    async _setting () {
+        if( P.setting ) {
+            await P.setting ();
         }
     }
     _drawingStart() {
@@ -10522,11 +10523,11 @@ const Process = class {
             }
     }
     _draw () {
-        this._stage.update ();
         if( this._stage ) {
+            this._stage.update ();
+            P._stage.draw();
             if( P.draw ) {
-                P._stage.update();
-                P._stage.draw();
+                P.draw();
             }
         }
     }
@@ -10573,30 +10574,6 @@ const Process = class {
 
         this._preloadDone = true;
     }
-/*
-    async _start () {
-        this._start();
-    }
-    async drawLoop() {
-        for(;;) {
-            this._draw();
-            await Utils.wait(Env.pace);
-        }
-    }
-    async _start() {
-        P.start();
-        setInterval(P._draw,Env.pace);
-        if(P._stage) {
-            await P.Utils.wait(Env.pace);
-            P._stage.update();
-            P._stage.draw();    
-        }
-
-    }
-    async start () {
-
-    }
-*/
     createThread( func ) {
         setTimeout(func, 0);
     }
@@ -15190,11 +15167,9 @@ const Entity = class {
         return _allDone;
     }
     async _addImage(name ,image, costume) {
-//        console.log('Entity _addImage (1)costume.costumes=', costume.costumes);
         await costume.addImage(name, image);
-//        console.log('Entity _addImage (2)costume.costumes=', costume.costumes);
-
     }
+
     async _loadImage(name, imageUrl, costume) {
         this.importIdx += 1;
         const _importIdx = this.importIdx;
@@ -15219,18 +15194,20 @@ const Entity = class {
         await this.sounds.loadSound(name,soundUrl, options);
         this.importAllDone[_importIdx] = true;
     }
-    soundSwitch(name){
+    soundSwitch(sound){
+        const name = sound.name;
         if ( this.sounds == undefined ) return;
-        this.sound.switch(name);
+        this.sounds.switch(name);
     }
     nextSound() {
         if ( this.sounds == undefined ) return;
         this.soundStop();    
         this.sounds.nextSound();
     }
-    soundPlay(name) {
+    soundPlay(sound) {
         if ( this.sounds == undefined ) return;
-        if( name ) {
+        if( sound ) {
+            const name = sound.name;
             this.soundSwitch(name);
         } 
         this.sounds.play();

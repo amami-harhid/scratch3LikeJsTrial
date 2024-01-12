@@ -8,7 +8,7 @@ P.preload = async function() {
     this.loadImage('../assets/Jurassic.svg','Jurassic');
 }
 
-P.setup = async function() {
+P.prepare = async function() {
     P.wait_time = P.Env.pace;
 
     P.stage = new MyStage( "stage" );
@@ -21,16 +21,16 @@ P.setup = async function() {
     P.spriteA.direction = Math.random() * 360;
 
 }
-P.flagReady = async function() {
+P.setting = async function() {
 
     P.stage.whenFlag(async function(){
         // TODO addSound 処理時間が長いとき、登録順が逆になるときがある。なんとかしたい。
         this.addSound( P.sounds.Chill, { 'volume' : 125 } );
-        this.addSound( P.sounds.BossaNova , { 'volume' : 25 } );  
-        //P.start2(render);
+        this.addSound( P.sounds.BossaNova , { 'volume' : 25 } );
     });
     P.stage.whenFlag( async function() {
         for(;;){
+            // 終わるまで音を鳴らす
             await this.startSoundUntilDone();
             await P.Utils.wait( P.wait_time );
         }
@@ -60,10 +60,11 @@ P.flagReady = async function() {
     P.spriteA.whenFlag(async function(){
         this.addSound( P.sounds.Boing , { 'volume' : 25 } ); 
         this.addSound( P.sounds.Cat , { 'volume' : 25 } ); 
-        const MoveStepsA = 2;
+        const MoveStepsA = 10;
         const s = P.spriteA;
         for(;;){
             s.isTouchingEdge(function(){
+                s.soundPlay();
                 const optionsX = {
                     'position':{
                         x: (Math.random() - 0.5) * 300, 
@@ -78,14 +79,15 @@ P.flagReady = async function() {
                     //console.log('SpriteA クローンを作った')
                     const x = v;
                     x.life = 50;
+                    const cloneSteps = 10;
                     setTimeout(async function(){
                         for(;;) {
-                            x.moveSteps(2);
+                            x.moveSteps(cloneSteps);
                             x.ifOnEdgeBounds();
                             x.nextCostume();
                             x.scale.x -= 0.5;
                             x.scale.y -= 0.5;    
-                            await P.Utils.wait(P.pace);
+                            await P.Utils.wait(P.wait_time);
                         }                        
                     })
                 }); 
@@ -93,7 +95,7 @@ P.flagReady = async function() {
             s.moveSteps(MoveStepsA);
             s.ifOnEdgeBounds();
             s.nextCostume();
-            await P.Utils.wait(P.pace);
+            await P.Utils.wait(P.wait_time);
         }
     });
     const optionsB = {'position': { x: P.spriteA.position.x+50, y: P.spriteA.position.y }}    
@@ -109,13 +111,13 @@ P.flagReady = async function() {
             v.setScale( scale.x * -1, scale.y );
         });
         const s = v;
-        const _moveSteps = 5;
+        const _moveSteps = 10;
         setTimeout(async function(){
             for(;;){
                 s.moveSteps(_moveSteps);
                 s.ifOnEdgeBounds();
                 s.nextCostume();
-                await P.Utils.wait(P.pace);
+                await P.Utils.wait(P.wait_time);
             }
         },0 );
     });
@@ -134,13 +136,13 @@ P.flagReady = async function() {
         });
         P.stage.update();
         P.stage.draw();
-        const MoveSteps = 20;
+        const MoveSteps = 10;
         setTimeout(async function() {
             for(;;) {
                 v.moveSteps(MoveSteps);
                 v.ifOnEdgeBounds();
                 v.nextCostume();
-                await P.Utils.wait(P.pace);
+                await P.Utils.wait(P.wait_time);
             }    
         });
     });
@@ -152,9 +154,4 @@ P.flagReady = async function() {
             P.MoveStepsA = 3;
         }
     });
-}
-
-P.draw = function() {
-    P.stage.update();
-    P.stage.draw();
 }
