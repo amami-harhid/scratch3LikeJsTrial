@@ -34,13 +34,15 @@ P.setting = async function() {
         this.addSound( P.sounds.Mya, { 'volume' : 100 } );
     });
 
-    const steps = 10;
     P.cat.whenFlag( async function() {
         this.direction = (Math.random()-0.5) * 180;
         // 「終わるまで音を鳴らす」をずっと繰り返す、スレッドを起動する
         this.startThread( async function() {
+            const steps = 10;
             for(;;) {
                 this.moveSteps( steps );
+                console.log(`canvas=(${P.canvas.width},${P.canvas.height})`)
+                console.log(`cat position = (${this.position.x},${this.position.y})`)
                 // 端に触れたら
                 this.isTouchingEdge(function(){
                     // ミャーと鳴く。
