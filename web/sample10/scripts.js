@@ -19,69 +19,71 @@ P.prepare = async function() {
     P.cat.addImage( P.images.Cat );
 }
 
-P.setting = async function() {
+const _changeDirection = 1;
 
+P.setting = async function() {
+    "use strict";
     P.stage.whenFlag(async function() {
         this.addSound( P.sounds.Chill, { 'volume' : 50 } );
     });
     P.stage.whenFlag(async function() {
-        this.startThread( async function() {
-            for(;;) {
-                await this.startSoundUntilDone();
-                await P.Utils.wait(P.Env.pace);
-            }
-        });
+        for(;;) {
+            await this.startSoundUntilDone();
+            //await P.Utils.wait(P.Env.pace);
+        }
     });
     P.cat.whenFlag( async function() {
         // 音を登録する
         this.addSound( P.sounds.Mya, { 'volume' : 1 } );
     });
     P.cat.whenFlag( async function() {
+        // ずっと繰り返す、スレッドを起動する
+        this.startThread( async function() {
+            for(;;) {
+                this.direction += _changeDirection; // TOP Scope にあるので参照可能
+//                await P.Utils.wait(P.Env.pace);
+            }    
+        })
+    });
+    P.cat.whenFlag( async function() {
         // 向きをランダムに変える。
-        const me = this;
-        const direction = 1;
+        const _me = this;
         // ずっと繰り返す、スレッドを起動する
-        me.startThread( async function() {
+        this.startThread(async ()=>{
+            const steps = 10;
             for(;;) {
-                me.direction += direction;
-                await P.Utils.wait(P.Env.pace);
-            }
-        });
-        const steps = 10;
-        // ずっと繰り返す、スレッドを起動する
-        me.startThread( async function() {
-            for(;;) {
-                if( me.isMouseTouching() ) {
-                    P.spriteClone( me, async function(){
-                        const clone = this;
+                if( this.isMouseTouching() ) {
+                    P.spriteClone( this, async function(){
+                        const clone = this; // 'this' is cloned instance;
                         clone.position.x = 100;
                         clone.position.y = -100;
                         clone.scale.x = 50;
                         clone.scale.y = 50;
                         clone.effect.color = 50;
                         clone.life = 1000;
+                        //console.log('clone startThread');
                         // ずっと繰り返す、スレッドを起動する
-                        clone.startThread( async function() {
-                           for(;;) {
-                                clone.moveSteps( steps );
+                        clone.startThread(async function(){
+                            const _clone = this; // <--- 'this' is clone
+                            const steps = 10;
+                            for(;;) {
+                                _clone.moveSteps( steps );
                                 // 端に触れたら
-                                clone.isTouchingEdge(function(){
+                                _clone.isTouchingEdge(function(){
                                     // ミャーと鳴く。
-                                    clone.soundPlay()
+                                    _clone.soundPlay()
                                 });
-                                clone.ifOnEdgeBounds();
-                                await P.Utils.wait(P.Env.pace);
+                                _clone.ifOnEdgeBounds();
+                                //await P.Utils.wait(P.Env.pace);
                             }
-                        });
-            
+                        });           
                     });
                 }
                 const waitTime = P.Env.pace; 
-                await P.Utils.waitUntil(  me.isNotMouseTouching, waitTime,  me ); 
-                await P.Utils.wait(P.Env.pace);
+                await P.Utils.waitUntil( this.isNotMouseTouching, waitTime,  this ); 
+                //await P.Utils.wait( P.Env.pace );
             }
+    
         });
-
     });
-
 }

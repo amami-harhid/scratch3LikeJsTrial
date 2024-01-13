@@ -15,6 +15,7 @@
     "babel-preset-env": "^1.7.0",
     "babel-preset-es2015": "^6.24.1",
     "copy-webpack-plugin": "^4.2.3",
+    "js-beautify": "^1.14.11",
     "scratch-audio": "^0.1.0-prerelease.20231221012053",
     "scratch-render": "0.1.0-prerelease.20231220210403",
     "webpack": "^3.10.0"
