@@ -34,6 +34,7 @@ P.setting = async function() {
     P.cat.whenFlag(async function() {
         for(;;) {
             await P.Utils.wait(1000);
+            // どこかに行く！をメソッド化したい（glideToPositionとは別のン前で）
             const x = (Math.random()-0.5) * P.stageWidth;
             const y = (Math.random()-0.5) * P.stageHeight;
             await this.glideToPosition(1, x, y);            

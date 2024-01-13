@@ -1,6 +1,6 @@
 /**
- * Sample12
- * スプライト（CAT)を １秒でクリックした場所へ移動する
+ * Sample14
+ * スプライト（CAT) ポインターを追いかける
  * 
  */
 P.preload = async function() {
@@ -21,7 +21,6 @@ P.prepare = async function() {
 const _changeDirection = 1;
 
 P.setting = async function() {
-    "use strict";
     P.stage.whenFlag(async function() {
         this.addSound( P.sounds.Chill, { 'volume' : 50 } );
     });
@@ -31,10 +30,14 @@ P.setting = async function() {
             //await P.Utils.wait(P.Env.pace);
         }
     });
-    P.stage.whenClicked(async function() {
-
-        const x = P.mousePosition.x;
-        const y = P.mousePosition.y;
-        P.cat.move(x,y)
+    P.cat.whenFlag( async function() {
+        // ずっと繰り返す、スレッドを起動する
+        this.startThread( async function() {
+            for(;;) {
+                // TODO CANVAS 外に出ても ポインターを向くようにしたい
+                this.pointToPointer();
+                this.moveSteps(10);
+            }    
+        })
     });
 }

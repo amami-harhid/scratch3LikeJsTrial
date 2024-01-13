@@ -10296,18 +10296,19 @@ function createVAOFromBufferInfo(gl, programInfo, bufferInfo) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-const Backdrops = __webpack_require__(21);
+const Backdrops = __webpack_require__(22);
 //const Canvas = require('./canvas');
 //const Css = require('./css');
 const Costumes = __webpack_require__(10);
-const Element = __webpack_require__(22);
+const Element = __webpack_require__(23);
 const Env = __webpack_require__(3);
 const Importer = __webpack_require__(11);
 const Looks = __webpack_require__(12);
+const MathUtils = __webpack_require__(13);
 const Render = __webpack_require__(41);
-const Rewrite = __webpack_require__(34);
+const Rewrite = __webpack_require__(35);
 const Sensing = __webpack_require__(99);
-const Sounds = __webpack_require__(35);
+const Sounds = __webpack_require__(36);
 const Stage = __webpack_require__(116);
 const Sprite = __webpack_require__(118);
 const Utils = __webpack_require__(4);
@@ -10356,6 +10357,9 @@ const Process = class {
     get Looks () {
         return Looks;
     }
+    get MathUtils () {
+        return MathUtils;
+    }
     get Render () {
         return Render;
     }
@@ -10396,6 +10400,15 @@ const Process = class {
     get stageHeight () {
         return this._render.stageHeight;
     }
+
+    get mousePosition () {
+        const _rateX = this._render.stageWidth / this.canvas.width;
+        const _rateY = this._render.stageHeight / this.canvas.height;
+        const _mouseX = (this.stage.mouse.x - this.canvas.width/2 ) * _rateX;
+        const _mouseY = (this.canvas.height/2 - this.stage.mouse.y) * _rateY;
+        return {x: _mouseX, y: _mouseY};
+    }
+
     set flag ( flag ) {
         this._flag = flag;
     }
@@ -10725,7 +10738,7 @@ module.exports = Utils;
 /* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const EventEmitter = __webpack_require__(13);
+const EventEmitter = __webpack_require__(14);
 
 const twgl = __webpack_require__(0);
 
@@ -11222,7 +11235,7 @@ module.exports = {
 /* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const minilog = __webpack_require__(14);
+const minilog = __webpack_require__(15);
 minilog.enable();
 
 module.exports = minilog('scratch-audioengine');
@@ -11498,6 +11511,20 @@ module.exports = Looks;
 
 /***/ }),
 /* 13 */
+/***/ (function(module, exports) {
+
+class MathUtils {
+    static degToRad (deg) {
+        return deg * Math.PI / 180;
+    }
+    static radToDeg (rad) {
+        return rad * 180 / Math.PI;
+    }
+}
+module.exports = MathUtils;
+
+/***/ }),
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12001,7 +12028,7 @@ function eventTargetAgnosticAddListener(emitter, name, listener, flags) {
 
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Minilog = __webpack_require__(55);
@@ -12049,7 +12076,7 @@ exports.backends = {
 
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ (function(module, exports) {
 
 /* Adapted from
@@ -12126,7 +12153,7 @@ module.exports = SvgElement;
 
 
 /***/ }),
-/* 16 */
+/* 17 */
 /***/ (function(module, exports) {
 
 var g;
@@ -12153,7 +12180,7 @@ module.exports = g;
 
 
 /***/ }),
-/* 17 */
+/* 18 */
 /***/ (function(module, exports) {
 
 class StageLayering {
@@ -12187,7 +12214,7 @@ class StageLayering {
 module.exports = StageLayering;
 
 /***/ }),
-/* 18 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* AUTO-GENERATED. DO NOT MODIFY. */
@@ -16242,7 +16269,7 @@ if (true) {
 
 
 /***/ }),
-/* 19 */
+/* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* AUTO-GENERATED. DO NOT MODIFY. */
@@ -17942,7 +17969,7 @@ if (true) {
 
 
 /***/ }),
-/* 20 */
+/* 21 */
 /***/ (function(module, exports) {
 
 /**
@@ -18120,7 +18147,7 @@ module.exports = Effect;
 
 
 /***/ }),
-/* 21 */
+/* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const Costumes = __webpack_require__(10);
@@ -18132,7 +18159,7 @@ const Backdrops = class extends Costumes {
 module.exports = Backdrops;
 
 /***/ }),
-/* 22 */
+/* 23 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const Canvas = __webpack_require__(7);
@@ -18232,7 +18259,7 @@ module.exports = Element;
 
 
 /***/ }),
-/* 23 */
+/* 24 */
 /***/ (function(module, exports) {
 
 class Rectangle {
@@ -18434,7 +18461,7 @@ module.exports = Rectangle;
 
 
 /***/ }),
-/* 24 */
+/* 25 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -18637,17 +18664,17 @@ module.exports = EffectTransform;
 
 
 /***/ }),
-/* 25 */
+/* 26 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const minilog = __webpack_require__(14);
+const minilog = __webpack_require__(15);
 minilog.enable();
 
 module.exports = minilog('scratch-render');
 
 
 /***/ }),
-/* 26 */
+/* 27 */
 /***/ (function(module, exports) {
 
 var hex = {
@@ -18673,13 +18700,13 @@ module.exports = color;
 
 
 /***/ }),
-/* 27 */
+/* 28 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const DOMPurify = __webpack_require__(28);
-const SvgElement = __webpack_require__(15);
-const convertFonts = __webpack_require__(29);
-const fixupSvgString = __webpack_require__(30);
+const DOMPurify = __webpack_require__(29);
+const SvgElement = __webpack_require__(16);
+const convertFonts = __webpack_require__(30);
+const fixupSvgString = __webpack_require__(31);
 const transformStrokeWidths = __webpack_require__(68);
 
 /**
@@ -19013,7 +19040,7 @@ module.exports = loadSvgString;
 
 
 /***/ }),
-/* 28 */
+/* 29 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*! @license DOMPurify | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/2.2.2/LICENSE */
@@ -20365,7 +20392,7 @@ module.exports = loadSvgString;
 
 
 /***/ }),
-/* 29 */
+/* 30 */
 /***/ (function(module, exports) {
 
 /**
@@ -20409,7 +20436,7 @@ module.exports = convertFonts;
 
 
 /***/ }),
-/* 30 */
+/* 31 */
 /***/ (function(module, exports) {
 
 /**
@@ -20476,10 +20503,10 @@ module.exports = function (svgString) {
 
 
 /***/ }),
-/* 31 */
+/* 32 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const inlineSvgFonts = __webpack_require__(32);
+const inlineSvgFonts = __webpack_require__(33);
 
 /**
  * Serialize a given SVG DOM to a string.
@@ -20501,7 +20528,7 @@ module.exports = serializeSvgToString;
 
 
 /***/ }),
-/* 32 */
+/* 33 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -20557,7 +20584,7 @@ module.exports = inlineSvgFonts;
 
 
 /***/ }),
-/* 33 */
+/* 34 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.7.1
@@ -20654,7 +20681,7 @@ module.exports = UnicodeTrie;
 
 
 /***/ }),
-/* 34 */
+/* 35 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -20738,7 +20765,7 @@ const Rewrite = class {
 /* harmony default export */ __webpack_exports__["default"] = (Rewrite.getInstance());
 
 /***/ }),
-/* 35 */
+/* 36 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const AudioEngine = __webpack_require__(100);
@@ -20872,10 +20899,10 @@ const Sounds = class {
 module.exports = Sounds;
 
 /***/ }),
-/* 36 */
+/* 37 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const Effect = __webpack_require__(20);
+const Effect = __webpack_require__(21);
 
 /**
  * Affect the volume of an effect chain.
@@ -20945,16 +20972,16 @@ module.exports = VolumeEffect;
 
 
 /***/ }),
-/* 37 */
+/* 38 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(process) {const Canvas = __webpack_require__(7);
 const Env = __webpack_require__(3);
 const Looks = __webpack_require__(12);
-const MathUtils = __webpack_require__(38);
+const MathUtils = __webpack_require__(13);
 const Process = __webpack_require__(1);
-const Sounds = __webpack_require__(35);
-const Rewrite = __webpack_require__(34);
+const Sounds = __webpack_require__(36);
+const Rewrite = __webpack_require__(35);
 const Utils = __webpack_require__(4);
 const Entity = class {
     constructor (name, layer, options = {} ){
@@ -21347,11 +21374,11 @@ const Entity = class {
 
     pointToPointer( ) {
         const process = Process.default;
-        const targetX = process.stage.mouse.x - process.canvas.width / 2;
-        const targetY = process.stage.mouse.y - process.canvas.height / 2;
+        const targetX = process.mousePosition.x;
+        const targetY = process.mousePosition.y;
         const dx = targetX - this.position.x;
         const dy = targetY - this.position.y;
-        let direction = MathUtils.radToDeg(Math.atan2(dy, dx))+90;
+        let direction = 90 - MathUtils.radToDeg(Math.atan2(dy, dx));
         if(direction > 180) {
             direction -= 360;
         }
@@ -21371,20 +21398,6 @@ const Entity = class {
 module.exports = Entity;
 
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(117)))
-
-/***/ }),
-/* 38 */
-/***/ (function(module, exports) {
-
-class MathUtils {
-    static degToRad (deg) {
-        return deg * Math.PI / 180;
-    }
-    static radToDeg (rad) {
-        return rad * 180 / Math.PI;
-    }
-}
-module.exports = MathUtils;
 
 /***/ }),
 /* 39 */
@@ -21469,11 +21482,11 @@ module.exports = CSS;
 /* 41 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const Element = __webpack_require__(22);
+const Element = __webpack_require__(23);
 //const Env = require('./env');
 const Process = __webpack_require__(1);
 const ScratchRenderer = __webpack_require__(42);
-const StageLayering = __webpack_require__(17);
+const StageLayering = __webpack_require__(18);
 const Render = class {
     static get WHRate() {
         return 0.75;
@@ -21554,21 +21567,21 @@ module.exports = RenderWebGL;
 /* 43 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const EventEmitter = __webpack_require__(13);
+const EventEmitter = __webpack_require__(14);
 
 const hull = __webpack_require__(44);
 const twgl = __webpack_require__(0);
 
 const BitmapSkin = __webpack_require__(49);
 const Drawable = __webpack_require__(51);
-const Rectangle = __webpack_require__(23);
+const Rectangle = __webpack_require__(24);
 const PenSkin = __webpack_require__(64);
 const RenderConstants = __webpack_require__(8);
 const ShaderManager = __webpack_require__(6);
 const SVGSkin = __webpack_require__(65);
 const TextBubbleSkin = __webpack_require__(83);
-const EffectTransform = __webpack_require__(24);
-const log = __webpack_require__(25);
+const EffectTransform = __webpack_require__(25);
+const log = __webpack_require__(26);
 
 const __isTouchingDrawablesPoint = twgl.v3.create();
 const __candidatesBounds = new Rectangle();
@@ -24365,12 +24378,12 @@ module.exports = Silhouette;
 
 const twgl = __webpack_require__(0);
 
-const Rectangle = __webpack_require__(23);
+const Rectangle = __webpack_require__(24);
 const RenderConstants = __webpack_require__(8);
 const ShaderManager = __webpack_require__(6);
 const Skin = __webpack_require__(5);
-const EffectTransform = __webpack_require__(24);
-const log = __webpack_require__(25);
+const EffectTransform = __webpack_require__(25);
+const log = __webpack_require__(26);
 
 /**
  * An internal workspace for calculating texture locations from world vectors
@@ -25426,7 +25439,7 @@ module.exports = logger;
 /***/ (function(module, exports, __webpack_require__) {
 
 var Transform = __webpack_require__(2),
-    color = __webpack_require__(26);
+    color = __webpack_require__(27);
 
 var colors = { debug: ['cyan'], info: ['purple' ], warn: [ 'yellow', true ], error: [ 'red', true ] },
     logger = new Transform();
@@ -25450,7 +25463,7 @@ module.exports = logger;
 /***/ (function(module, exports, __webpack_require__) {
 
 var Transform = __webpack_require__(2),
-    color = __webpack_require__(26),
+    color = __webpack_require__(27),
     colors = { debug: ['gray'], info: ['purple' ], warn: [ 'yellow', true ], error: [ 'red', true ] },
     logger = new Transform();
 
@@ -26204,12 +26217,12 @@ module.exports = SVGSkin;
 
 const SVGRenderer = __webpack_require__(67);
 const BitmapAdapter = __webpack_require__(79);
-const inlineSvgFonts = __webpack_require__(32);
-const loadSvgString = __webpack_require__(27);
+const inlineSvgFonts = __webpack_require__(33);
+const loadSvgString = __webpack_require__(28);
 const sanitizeSvg = __webpack_require__(81);
-const serializeSvgToString = __webpack_require__(31);
-const SvgElement = __webpack_require__(15);
-const convertFonts = __webpack_require__(29);
+const serializeSvgToString = __webpack_require__(32);
+const SvgElement = __webpack_require__(16);
+const convertFonts = __webpack_require__(30);
 // /**
 //  * Export for NPM & Node.js
 //  * @type {RenderWebGL}
@@ -26230,8 +26243,8 @@ module.exports = {
 /* 67 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const loadSvgString = __webpack_require__(27);
-const serializeSvgToString = __webpack_require__(31);
+const loadSvgString = __webpack_require__(28);
+const serializeSvgToString = __webpack_require__(32);
 
 /**
  * Main quirks-mode SVG rendering code.
@@ -26406,7 +26419,7 @@ module.exports = SvgRenderer;
 /***/ (function(module, exports, __webpack_require__) {
 
 const Matrix = __webpack_require__(69);
-const SvgElement = __webpack_require__(15);
+const SvgElement = __webpack_require__(16);
 const log = __webpack_require__(70);
 
 /**
@@ -27046,7 +27059,7 @@ module.exports = transformStrokeWidths;
 /* 70 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const minilog = __webpack_require__(14);
+const minilog = __webpack_require__(15);
 minilog.enable();
 
 module.exports = minilog('scratch-svg-render');
@@ -27430,8 +27443,8 @@ function fromByteArray (uint8) {
  * @fileOverview Sanitize the content of an SVG aggressively, to make it as safe
  * as possible
  */
-const fixupSvgString = __webpack_require__(30);
-const DOMPurify = __webpack_require__(28);
+const fixupSvgString = __webpack_require__(31);
+const DOMPurify = __webpack_require__(29);
 
 const sanitizeSvg = {};
 
@@ -27523,7 +27536,7 @@ g=q?new t(g):g||[]}for(var f=l="",b=0,c=g.length|0,u=c-32|0,e,d,h=0,p=0,m,k=0,n=
 f.subarray(0,c):f.slice(0,c)};E||(r.TextDecoder=x,r.TextEncoder=y)})(""+void 0==typeof global?""+void 0==typeof self?this:self:global);//AnonyCo
 //# sourceMappingURL=https://cdn.jsdelivr.net/gh/AnonyCo/FastestSmallestTextEncoderDecoder/EncoderDecoderTogether.min.js.map
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(16)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(17)))
 
 /***/ }),
 /* 83 */
@@ -27941,7 +27954,7 @@ module.exports = TextWrapper;
 (function() {
   var AI, AL, BA, BK, CB, CI_BRK, CJ, CP_BRK, CR, DI_BRK, ID, IN_BRK, LF, LineBreaker, NL, NS, PR_BRK, SA, SG, SP, UnicodeTrie, WJ, XX, base64, characterClasses, classTrie, data, fs, pairTable, _ref, _ref1;
 
-  UnicodeTrie = __webpack_require__(33);
+  UnicodeTrie = __webpack_require__(34);
 
   
 
@@ -28735,7 +28748,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
   _ref = __webpack_require__(95), CR = _ref.CR, LF = _ref.LF, Control = _ref.Control, Extend = _ref.Extend, Regional_Indicator = _ref.Regional_Indicator, SpacingMark = _ref.SpacingMark, L = _ref.L, V = _ref.V, T = _ref.T, LV = _ref.LV, LVT = _ref.LVT;
 
-  UnicodeTrie = __webpack_require__(33);
+  UnicodeTrie = __webpack_require__(34);
 
   
 
@@ -30665,7 +30678,7 @@ function isnan (val) {
   return val !== val // eslint-disable-line no-self-compare
 }
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(16)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(17)))
 
 /***/ }),
 /* 92 */
@@ -31053,8 +31066,8 @@ function get_beautify(js_beautify, css_beautify, html_beautify) {
 if (true) {
   // Add support for AMD ( https://github.com/amdjs/amdjs-api/wiki/AMD#defineamd-property- )
   !(__WEBPACK_AMD_DEFINE_ARRAY__ = [
-    __webpack_require__(18),
     __webpack_require__(19),
+    __webpack_require__(20),
     __webpack_require__(98)
   ], __WEBPACK_AMD_DEFINE_RESULT__ = (function(js_beautify, css_beautify, html_beautify) {
     return get_beautify(js_beautify, css_beautify, html_beautify);
@@ -34180,9 +34193,9 @@ var style_html = legacy_beautify_html;
 /* Footer */
 if (true) {
     // Add support for AMD ( https://github.com/amdjs/amdjs-api/wiki/AMD#defineamd-property- )
-    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, __webpack_require__(18), __webpack_require__(19)], __WEBPACK_AMD_DEFINE_RESULT__ = (function(requireamd) {
-        var js_beautify = __webpack_require__(18);
-        var css_beautify = __webpack_require__(19);
+    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, __webpack_require__(19), __webpack_require__(20)], __WEBPACK_AMD_DEFINE_RESULT__ = (function(requireamd) {
+        var js_beautify = __webpack_require__(19);
+        var css_beautify = __webpack_require__(20);
 
         return {
             html_beautify: function(html_source, options) {
@@ -34332,7 +34345,7 @@ const SoundPlayer = __webpack_require__(110);
 const EffectChain = __webpack_require__(111);
 const PanEffect = __webpack_require__(112);
 const PitchEffect = __webpack_require__(113);
-const VolumeEffect = __webpack_require__(36);
+const VolumeEffect = __webpack_require__(37);
 
 const SoundBank = __webpack_require__(114);
 
@@ -34862,7 +34875,7 @@ if (typeof window !== "undefined") {
 
 module.exports = win;
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(16)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(17)))
 
 /***/ }),
 /* 106 */
@@ -35428,9 +35441,9 @@ module.exports = Loudness;
 /* 110 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const {EventEmitter} = __webpack_require__(13);
+const {EventEmitter} = __webpack_require__(14);
 
-const VolumeEffect = __webpack_require__(36);
+const VolumeEffect = __webpack_require__(37);
 
 /**
  * Name of event that indicates playback has ended.
@@ -35967,7 +35980,7 @@ module.exports = EffectChain;
 /* 112 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const Effect = __webpack_require__(20);
+const Effect = __webpack_require__(21);
 
 /**
  * A pan effect, which moves the sound to the left or right between the speakers
@@ -36071,7 +36084,7 @@ module.exports = PanEffect;
 /* 113 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const Effect = __webpack_require__(20);
+const Effect = __webpack_require__(21);
 
 /**
  * A pitch change effect, which changes the playback rate of the sound in order
@@ -36450,12 +36463,12 @@ module.exports = SoundPlayer;
 /* 116 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const Backdrops = __webpack_require__(21);
+const Backdrops = __webpack_require__(22);
 const Canvas = __webpack_require__(7);
 const Env = __webpack_require__(3);
-const Entity = __webpack_require__(37);
+const Entity = __webpack_require__(38);
 const Process = __webpack_require__(1);
-const StageLayering = __webpack_require__(17);
+const StageLayering = __webpack_require__(18);
 const Stage = class extends Entity {
     constructor( name='stage', options={} ) {
         super( name, StageLayering.BACKGROUND_LAYER, options );    
@@ -36797,14 +36810,14 @@ process.umask = function() { return 0; };
 /***/ (function(module, exports, __webpack_require__) {
 
 const Canvas = __webpack_require__(7);
-const Entity = __webpack_require__(37);
+const Entity = __webpack_require__(38);
 const Env = __webpack_require__(3);
 const Costumes = __webpack_require__(10);
 const Looks = __webpack_require__(12);
-const MathUtils = __webpack_require__(38);
+const MathUtils = __webpack_require__(13);
 const Process = __webpack_require__(1);
 //const sounds = require('./sounds');
-const StageLayering = __webpack_require__(17);
+const StageLayering = __webpack_require__(18);
 const Utils = __webpack_require__(4);
 const Sprite = class extends Entity {
 
