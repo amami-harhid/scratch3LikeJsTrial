@@ -100,6 +100,7 @@ https://amami-harhid.github.io/scratch3LikeJs/web/sample05/
 
 ## sample06
 スプライトを作って表示する
+
 https://amami-harhid.github.io/scratch3LikeJs/web/sample06/
 
 ## sample07
