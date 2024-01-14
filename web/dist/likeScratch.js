@@ -10419,6 +10419,7 @@ const Process = class {
 
 
     async _init() {
+        this._prepareReload();
         this._preload();
         await this._waitUntilPreloadDone();
         await Element.init();
@@ -10480,8 +10481,23 @@ const Process = class {
             }
         }
     }
-    
+    _prepareReload() {
+        const me = this;
+        window.addEventListener('keydown', async function(e) {
+            const keyCode = e.code;
+            if( keyCode == 'Escape') {
+                // 別スレッドからリロードすると一発でリロードできる
+                setTimeout(function(){
+                    me._reload();
+                },10);
+            }
+        });
+    }
 
+    _reload() {
+        window.location.reload( ); // ページの再読み込み
+    }
+    
     loadImage(imageUrl, name) {
         let _name ;
         if( name ) {
@@ -21373,6 +21389,7 @@ const Entity = class {
     }
 
     pointToPointer( ) {
+        // TODO CANVAS 外に出ても ポインターを向くようにしたい
         const process = Process.default;
         const targetX = process.mousePosition.x;
         const targetY = process.mousePosition.y;
