@@ -10299,12 +10299,12 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 const Backdrops = __webpack_require__(22);
 //const Canvas = require('./canvas');
 //const Css = require('./css');
-const Costumes = __webpack_require__(9);
+const Costumes = __webpack_require__(10);
 const Element = __webpack_require__(24);
 const Env = __webpack_require__(3);
-const Importer = __webpack_require__(10);
-const Looks = __webpack_require__(12);
-const MathUtils = __webpack_require__(13);
+const Importer = __webpack_require__(11);
+const Looks = __webpack_require__(13);
+const MathUtils = __webpack_require__(14);
 const NowLoading = __webpack_require__(42);
 const Render = __webpack_require__(43);
 const Rewrite = __webpack_require__(36);
@@ -10312,6 +10312,7 @@ const RotationStyle = __webpack_require__(23);
 const Sensing = __webpack_require__(101);
 const Sounds = __webpack_require__(37);
 const Stage = __webpack_require__(118);
+const StageLayering = __webpack_require__(8);
 const Sprite = __webpack_require__(120);
 const Utils = __webpack_require__(4);
 const Process = class {
@@ -10379,6 +10380,9 @@ const Process = class {
     }
     get Stage () {
         return Stage;
+    }
+    get StageLayering () {
+        return StageLayering;
     }
     get Sprite () {
         return Sprite;
@@ -10794,7 +10798,7 @@ module.exports = Utils;
 /* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const EventEmitter = __webpack_require__(14);
+const EventEmitter = __webpack_require__(15);
 
 const twgl = __webpack_require__(0);
 
@@ -11266,21 +11270,55 @@ module.exports = {
 
 /***/ }),
 /* 8 */
+/***/ (function(module, exports) {
+
+class StageLayering {
+    static get BACKGROUND_LAYER () {
+        return 'background';
+    }
+
+    static get VIDEO_LAYER () {
+        return 'video';
+    }
+
+    static get PEN_LAYER () {
+        return 'pen';
+    }
+
+    static get SPRITE_LAYER () {
+        return 'sprite';
+    }
+
+    // Order of layer groups relative to each other,
+    static get LAYER_GROUPS () {
+        return [
+            StageLayering.BACKGROUND_LAYER,
+            StageLayering.VIDEO_LAYER,
+            StageLayering.PEN_LAYER,
+            StageLayering.SPRITE_LAYER
+        ];
+    }
+}
+
+module.exports = StageLayering;
+
+/***/ }),
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const minilog = __webpack_require__(15);
+const minilog = __webpack_require__(16);
 minilog.enable();
 
 module.exports = minilog('scratch-audioengine');
 
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const RotationStyle = __webpack_require__(23);
 const Env = __webpack_require__(3);
-const Importer = __webpack_require__(10);
+const Importer = __webpack_require__(11);
 const Process = __webpack_require__(1);
 const Utils = __webpack_require__(4);
 const Costumes = class {
@@ -11454,7 +11492,7 @@ const Costumes = class {
 module.exports = Costumes;
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, exports) {
 
 const Importer = class {
@@ -11522,7 +11560,7 @@ const Importer = class {
 module.exports = Importer;
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, exports) {
 
 const Canvas = class{
@@ -11545,7 +11583,7 @@ const Canvas = class{
 module.exports = Canvas;
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, exports) {
 
 const Looks = class {
@@ -11590,7 +11628,7 @@ const Looks = class {
 module.exports = Looks;
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, exports) {
 
 class MathUtils {
@@ -11604,7 +11642,7 @@ class MathUtils {
 module.exports = MathUtils;
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12108,7 +12146,7 @@ function eventTargetAgnosticAddListener(emitter, name, listener, flags) {
 
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Minilog = __webpack_require__(57);
@@ -12156,7 +12194,7 @@ exports.backends = {
 
 
 /***/ }),
-/* 16 */
+/* 17 */
 /***/ (function(module, exports) {
 
 /* Adapted from
@@ -12233,7 +12271,7 @@ module.exports = SvgElement;
 
 
 /***/ }),
-/* 17 */
+/* 18 */
 /***/ (function(module, exports) {
 
 var g;
@@ -12258,40 +12296,6 @@ try {
 
 module.exports = g;
 
-
-/***/ }),
-/* 18 */
-/***/ (function(module, exports) {
-
-class StageLayering {
-    static get BACKGROUND_LAYER () {
-        return 'background';
-    }
-
-    static get VIDEO_LAYER () {
-        return 'video';
-    }
-
-    static get PEN_LAYER () {
-        return 'pen';
-    }
-
-    static get SPRITE_LAYER () {
-        return 'sprite';
-    }
-
-    // Order of layer groups relative to each other,
-    static get LAYER_GROUPS () {
-        return [
-            StageLayering.BACKGROUND_LAYER,
-            StageLayering.VIDEO_LAYER,
-            StageLayering.PEN_LAYER,
-            StageLayering.SPRITE_LAYER
-        ];
-    }
-}
-
-module.exports = StageLayering;
 
 /***/ }),
 /* 19 */
@@ -18230,7 +18234,7 @@ module.exports = Effect;
 /* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const Costumes = __webpack_require__(9);
+const Costumes = __webpack_require__(10);
 const Backdrops = class extends Costumes {
 
 
@@ -18260,7 +18264,7 @@ module.exports = RotationStyle;
 /* 24 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const Canvas = __webpack_require__(11);
+const Canvas = __webpack_require__(12);
 const CSS = __webpack_require__(41);
 const Env = __webpack_require__(3);
 const Process = __webpack_require__(1);
@@ -18766,7 +18770,7 @@ module.exports = EffectTransform;
 /* 27 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const minilog = __webpack_require__(15);
+const minilog = __webpack_require__(16);
 minilog.enable();
 
 module.exports = minilog('scratch-render');
@@ -18803,7 +18807,7 @@ module.exports = color;
 /***/ (function(module, exports, __webpack_require__) {
 
 const DOMPurify = __webpack_require__(30);
-const SvgElement = __webpack_require__(16);
+const SvgElement = __webpack_require__(17);
 const convertFonts = __webpack_require__(31);
 const fixupSvgString = __webpack_require__(32);
 const transformStrokeWidths = __webpack_require__(70);
@@ -20868,7 +20872,7 @@ const Rewrite = class {
 /***/ (function(module, exports, __webpack_require__) {
 
 const AudioEngine = __webpack_require__(102);
-const Importer = __webpack_require__(10);
+const Importer = __webpack_require__(11);
 //const Process = require('./process');
 const SoundPlayer = __webpack_require__(117);
 const Sounds = class {
@@ -21074,10 +21078,10 @@ module.exports = VolumeEffect;
 /* 39 */
 /***/ (function(module, exports, __webpack_require__) {
 
-/* WEBPACK VAR INJECTION */(function(process) {const Canvas = __webpack_require__(11);
+/* WEBPACK VAR INJECTION */(function(process) {const Canvas = __webpack_require__(12);
 const Env = __webpack_require__(3);
-const Looks = __webpack_require__(12);
-const MathUtils = __webpack_require__(13);
+const Looks = __webpack_require__(13);
+const MathUtils = __webpack_require__(14);
 const Process = __webpack_require__(1);
 const Sounds = __webpack_require__(37);
 const Rewrite = __webpack_require__(36);
@@ -21659,7 +21663,7 @@ const Element = __webpack_require__(24);
 //const Env = require('./env');
 const Process = __webpack_require__(1);
 const ScratchRenderer = __webpack_require__(44);
-const StageLayering = __webpack_require__(18);
+const StageLayering = __webpack_require__(8);
 const Render = class {
     static get WHRate() {
         return 0.75;
@@ -21740,7 +21744,7 @@ module.exports = RenderWebGL;
 /* 45 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const EventEmitter = __webpack_require__(14);
+const EventEmitter = __webpack_require__(15);
 
 const hull = __webpack_require__(46);
 const twgl = __webpack_require__(0);
@@ -26394,7 +26398,7 @@ const inlineSvgFonts = __webpack_require__(34);
 const loadSvgString = __webpack_require__(29);
 const sanitizeSvg = __webpack_require__(83);
 const serializeSvgToString = __webpack_require__(33);
-const SvgElement = __webpack_require__(16);
+const SvgElement = __webpack_require__(17);
 const convertFonts = __webpack_require__(31);
 // /**
 //  * Export for NPM & Node.js
@@ -26592,7 +26596,7 @@ module.exports = SvgRenderer;
 /***/ (function(module, exports, __webpack_require__) {
 
 const Matrix = __webpack_require__(71);
-const SvgElement = __webpack_require__(16);
+const SvgElement = __webpack_require__(17);
 const log = __webpack_require__(72);
 
 /**
@@ -27232,7 +27236,7 @@ module.exports = transformStrokeWidths;
 /* 72 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const minilog = __webpack_require__(15);
+const minilog = __webpack_require__(16);
 minilog.enable();
 
 module.exports = minilog('scratch-svg-render');
@@ -27709,7 +27713,7 @@ g=q?new t(g):g||[]}for(var f=l="",b=0,c=g.length|0,u=c-32|0,e,d,h=0,p=0,m,k=0,n=
 f.subarray(0,c):f.slice(0,c)};E||(r.TextDecoder=x,r.TextEncoder=y)})(""+void 0==typeof global?""+void 0==typeof self?this:self:global);//AnonyCo
 //# sourceMappingURL=https://cdn.jsdelivr.net/gh/AnonyCo/FastestSmallestTextEncoderDecoder/EncoderDecoderTogether.min.js.map
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(17)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(18)))
 
 /***/ }),
 /* 85 */
@@ -30851,7 +30855,7 @@ function isnan (val) {
   return val !== val // eslint-disable-line no-self-compare
 }
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(17)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(18)))
 
 /***/ }),
 /* 94 */
@@ -34508,7 +34512,7 @@ module.exports = AudioEngine;
 const StartAudioContext = __webpack_require__(104);
 const AudioContext = __webpack_require__(106);
 
-const log = __webpack_require__(8);
+const log = __webpack_require__(9);
 const uid = __webpack_require__(108);
 
 const ADPCMSoundDecoder = __webpack_require__(109);
@@ -35048,7 +35052,7 @@ if (typeof window !== "undefined") {
 
 module.exports = win;
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(17)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(18)))
 
 /***/ }),
 /* 108 */
@@ -35090,7 +35094,7 @@ module.exports = uid;
 /***/ (function(module, exports, __webpack_require__) {
 
 const ArrayBufferStream = __webpack_require__(110);
-const log = __webpack_require__(8);
+const log = __webpack_require__(9);
 
 /**
  * Data used by the decompression algorithm
@@ -35526,7 +35530,7 @@ module.exports = ArrayBufferStream;
 /* 111 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const log = __webpack_require__(8);
+const log = __webpack_require__(9);
 
 class Loudness {
     /**
@@ -35614,7 +35618,7 @@ module.exports = Loudness;
 /* 112 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const {EventEmitter} = __webpack_require__(14);
+const {EventEmitter} = __webpack_require__(15);
 
 const VolumeEffect = __webpack_require__(38);
 
@@ -36391,7 +36395,7 @@ module.exports = PitchEffect;
 /* 116 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const log = __webpack_require__(8);
+const log = __webpack_require__(9);
 
 /**
  * A symbol indicating all targets are to be effected.
@@ -36637,11 +36641,11 @@ module.exports = SoundPlayer;
 /***/ (function(module, exports, __webpack_require__) {
 
 const Backdrops = __webpack_require__(22);
-const Canvas = __webpack_require__(11);
+const Canvas = __webpack_require__(12);
 const Env = __webpack_require__(3);
 const Entity = __webpack_require__(39);
 const Process = __webpack_require__(1);
-const StageLayering = __webpack_require__(18);
+const StageLayering = __webpack_require__(8);
 const Stage = class extends Entity {
     constructor( name='stage', options={} ) {
         super( name, StageLayering.BACKGROUND_LAYER, options );    
@@ -36987,11 +36991,11 @@ process.umask = function() { return 0; };
 
 const Entity = __webpack_require__(39);
 const Env = __webpack_require__(3);
-const Costumes = __webpack_require__(9);
-const Looks = __webpack_require__(12);
-const MathUtils = __webpack_require__(13);
+const Costumes = __webpack_require__(10);
+const Looks = __webpack_require__(13);
+const MathUtils = __webpack_require__(14);
 const Process = __webpack_require__(1);
-const StageLayering = __webpack_require__(18);
+const StageLayering = __webpack_require__(8);
 const Utils = __webpack_require__(4);
 const Sprite = class extends Entity {
 
