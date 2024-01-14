@@ -28,16 +28,15 @@ P.setting = async function() {
     P.stage.whenFlag(async function() {
         for(;;) {
             await this.startSoundUntilDone();
-            //await P.Utils.wait(P.Env.pace);
         }
     });
     P.cat.whenFlag(async function() {
         for(;;) {
-            await P.Utils.wait(1000);
-            // どこかに行く！をメソッド化したい（glideToPositionとは別のン前で）
-            const x = (Math.random()-0.5) * P.stageWidth;
-            const y = (Math.random()-0.5) * P.stageHeight;
-            await this.glideToPosition(1, x, y);            
+            // 繰り返すごとに 1秒待つ
+            await P.wait(1000);
+            // １秒でどこかへ行く
+            const randomPoint = P.randomPoint;
+            await this.glideToPosition(1,  randomPoint.x, randomPoint.y);            
         }
     });
 }

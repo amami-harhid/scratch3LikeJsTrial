@@ -10439,7 +10439,9 @@ const Process = class {
         return this._flag;
     }
 
-
+    get wait () {
+        return Utils.wait;
+    }
     async _init() {
         // Now Loading 準備 START
         const mainTmp = document.createElement('main');
@@ -21487,9 +21489,37 @@ const Entity = class {
     stopThread( t ) {
         clearTimeout( t );
     }
+    pointTowardsMouseCursolGlobal( ) {
+        const process = Process.default;
+        const rect = process.canvas.getBoundingClientRect();
 
+        const canvasGlobalCenterX = rect.x + rect.width/2 // - canvasBorderX;
+        const canvasGlobalCenterY = rect.y + rect.height/2 // - canvasBorderY;
+    
+        const pageX = process.stage.mouse.pageX;
+        const pageY = process.stage.mouse.pageY;
+    
+        const _mouseXG = (pageX - canvasGlobalCenterX );
+        const _mouseYG = (canvasGlobalCenterY - pageY);
+    
+        const _rateX = process._render.stageWidth / process.canvas.width;
+        const _rateY = process._render.stageHeight / process.canvas.height;
+    
+        const targetX = (_mouseXG) * _rateX;
+        const targetY = (_mouseYG) * _rateY;
+
+        const dx = targetX - this.position.x;
+        const dy = targetY - this.position.y;
+
+        let direction = 90 - MathUtils.radToDeg(Math.atan2(dy, dx));
+        if(direction > 180) {
+            direction -= 360;
+        }
+        this.direction = direction;
+    
+    }
     pointTowardsMouseCursol( ) {
-        // TODO CANVAS 外に出ても ポインターを向くようにしたい
+        // CANVAS 外に出てら ポインターを向かない。
         const process = Process.default;
         const targetX = process.mousePosition.x;
         const targetY = process.mousePosition.y;
@@ -36634,20 +36664,23 @@ const Stage = class extends Entity {
         // これは Canvasをつくる Element クラスで実行したほうがよさそう（関連性強いため）
         const p = Process.default;
         const canvas = p.canvas;
+        const body = document.getElementById('main');
+        body.addEventListener('mousemove', (e) => {
+            me.mouse.pageX = e.pageX;
+            me.mouse.pageY = e.pageY;
+            e.stopPropagation()
+        });
         canvas.addEventListener('mousemove', (e) => {
             me.mouse.x = e.offsetX;
             me.mouse.y = e.offsetY;
 
             me.mouse.clientX = e.clientX;
             me.mouse.clientY = e.clientY;
-
-            me.mouse.pageX = e.pageX;
-            me.mouse.pageY = e.pageY;
             
             me.mouse.scratchX = e.offsetX - P.canvas.width/2;
             me.mouse.scratchY = P.canvas.height/2 - e.offsetY;
 
-            e.stopPropagation()
+//            e.stopPropagation()
         }, {});
         canvas.addEventListener('mousedown', (e) => {
             me.mouse.x = e.offsetX;
@@ -37061,8 +37094,8 @@ const Sprite = class extends Entity {
         this.setXY( x, y );
 
     }
-    move( x, y ) {
-        this.gotoXY( x, y);       
+    moveTo( x, y ) {
+        this.goToXY( x, y);       
     }
     onEdgeBounds() {
         const drawable = this.render.renderer._allDrawables[this.drawableID];
@@ -37302,11 +37335,17 @@ const Sprite = class extends Entity {
             },Env.pace);
         });
     }
-
-    pointToMouse () {
-        this.pointTowardsMouseCursol();
+    static get Global () {
+        return 'global'
     }
-
+    pointToMouse ( _global = null ) {
+        if( _global === Sprite.Global ){
+            this.pointTowardsMouseCursolGlobal();
+        }else{
+            this.pointTowardsMouseCursol();
+        }
+    }
+    
     pointInDerection( _d ) {
 
         if(_d < 0) {

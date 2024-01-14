@@ -17,8 +17,6 @@ P.prepare = async function() {
     P.cat.direction = 90;
 }
 
-const _changeDirection = 1;
-
 P.setting = async function() {
     P.stage.whenFlag(async function() {
         this.addSound( P.sounds.Chill, { 'volume' : 20 } );

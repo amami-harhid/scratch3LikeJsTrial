@@ -31,7 +31,6 @@ P.setting = async function() {
             for(;;) {
                 // 非同期処理に awaitをつけると、処理が終わるまで待つことができる
                 await this.startSoundUntilDone();
-                await P.Utils.wait(P.Env.pace);
             }
         });
     });

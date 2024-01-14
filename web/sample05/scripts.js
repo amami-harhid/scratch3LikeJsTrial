@@ -2,6 +2,8 @@
  * Sample05
  * ステージをクリック（タッチ）したときに音を鳴らす（ずっと繰り返し）
  * 再度クリックしたときに音を止める。
+ * 自前でクリック制御をしないといけない。
+ * クリック制御に使う変数のスコープに留意すること！。
  */
 P.preload = async function() {
     this.loadImage('../assets/Jurassic.svg','Jurassic');
@@ -14,6 +16,9 @@ P.prepare = async function() {
     P.stage.addImage( P.images.Jurassic );
 }
 
+
+let threadStartFlag = false;
+
 P.setting = async function() {
 
     P.stage.whenFlag(async function() {
@@ -21,26 +26,25 @@ P.setting = async function() {
         this.addSound( P.sounds.Chill, { 'volume' : 100 } );
     });
 
-    // クリックフラグ変数を定義する
-    let clickFlag = false;
-
     // ステージをクリックしたときの動作
     P.stage.whenClicked(async function () {
-        
-        if( clickFlag == false) {
+        // クリックフラグをみて実行中でないときにスレッドを実行する。
+        if( threadStartFlag == false) {
             // 「終わるまで音を鳴らす」をずっと繰り返す、スレッドを起動する
             this.startThread( async function() {
+                // スレッド起動したら
+                threadStartFlag = true;
                 for(;;) {
                     await this.startSoundUntilDone();
-                    if( clickFlag == true) {
+                    // トップスコープにて定義しているので参照可能。
+                    if( threadStartFlag == false) {
                         break;
                     }
-                    await P.Utils.wait(P.Env.pace);
                 }
-                clickFlag = false;
+                threadStartFlag = false;
             });
-            clickFlag = true;
         } else {
+            threadStartFlag = false;
             this.soundStop(); // 鳴っている音を止める。
         }
     })

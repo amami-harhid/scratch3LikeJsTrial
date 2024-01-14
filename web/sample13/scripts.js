@@ -27,15 +27,12 @@ P.setting = async function() {
     P.stage.whenFlag(async function() {
         for(;;) {
             await this.startSoundUntilDone();
-            //await P.Utils.wait(P.Env.pace);
         }
     });
 
     P.stage.whenClicked(async function() {
-
-        const x = P.mousePosition.x;
-        const y = P.mousePosition.y;
-        await P.cat.glideToPosition(0.5, x, y); 
+        const mousePosition = P.mousePosition;
+        await P.cat.glideToPosition( 1, mousePosition.x, mousePosition.y ); 
     });
 
 }

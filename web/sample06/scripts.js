@@ -26,7 +26,6 @@ P.setting = async function() {
         this.startThread( async function() {
             for(;;) {
                 await this.startSoundUntilDone();
-                await P.Utils.wait(P.Env.pace);
             }
         });
     });

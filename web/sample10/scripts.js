@@ -29,7 +29,6 @@ P.setting = async function() {
     P.stage.whenFlag(async function() {
         for(;;) {
             await this.startSoundUntilDone();
-            //await P.Utils.wait(P.Env.pace);
         }
     });
     P.cat.whenFlag( async function() {
@@ -41,16 +40,13 @@ P.setting = async function() {
         this.startThread( async function() {
             for(;;) {
                 this.direction += _changeDirection; // TOP Scope にあるので参照可能
-//                await P.Utils.wait(P.Env.pace);
             }    
         })
     });
     P.cat.whenFlag( async function() {
         // 向きをランダムに変える。
-        const _me = this;
         // ずっと繰り返す、スレッドを起動する
         this.startThread(async ()=>{
-            const steps = 10;
             for(;;) {
                 if( this.isMouseTouching() ) {
                     P.spriteClone( this, async function(){
@@ -61,11 +57,10 @@ P.setting = async function() {
                         clone.scale.y = 50;
                         clone.effect.color = 50;
                         clone.life = 1000;
-                        //console.log('clone startThread');
                         // ずっと繰り返す、スレッドを起動する
                         clone.startThread(async function(){
                             const _clone = this; // <--- 'this' is clone
-                            const steps = 10;
+                            const steps = 10;   // <--- TOP SCOPE でないときはスレッド内に定義しないと参照できない！
                             for(;;) {
                                 _clone.moveSteps( steps );
                                 // 端に触れたら
@@ -74,14 +69,12 @@ P.setting = async function() {
                                     _clone.soundPlay()
                                 });
                                 _clone.ifOnEdgeBounds();
-                                //await P.Utils.wait(P.Env.pace);
                             }
                         });           
                     });
                 }
                 const waitTime = P.Env.pace; 
                 await P.Utils.waitUntil( this.isNotMouseTouching, waitTime,  this ); 
-                //await P.Utils.wait( P.Env.pace );
             }
     
         });

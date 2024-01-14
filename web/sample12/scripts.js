@@ -1,6 +1,6 @@
 /**
  * Sample12
- * スプライト（CAT)を １秒でクリックした場所へ移動する
+ * スプライト（CAT)を クリックした場所へ移動する
  * 
  */
 P.preload = async function() {
@@ -21,20 +21,18 @@ P.prepare = async function() {
 const _changeDirection = 1;
 
 P.setting = async function() {
-    "use strict";
     P.stage.whenFlag(async function() {
         this.addSound( P.sounds.Chill, { 'volume' : 50 } );
     });
     P.stage.whenFlag(async function() {
         for(;;) {
             await this.startSoundUntilDone();
-            //await P.Utils.wait(P.Env.pace);
         }
     });
     P.stage.whenClicked(async function() {
 
         const x = P.mousePosition.x;
         const y = P.mousePosition.y;
-        P.cat.move(x,y)
+        P.cat.moveTo(x,y)
     });
 }

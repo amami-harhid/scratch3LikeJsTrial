@@ -1,6 +1,7 @@
 /**
  * Sample14
  * スプライト（CAT) ポインターを追いかける
+ * ステージの外に出てもマウスを追いかける（ウィンドウの外は監視できない）
  * 
  */
 P.preload = async function() {
@@ -18,8 +19,6 @@ P.prepare = async function() {
     P.cat.addImage( P.images.Cat );
 }
 
-const _changeDirection = 1;
-
 P.setting = async function() {
     P.stage.whenFlag(async function() {
         this.addSound( P.sounds.Chill, { 'volume' : 50 } );
@@ -27,15 +26,14 @@ P.setting = async function() {
     P.stage.whenFlag(async function() {
         for(;;) {
             await this.startSoundUntilDone();
-            //await P.Utils.wait(P.Env.pace);
         }
     });
     P.cat.whenFlag( async function() {
         // ずっと繰り返す、スレッドを起動する
         this.startThread( async function() {
             for(;;) {
-                // TODO CANVAS 外に出ても ポインターを向くようにしたい
-                this.pointToMouse();
+                // ステージの外のマウスポインターを含む。引数がないときは ステージの外のマウスポインターの動きは無視される。
+                this.pointToMouse( P.Sprite.Global );
                 this.moveSteps(10);
             }    
         })

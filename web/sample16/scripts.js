@@ -4,13 +4,15 @@
  * スプライト（CAT2) : 回転方向⇒自由に回転  
  * スプライト（CAT3) : 回転方向⇒回転しない
  * 
+ * 各スプライトはマウスポインターに向いて追いかける。
+ * ５秒ごとに元の位置に戻る。
+ * 
  */
 P.preload = async function() {
     this.loadImage('../assets/Jurassic.svg','Jurassic');
     this.loadSound('../assets/Chill.wav','Chill');
     this.loadImage('../assets/cat.svg','Cat');
 }
-
 P.prepare = async function() {
     P.stage = new P.Stage("stage");
     P.stage.addImage( P.images.Jurassic );
@@ -43,6 +45,16 @@ P.setting = async function() {
         // ずっと繰り返す
         for(;;) {
             await this.startSoundUntilDone();
+        }
+    });
+    P.stage.whenFlag(async function() {
+        // ずっと繰り返す
+        for(;;) {
+            // ３秒待つ
+            await P.wait(5000);
+            P.cat1.setPosition( -P.stageWidth/4, +P.stageHeight/4 );
+            P.cat2.setPosition( 0, 0 );
+            P.cat3.setPosition( P.stageWidth /4, -P.stageHeight/4 );
         }
     });
     P.cat1.whenFlag( async function() {

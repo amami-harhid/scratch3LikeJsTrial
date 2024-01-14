@@ -26,20 +26,18 @@ P.setting = async function() {
         this.startThread( async function() {
             for(;;) {
                 await this.startSoundUntilDone();
-                await P.Utils.wait(P.Env.pace);
             }
         });
     });
 
-    const steps = 10;
     P.cat.whenFlag( async function() {
         this.direction = (Math.random()-0.5) * 180;
         // 「終わるまで音を鳴らす」をずっと繰り返す、スレッドを起動する
         this.startThread( async function() {
+            const steps = 20;
             for(;;) {
                 this.moveSteps( steps );
                 this.ifOnEdgeBounds();
-                await P.Utils.wait(P.Env.pace);
             }
         });
 

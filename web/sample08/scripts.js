@@ -25,7 +25,6 @@ P.setting = async function() {
         this.startThread( async function() {
             for(;;) {
                 await this.startSoundUntilDone();
-                await P.Utils.wait(P.Env.pace);
             }
         });
     });
@@ -41,8 +40,6 @@ P.setting = async function() {
             const steps = 10;
             for(;;) {
                 this.moveSteps( steps );
-                console.log(`canvas=(${P.canvas.width},${P.canvas.height})`)
-                console.log(`cat position = (${this.position.x},${this.position.y})`)
                 // 端に触れたら
                 this.isTouchingEdge(function(){
                     // ミャーと鳴く。
@@ -50,7 +47,6 @@ P.setting = async function() {
                     this.soundPlay()
                 });
                 this.ifOnEdgeBounds();
-                await P.Utils.wait(P.Env.pace);
             }
         });
 

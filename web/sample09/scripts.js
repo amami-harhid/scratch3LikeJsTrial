@@ -26,7 +26,6 @@ P.setting = async function() {
         this.startThread( async function() {
             for(;;) {
                 await this.startSoundUntilDone();
-                await P.Utils.wait(P.Env.pace);
             }
         });
     });
@@ -37,17 +36,16 @@ P.setting = async function() {
     P.cat.whenFlag( async function() {
         // 向きをランダムに変える。
         const me = this;
-        const direction = 1;
         // ずっと繰り返す、スレッドを起動する
         me.startThread( async function() {
+            const me = this;
+            const direction = 1;
             for(;;) {
                 me.direction += direction;
-                await P.Utils.wait(P.Env.pace);
             }
         });
     });
 
-    const steps = 10;
     P.cat.whenClicked( async function() {
 
         P.spriteClone( this, async function() {
@@ -57,6 +55,8 @@ P.setting = async function() {
             me.effect.color = 50;
             // ずっと繰り返す、スレッドを起動する
             me.startThread( async function() {
+                const me = this;
+                const steps = 10;
                 for(;;) {
                     me.moveSteps( steps );
                     // 端に触れたら
@@ -65,7 +65,6 @@ P.setting = async function() {
                         me.soundPlay()
                     });
                     me.ifOnEdgeBounds();
-                    await P.Utils.wait(P.Env.pace);
                 }
             });
         });
