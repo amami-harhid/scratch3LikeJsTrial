@@ -10454,7 +10454,7 @@ const Process = class {
 
         document.body.appendChild(mainTmp);
         // ちょっとだけ待つ（ Now Loading を見せたいため )
-        await Utils.wait(300);
+        await Utils.wait(1000);
         // Now Loading 準備 OWARI
 
         this._prepareReload();
