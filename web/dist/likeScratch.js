@@ -10441,18 +10441,31 @@ const Process = class {
 
 
     async _init() {
+        // Now Loading 準備 START
+        const mainTmp = document.createElement('main');
+        this.mainTmp = mainTmp;
+        mainTmp.id = 'mainTmp';
+        mainTmp.classList.add('nowLoading');
+        mainTmp.style.zIndex = -1;
+        mainTmp.style.position = 'absolute'
+        mainTmp.style.touchAction = 'manipulation'
+        mainTmp.style.width = `${innerWidth}px`
+        mainTmp.style.height = `${innerHeight}px`
+
+        document.body.appendChild(mainTmp);
+        // ちょっとだけ待つ（ Now Loading を見せたいため )
+        await Utils.wait(300);
+        // Now Loading 準備 OWARI
+
         this._prepareReload();
         this._preload();
         await this._waitUntilPreloadDone();
         await Element.init();
-        //Sensing.enable();
         const main = this.main;
         main.classList.add(Element.DISPLAY_NONE);
         this._render = new Render();
         await this._prepare();
         await this._setting();
-
-
     }
 
     async _preload () {
@@ -10462,6 +10475,9 @@ const Process = class {
     }
 
     async _prepare () {
+        // この時点で各種ローディングは終わっているので、NowLoadingを消す。
+        this.mainTmp.remove();
+
         // Mainタグから非表示のクラスを除去しフラグとキャンバスを表示する
         const main = this.main;
         main.classList.remove(Element.DISPLAY_NONE);
@@ -18317,7 +18333,8 @@ const Element = class {
         style.innerHTML = `
             ${CSS.documentCss}\n\n
             ${CSS.flagCss}\n\n
-            ${CSS.canvasCss}\n\n            
+            ${CSS.canvasCss}\n\n
+            ${CSS.mainTmpCss}\n\n
         `;
         document.getElementsByTagName('head')[0].appendChild(style);
     }
@@ -21580,7 +21597,13 @@ html, body{
         border-radius: 20px;
   }  
 `,
-        
+    mainTmpCss : `
+.nowLoading {
+      background-image: url(https://amami-harhid.github.io/scratch3LikeJs/web/assets/NowLoading.svg);
+      background-repeat: no-repeat;
+      background-position: center;
+}
+`
 
 
 };

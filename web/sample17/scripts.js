@@ -5,12 +5,12 @@
  * 
  */
 P.preload = async function() {
-    this.loadImage('../assets/Jurassic.svg','Jurassic');
-    this.loadSound('../assets/Chill.wav','Chill');
-    this.loadImage('../assets/cross1.svg','Cross01');
-    this.loadImage('../assets/cross2.svg','Cross02');
-    this.loadImage('../assets/butterfly1.svg','Butterfly01');
-    this.loadImage('../assets/butterfly2.svg','Butterfly02');
+    this.loadImage('https://amami-harhid.github.io/scratch3LikeJs/web/assets/Jurassic.svg','Jurassic');
+    this.loadSound('https://amami-harhid.github.io/scratch3LikeJs/web/assets/Chill.wav','Chill');
+    this.loadImage('https://amami-harhid.github.io/scratch3LikeJs/web/assets/cross1.svg','Cross01');
+    this.loadImage('https://amami-harhid.github.io/scratch3LikeJs/web/assets/cross2.svg','Cross02');
+    this.loadImage('https://amami-harhid.github.io/scratch3LikeJs/web/assets/butterfly1.svg','Butterfly01');
+    this.loadImage('https://amami-harhid.github.io/scratch3LikeJs/web/assets/butterfly2.svg','Butterfly02');
 }
 
 P.prepare = async function() {
