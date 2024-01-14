@@ -1,6 +1,6 @@
 /**
- * Sample14
- * スプライト（CAT) ポインターを追いかける
+ * Sample15
+ * スプライト（CAT) は端を越えて進めない。
  * 
  */
 P.preload = async function() {
@@ -13,31 +13,25 @@ P.prepare = async function() {
     P.stage = new P.Stage("stage");
     P.stage.addImage( P.images.Jurassic );
     P.cat = new P.Sprite("Cat");
-    P.cat.position.x = 0;
-    P.cat.position.y = 0;
     P.cat.addImage( P.images.Cat );
+    P.cat.direction = 90;
 }
 
 const _changeDirection = 1;
 
 P.setting = async function() {
     P.stage.whenFlag(async function() {
-        this.addSound( P.sounds.Chill, { 'volume' : 50 } );
+        this.addSound( P.sounds.Chill, { 'volume' : 20 } );
     });
     P.stage.whenFlag(async function() {
         for(;;) {
             await this.startSoundUntilDone();
-            //await P.Utils.wait(P.Env.pace);
         }
     });
     P.cat.whenFlag( async function() {
         // ずっと繰り返す、スレッドを起動する
-        this.startThread( async function() {
-            for(;;) {
-                // TODO CANVAS 外に出ても ポインターを向くようにしたい
-                this.pointToMouse();
-                this.moveSteps(10);
-            }    
-        })
-    });
+        for(;;) {
+            this.moveSteps(10);
+        }    
+ });
 }
