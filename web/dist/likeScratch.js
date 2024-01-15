@@ -10698,6 +10698,8 @@ const Env = {
 
     pace : 33,
 
+    bubbleScaleLinkedToSprite : false,
+
     WindowSize : {w: innerWidth, h: innerHeight},
 }
 
@@ -37092,7 +37094,9 @@ const Sprite = class extends Entity {
     update() {
         super.update();
         this._costumeProperties(this);
-        this.bubble.updateScale(this.scale.x, this.scale.y);
+        if(Env.bubbleScaleLinkedToSprite === true) {
+            this.bubble.updateScale(this.scale.x, this.scale.y);
+        }
         this.bubble.moveWithSprite();
     }
     async moveSteps(steps) {

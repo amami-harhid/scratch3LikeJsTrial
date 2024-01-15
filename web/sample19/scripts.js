@@ -24,6 +24,7 @@ const properties = {
 P.render.renderer.updateDrawableProperties( drawableID, properties );
 
 */
+//P.Env.bubbleScaleLinkedToSprite = true
 P.preload = async function() {
     this.loadImage('../assets/Jurassic.svg','Jurassic');
     this.loadImage('../assets/cat.svg','Cat1');
@@ -37,6 +38,7 @@ P.prepare = async function() {
     P.cat = new P.Sprite("Cat");
     P.cat.addImage( P.images.Cat1 );
     P.cat.addImage( P.images.Cat2 );
+    P.cat.direction = 75;
 
 }
 
@@ -53,6 +55,7 @@ P.setting = async function() {
         await P.wait(100)
         for(;;) {
             this.nextCostume();
+            await P.wait(100)
         }
     });
     P.cat.whenFlag( async function() {
