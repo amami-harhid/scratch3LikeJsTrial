@@ -65,6 +65,328 @@
 /************************************************************************/
 /******/ ([
 /* 0 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+const Backdrops = __webpack_require__(22);
+//const Canvas = require('./canvas');
+//const Css = require('./css');
+const Costumes = __webpack_require__(10);
+const Element = __webpack_require__(24);
+const Env = __webpack_require__(3);
+const Importer = __webpack_require__(11);
+const Looks = __webpack_require__(13);
+const MathUtils = __webpack_require__(14);
+const NowLoading = __webpack_require__(42);
+const Render = __webpack_require__(43);
+const Rewrite = __webpack_require__(36);
+const RotationStyle = __webpack_require__(23);
+const Sensing = __webpack_require__(101);
+const Sounds = __webpack_require__(37);
+const Stage = __webpack_require__(118);
+const StageLayering = __webpack_require__(7);
+const Sprite = __webpack_require__(120);
+const Utils = __webpack_require__(4);
+const Process = class {
+
+    static getInstance() {
+        if( Process._instance == undefined ) {
+            Process._instance = new Process();
+        }
+        return Process._instance;
+    }
+
+    constructor () {
+        this._render = null;
+        this._id = this._generateUUID();
+        this._preloadImagePromise = [];
+        this._preloadSoundPromise = [];
+        this._sounds = {}
+        this._images = {};
+        this._preloadDone = false;
+    }
+    get images() {
+        return this._images;
+    }
+    get sounds() {
+        return this._sounds;
+    }
+    _generateUUID () {
+        return Utils.generateUUID();
+    }
+    get Backdrops () {
+        return Backdrops;
+    }
+    get Costumes () {
+        return Costumes;
+    }
+    get Element () {
+        return Element;
+    }
+    get Env () {
+        return Env;
+    }
+    get Importer () {
+        return Importer;
+    }
+    get Looks () {
+        return Looks;
+    }
+    get NowLoading () {
+        return NowLoading;
+    }
+    get MathUtils () {
+        return MathUtils;
+    }
+    get Render () {
+        return Render;
+    }
+    get Rewrite () {
+        return Rewrite.default;
+    }
+    get RotationStyle () {
+        return RotationStyle;
+    }
+    get Sounds () {
+        return Sounds;
+    }
+    get Stage () {
+        return Stage;
+    }
+    get StageLayering () {
+        return StageLayering;
+    }
+    get Sprite () {
+        return Sprite;
+    }
+    get Utils () {
+        return Utils;
+    }
+    get render () {
+        return this._render;
+    }
+    set render( render ) {
+        // _init() の中で設定される。
+        this._render = render;
+    }
+    set stage ( stage ) {
+        this._stage = stage;
+    }
+
+    get stage () {
+        return this._stage;
+    }
+
+    get stageWidth () {
+        return this._render.stageWidth;
+    }
+
+    get stageHeight () {
+        return this._render.stageHeight;
+    }
+
+    get mousePosition () {
+        const _rateX = this._render.stageWidth / this.canvas.width;
+        const _rateY = this._render.stageHeight / this.canvas.height;
+        const _mouseX = (this.stage.mouse.x - this.canvas.width/2 ) * _rateX;
+        const _mouseY = (this.canvas.height/2 - this.stage.mouse.y) * _rateY;
+        return {x: _mouseX, y: _mouseY};
+    }
+
+    get randomPoint () {
+        const randomPointX = (Math.random()-0.5)*this.stageWidth;
+        const randomPointY = (Math.random()-0.5)*this.stageHeight;
+        return { x: randomPointX, y: randomPointY };
+    }
+
+    get randomDirection () {
+        const direction = (Math.random()-0.5)* 2 * 360;
+        if( direction > 180 ){
+            return direction - 180;
+        }
+        return direction;
+    }
+
+    set flag ( flag ) {
+        this._flag = flag;
+    }
+
+    get flag () {
+        return this._flag;
+    }
+
+    get wait () {
+        return Utils.wait;
+    }
+    async _init() {
+        // Now Loading 準備 START
+        const mainTmp = document.createElement('main');
+        this.mainTmp = mainTmp;
+        mainTmp.id = 'mainTmp';
+        mainTmp.classList.add('nowLoading');
+        mainTmp.style.zIndex = -1;
+        mainTmp.style.position = 'absolute'
+        mainTmp.style.touchAction = 'manipulation'
+        mainTmp.style.width = `${innerWidth}px`
+        mainTmp.style.height = `${innerHeight}px`
+
+        document.body.appendChild(mainTmp);
+        // ちょっとだけ待つ（ Now Loading を見せたいため )
+        await Utils.wait(1000);
+        // Now Loading 準備 OWARI
+
+        this._prepareReload();
+        this._preload();
+        await this._waitUntilPreloadDone();
+        await Element.init();
+        const main = this.main;
+        main.classList.add(Element.DISPLAY_NONE);
+        this._render = new Render();
+        await this._prepare();
+        await this._setting();
+    }
+
+    async _preload () {
+        if( P.preload ) {
+            P.preload();
+        }
+    }
+
+    async _prepare () {
+        // この時点で各種ローディングは終わっているので、NowLoadingを消す。
+        this.mainTmp.remove();
+
+        // Mainタグから非表示のクラスを除去しフラグとキャンバスを表示する
+        const main = this.main;
+        main.classList.remove(Element.DISPLAY_NONE);
+        // prepareメソッドの実行を開始する
+        if( P.prepare ) {
+            await P.prepare();
+            await P.Utils.wait(Env.pace);
+            if( this._stage ) {
+                this._stage.update();
+                this._stage.draw();
+            }    
+        }
+    }
+    async _setting () {
+        if( P.setting ) {
+            await P.setting ();
+        }
+    }
+    // Element.init() 内から呼び出される。
+    _drawingStart() {
+        if( this._stage ) {
+            const me = this;
+            const pace = this.Env.pace;
+            this._stage.update();
+            setTimeout(async function(){
+                for(;;) {
+                    me._draw();
+                    await me.Utils.wait(pace);
+                }
+            }, pace);
+        }
+    }
+    _draw () {
+        if( this._stage ) {
+            this._stage.update ();
+            P._stage.draw();
+            if( P.draw ) {
+                P.draw();
+            }
+        }
+    }
+    _prepareReload() {
+        const me = this;
+        window.addEventListener('keydown', async function(e) {
+            const keyCode = e.code;
+            if( keyCode == 'Escape') {
+                // 別スレッドからリロードすると一発でリロードできる
+                setTimeout(function(){
+                    me._reload();
+                },10);
+            }
+        });
+    }
+
+    _reload() {
+        window.location.reload( ); // ページの再読み込み
+    }
+    
+    loadImage(imageUrl, name) {
+        let _name ;
+        if( name ) {
+            _name = name;
+        }else{
+            _name = imageUrl.replace(/\.[^.]+$/)
+        }
+        const data = Importer.loadImage(imageUrl, _name);
+        this._preloadImagePromise.push(data);
+        return data;
+    }
+    loadSound(soundUrl, name) {
+        let _name ;
+        if( name ) {
+            _name = name;
+        }else{
+            _name = imageUrl.replace(/\.[^.]+$/)
+        }
+        const data = Importer.loadSound(soundUrl, _name);
+        this._preloadSoundPromise.push(data);
+        return data;
+    }
+
+    spriteClone( src, callback ) {
+        if( src instanceof P.Sprite ) {
+            src.clone().then( async( c ) =>{
+                if( callback ) {
+                    const _callback = callback.bind( c );
+                    _callback();
+                }
+            });
+        }
+    }
+
+    get preloadDone() {
+        return this._preloadDone;
+    }
+    async _waitUntilPreloadDone() {
+        if(this._preloadImagePromise.length > 0 ) {
+            const _images = await Promise.all(this._preloadImagePromise);
+            for(const v of _images) {
+                this._images[v.name] = {'name': v.name, 'data': v.data };
+            }    
+        }
+        if( this._preloadSoundPromise.length > 0 ) {
+            const _sounds = await Promise.all(this._preloadSoundPromise);
+            for(const v of _sounds) {
+                this._sounds[v.name] = {'name' : v.name, 'data': v.data };
+            }    
+        }
+
+        this._preloadDone = true;
+    }
+    async waitUntil( condition ) {
+        for(;;) {
+            if( condition() ) {
+                break;
+            }
+            await Utils.wait(Env.pace);
+        }
+    }
+
+    
+
+
+}
+
+//module.exports = {default: Process.getInstance()};
+/* harmony default export */ __webpack_exports__["default"] = (Process.getInstance());
+
+/***/ }),
+/* 1 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*!
@@ -10291,328 +10613,6 @@ function createVAOFromBufferInfo(gl, programInfo, bufferInfo) {
 });
 
 /***/ }),
-/* 1 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-const Backdrops = __webpack_require__(22);
-//const Canvas = require('./canvas');
-//const Css = require('./css');
-const Costumes = __webpack_require__(10);
-const Element = __webpack_require__(24);
-const Env = __webpack_require__(3);
-const Importer = __webpack_require__(11);
-const Looks = __webpack_require__(13);
-const MathUtils = __webpack_require__(14);
-const NowLoading = __webpack_require__(42);
-const Render = __webpack_require__(43);
-const Rewrite = __webpack_require__(36);
-const RotationStyle = __webpack_require__(23);
-const Sensing = __webpack_require__(101);
-const Sounds = __webpack_require__(37);
-const Stage = __webpack_require__(118);
-const StageLayering = __webpack_require__(8);
-const Sprite = __webpack_require__(120);
-const Utils = __webpack_require__(4);
-const Process = class {
-
-    static getInstance() {
-        if( Process._instance == undefined ) {
-            Process._instance = new Process();
-        }
-        return Process._instance;
-    }
-
-    constructor () {
-        this._render = null;
-        this._id = this._generateUUID();
-        this._preloadImagePromise = [];
-        this._preloadSoundPromise = [];
-        this._sounds = {}
-        this._images = {};
-        this._preloadDone = false;
-    }
-    get images() {
-        return this._images;
-    }
-    get sounds() {
-        return this._sounds;
-    }
-    _generateUUID () {
-        return Utils.generateUUID();
-    }
-    get Backdrops () {
-        return Backdrops;
-    }
-    get Costumes () {
-        return Costumes;
-    }
-    get Element () {
-        return Element;
-    }
-    get Env () {
-        return Env;
-    }
-    get Importer () {
-        return Importer;
-    }
-    get Looks () {
-        return Looks;
-    }
-    get NowLoading () {
-        return NowLoading;
-    }
-    get MathUtils () {
-        return MathUtils;
-    }
-    get Render () {
-        return Render;
-    }
-    get Rewrite () {
-        return Rewrite.default;
-    }
-    get RotationStyle () {
-        return RotationStyle;
-    }
-    get Sounds () {
-        return Sounds;
-    }
-    get Stage () {
-        return Stage;
-    }
-    get StageLayering () {
-        return StageLayering;
-    }
-    get Sprite () {
-        return Sprite;
-    }
-    get Utils () {
-        return Utils;
-    }
-    get render () {
-        return this._render;
-    }
-    set render( render ) {
-        // _init() の中で設定される。
-        this._render = render;
-    }
-    set stage ( stage ) {
-        this._stage = stage;
-    }
-
-    get stage () {
-        return this._stage;
-    }
-
-    get stageWidth () {
-        return this._render.stageWidth;
-    }
-
-    get stageHeight () {
-        return this._render.stageHeight;
-    }
-
-    get mousePosition () {
-        const _rateX = this._render.stageWidth / this.canvas.width;
-        const _rateY = this._render.stageHeight / this.canvas.height;
-        const _mouseX = (this.stage.mouse.x - this.canvas.width/2 ) * _rateX;
-        const _mouseY = (this.canvas.height/2 - this.stage.mouse.y) * _rateY;
-        return {x: _mouseX, y: _mouseY};
-    }
-
-    get randomPoint () {
-        const randomPointX = (Math.random()-0.5)*this.stageWidth;
-        const randomPointY = (Math.random()-0.5)*this.stageHeight;
-        return { x: randomPointX, y: randomPointY };
-    }
-
-    get randomDirection () {
-        const direction = (Math.random()-0.5)* 2 * 360;
-        if( direction > 180 ){
-            return direction - 180;
-        }
-        return direction;
-    }
-
-    set flag ( flag ) {
-        this._flag = flag;
-    }
-
-    get flag () {
-        return this._flag;
-    }
-
-    get wait () {
-        return Utils.wait;
-    }
-    async _init() {
-        // Now Loading 準備 START
-        const mainTmp = document.createElement('main');
-        this.mainTmp = mainTmp;
-        mainTmp.id = 'mainTmp';
-        mainTmp.classList.add('nowLoading');
-        mainTmp.style.zIndex = -1;
-        mainTmp.style.position = 'absolute'
-        mainTmp.style.touchAction = 'manipulation'
-        mainTmp.style.width = `${innerWidth}px`
-        mainTmp.style.height = `${innerHeight}px`
-
-        document.body.appendChild(mainTmp);
-        // ちょっとだけ待つ（ Now Loading を見せたいため )
-        await Utils.wait(1000);
-        // Now Loading 準備 OWARI
-
-        this._prepareReload();
-        this._preload();
-        await this._waitUntilPreloadDone();
-        await Element.init();
-        const main = this.main;
-        main.classList.add(Element.DISPLAY_NONE);
-        this._render = new Render();
-        await this._prepare();
-        await this._setting();
-    }
-
-    async _preload () {
-        if( P.preload ) {
-            P.preload();
-        }
-    }
-
-    async _prepare () {
-        // この時点で各種ローディングは終わっているので、NowLoadingを消す。
-        this.mainTmp.remove();
-
-        // Mainタグから非表示のクラスを除去しフラグとキャンバスを表示する
-        const main = this.main;
-        main.classList.remove(Element.DISPLAY_NONE);
-        // prepareメソッドの実行を開始する
-        if( P.prepare ) {
-            await P.prepare();
-            await P.Utils.wait(Env.pace);
-            if( this._stage ) {
-                this._stage.update();
-                this._stage.draw();
-            }    
-        }
-    }
-    async _setting () {
-        if( P.setting ) {
-            await P.setting ();
-        }
-    }
-    // Element.init() 内から呼び出される。
-    _drawingStart() {
-        if( this._stage ) {
-            const me = this;
-            const pace = this.Env.pace;
-            this._stage.update();
-            setTimeout(async function(){
-                for(;;) {
-                    me._draw();
-                    await me.Utils.wait(pace);
-                }
-            }, pace);
-        }
-    }
-    _draw () {
-        if( this._stage ) {
-            this._stage.update ();
-            P._stage.draw();
-            if( P.draw ) {
-                P.draw();
-            }
-        }
-    }
-    _prepareReload() {
-        const me = this;
-        window.addEventListener('keydown', async function(e) {
-            const keyCode = e.code;
-            if( keyCode == 'Escape') {
-                // 別スレッドからリロードすると一発でリロードできる
-                setTimeout(function(){
-                    me._reload();
-                },10);
-            }
-        });
-    }
-
-    _reload() {
-        window.location.reload( ); // ページの再読み込み
-    }
-    
-    loadImage(imageUrl, name) {
-        let _name ;
-        if( name ) {
-            _name = name;
-        }else{
-            _name = imageUrl.replace(/\.[^.]+$/)
-        }
-        const data = Importer.loadImage(imageUrl, _name);
-        this._preloadImagePromise.push(data);
-        return data;
-    }
-    loadSound(soundUrl, name) {
-        let _name ;
-        if( name ) {
-            _name = name;
-        }else{
-            _name = imageUrl.replace(/\.[^.]+$/)
-        }
-        const data = Importer.loadSound(soundUrl, _name);
-        this._preloadSoundPromise.push(data);
-        return data;
-    }
-
-    spriteClone( src, callback ) {
-        if( src instanceof P.Sprite ) {
-            src.clone().then( async( c ) =>{
-                if( callback ) {
-                    const _callback = callback.bind( c );
-                    _callback();
-                }
-            });
-        }
-    }
-
-    get preloadDone() {
-        return this._preloadDone;
-    }
-    async _waitUntilPreloadDone() {
-        if(this._preloadImagePromise.length > 0 ) {
-            const _images = await Promise.all(this._preloadImagePromise);
-            for(const v of _images) {
-                this._images[v.name] = {'name': v.name, 'data': v.data };
-            }    
-        }
-        if( this._preloadSoundPromise.length > 0 ) {
-            const _sounds = await Promise.all(this._preloadSoundPromise);
-            for(const v of _sounds) {
-                this._sounds[v.name] = {'name' : v.name, 'data': v.data };
-            }    
-        }
-
-        this._preloadDone = true;
-    }
-    async waitUntil( condition ) {
-        for(;;) {
-            if( condition() ) {
-                break;
-            }
-            await Utils.wait(Env.pace);
-        }
-    }
-
-    
-
-
-}
-
-//module.exports = {default: Process.getInstance()};
-/* harmony default export */ __webpack_exports__["default"] = (Process.getInstance());
-
-/***/ }),
 /* 2 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -10800,9 +10800,9 @@ module.exports = Utils;
 
 const EventEmitter = __webpack_require__(15);
 
-const twgl = __webpack_require__(0);
+const twgl = __webpack_require__(1);
 
-const RenderConstants = __webpack_require__(7);
+const RenderConstants = __webpack_require__(8);
 const Silhouette = __webpack_require__(52);
 
 class Skin extends EventEmitter {
@@ -11039,7 +11039,7 @@ module.exports = Skin;
 /* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const twgl = __webpack_require__(0);
+const twgl = __webpack_require__(1);
 
 
 class ShaderManager {
@@ -11232,6 +11232,40 @@ module.exports = ShaderManager;
 /* 7 */
 /***/ (function(module, exports) {
 
+class StageLayering {
+    static get BACKGROUND_LAYER () {
+        return 'background';
+    }
+
+    static get VIDEO_LAYER () {
+        return 'video';
+    }
+
+    static get PEN_LAYER () {
+        return 'pen';
+    }
+
+    static get SPRITE_LAYER () {
+        return 'sprite';
+    }
+
+    // Order of layer groups relative to each other,
+    static get LAYER_GROUPS () {
+        return [
+            StageLayering.BACKGROUND_LAYER,
+            StageLayering.VIDEO_LAYER,
+            StageLayering.PEN_LAYER,
+            StageLayering.SPRITE_LAYER
+        ];
+    }
+}
+
+module.exports = StageLayering;
+
+/***/ }),
+/* 8 */
+/***/ (function(module, exports) {
+
 /** @module RenderConstants */
 
 /**
@@ -11269,40 +11303,6 @@ module.exports = {
 
 
 /***/ }),
-/* 8 */
-/***/ (function(module, exports) {
-
-class StageLayering {
-    static get BACKGROUND_LAYER () {
-        return 'background';
-    }
-
-    static get VIDEO_LAYER () {
-        return 'video';
-    }
-
-    static get PEN_LAYER () {
-        return 'pen';
-    }
-
-    static get SPRITE_LAYER () {
-        return 'sprite';
-    }
-
-    // Order of layer groups relative to each other,
-    static get LAYER_GROUPS () {
-        return [
-            StageLayering.BACKGROUND_LAYER,
-            StageLayering.VIDEO_LAYER,
-            StageLayering.PEN_LAYER,
-            StageLayering.SPRITE_LAYER
-        ];
-    }
-}
-
-module.exports = StageLayering;
-
-/***/ }),
 /* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -11319,7 +11319,7 @@ module.exports = minilog('scratch-audioengine');
 const RotationStyle = __webpack_require__(23);
 const Env = __webpack_require__(3);
 const Importer = __webpack_require__(11);
-const Process = __webpack_require__(1);
+const Process = __webpack_require__(0);
 const Utils = __webpack_require__(4);
 const Costumes = class {
     static get RotationStyle () {
@@ -18267,7 +18267,7 @@ module.exports = RotationStyle;
 const Canvas = __webpack_require__(12);
 const CSS = __webpack_require__(41);
 const Env = __webpack_require__(3);
-const Process = __webpack_require__(1);
+const Process = __webpack_require__(0);
 const Utils = __webpack_require__(4);
 const Element = class {
     static get DISPLAY_NONE () {
@@ -18573,7 +18573,7 @@ module.exports = Rectangle;
  * representing how the shaders apply effects.
  */
 
-const twgl = __webpack_require__(0);
+const twgl = __webpack_require__(1);
 
 const {rgbToHsv, hsvToRgb} = __webpack_require__(56);
 const ShaderManager = __webpack_require__(6);
@@ -21082,7 +21082,7 @@ module.exports = VolumeEffect;
 const Env = __webpack_require__(3);
 const Looks = __webpack_require__(13);
 const MathUtils = __webpack_require__(14);
-const Process = __webpack_require__(1);
+const Process = __webpack_require__(0);
 const Sounds = __webpack_require__(37);
 const Rewrite = __webpack_require__(36);
 const Utils = __webpack_require__(4);
@@ -21110,6 +21110,7 @@ const Entity = class {
         this.position = {x:0, y:0}; // 意味なし
         this.scale = {x:100,y:100}; // 意味なし
         this.direction = 90; // 意味なし
+        this._visible = true;
         this.sound = null;
         this.importAllDone = [];
         this.importIdx = -1;
@@ -21472,8 +21473,16 @@ const Entity = class {
     }
 
     updateVisible( visible ) {
-
+        this._visible = visible;
         this.render.renderer.updateDrawableVisible(this.drawableID, visible);
+    }
+
+    set visible( _visible ){
+        this.updateVisible(_visible);
+    }
+
+    get visible() {
+        return this._visible;
     }
 
     setRotationStyle () {
@@ -21567,7 +21576,7 @@ module.exports = Entity;
 "use strict";
 
 
-var Process = __webpack_require__(1);
+var Process = __webpack_require__(0);
 var _P = Process.default;
 window.P = _P;
 var Element = _P.Element;
@@ -21661,9 +21670,9 @@ module.exports = NowLoadingSVG;
 
 const Element = __webpack_require__(24);
 //const Env = require('./env');
-const Process = __webpack_require__(1);
+const Process = __webpack_require__(0);
 const ScratchRenderer = __webpack_require__(44);
-const StageLayering = __webpack_require__(8);
+const StageLayering = __webpack_require__(7);
 const Render = class {
     static get WHRate() {
         return 0.75;
@@ -21747,13 +21756,13 @@ module.exports = RenderWebGL;
 const EventEmitter = __webpack_require__(15);
 
 const hull = __webpack_require__(46);
-const twgl = __webpack_require__(0);
+const twgl = __webpack_require__(1);
 
 const BitmapSkin = __webpack_require__(51);
 const Drawable = __webpack_require__(53);
 const Rectangle = __webpack_require__(25);
 const PenSkin = __webpack_require__(66);
-const RenderConstants = __webpack_require__(7);
+const RenderConstants = __webpack_require__(8);
 const ShaderManager = __webpack_require__(6);
 const SVGSkin = __webpack_require__(67);
 const TextBubbleSkin = __webpack_require__(85);
@@ -24164,7 +24173,7 @@ module.exports = convex;
 /* 51 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const twgl = __webpack_require__(0);
+const twgl = __webpack_require__(1);
 
 const Skin = __webpack_require__(5);
 
@@ -24553,10 +24562,10 @@ module.exports = Silhouette;
 /* 53 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const twgl = __webpack_require__(0);
+const twgl = __webpack_require__(1);
 
 const Rectangle = __webpack_require__(25);
-const RenderConstants = __webpack_require__(7);
+const RenderConstants = __webpack_require__(8);
 const ShaderManager = __webpack_require__(6);
 const Skin = __webpack_require__(5);
 const EffectTransform = __webpack_require__(26);
@@ -25791,9 +25800,9 @@ module.exports = AjaxLogger;
 /* 66 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const twgl = __webpack_require__(0);
+const twgl = __webpack_require__(1);
 
-const RenderConstants = __webpack_require__(7);
+const RenderConstants = __webpack_require__(8);
 const Skin = __webpack_require__(5);
 
 const ShaderManager = __webpack_require__(6);
@@ -26147,7 +26156,7 @@ module.exports = PenSkin;
 /* 67 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const twgl = __webpack_require__(0);
+const twgl = __webpack_require__(1);
 
 const Skin = __webpack_require__(5);
 const {loadSvgString, serializeSvgToString} = __webpack_require__(68);
@@ -27719,7 +27728,7 @@ f.subarray(0,c):f.slice(0,c)};E||(r.TextDecoder=x,r.TextEncoder=y)})(""+void 0==
 /* 85 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const twgl = __webpack_require__(0);
+const twgl = __webpack_require__(1);
 
 const TextWrapper = __webpack_require__(86);
 const CanvasMeasurementProvider = __webpack_require__(98);
@@ -34409,7 +34418,7 @@ if (true) {
 /* 101 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const Process = __webpack_require__(1)
+const Process = __webpack_require__(0)
 const Utils = __webpack_require__(4);
 const Sensing = {
 
@@ -36644,8 +36653,8 @@ const Backdrops = __webpack_require__(22);
 const Canvas = __webpack_require__(12);
 const Env = __webpack_require__(3);
 const Entity = __webpack_require__(39);
-const Process = __webpack_require__(1);
-const StageLayering = __webpack_require__(8);
+const Process = __webpack_require__(0);
+const StageLayering = __webpack_require__(7);
 const Stage = class extends Entity {
     constructor( name='stage', options={} ) {
         super( name, StageLayering.BACKGROUND_LAYER, options );    
@@ -36989,13 +36998,14 @@ process.umask = function() { return 0; };
 /* 120 */
 /***/ (function(module, exports, __webpack_require__) {
 
+const Bubble = __webpack_require__(121);
 const Entity = __webpack_require__(39);
 const Env = __webpack_require__(3);
 const Costumes = __webpack_require__(10);
 const Looks = __webpack_require__(13);
 const MathUtils = __webpack_require__(14);
-const Process = __webpack_require__(1);
-const StageLayering = __webpack_require__(8);
+const Process = __webpack_require__(0);
+const StageLayering = __webpack_require__(7);
 const Utils = __webpack_require__(4);
 const Sprite = class extends Entity {
 
@@ -37003,6 +37013,7 @@ const Sprite = class extends Entity {
         super(name, StageLayering.SPRITE_LAYER, options);
         const stage = Process.default.stage;
         this.stage = stage;
+        this.bubble = new Bubble(this);
         this.costumes = new Costumes();
         this.skinId = null;
         this.skinIdx = -1;
@@ -37013,6 +37024,7 @@ const Sprite = class extends Entity {
         this.imageDatas = [];
         this.soundDatas = [];
         this.touchingEdge = false;
+        this.bubbleDrawableID = null;
         stage.addSprite(this);
     }
     remove() {
@@ -37080,6 +37092,8 @@ const Sprite = class extends Entity {
     update() {
         super.update();
         this._costumeProperties(this);
+        this.bubble.updateScale(this.scale.x, this.scale.y);
+        this.bubble.moveWithSprite();
     }
     async moveSteps(steps) {
         const radians = MathUtils.degToRad(90 - this.direction);
@@ -37088,6 +37102,11 @@ const Sprite = class extends Entity {
         this.setXY( this.position.x + dx, this.position.y + dy );
     
     }
+    setScale(x, y) {
+        super.setScale(x,y);
+        this.bubble.setScale(x, y);
+    }
+
     goToXY( x, y) {
         if ( !Utils.isNumber(x)) {
             return;
@@ -37412,8 +37431,221 @@ const Sprite = class extends Entity {
         await this._addImage(name, data, this.costumes);
     }
 
+    say( text, properties = {} ) {
+        if( text && (typeof text) == 'string') {
+            this.bubble.say( text , properties );
+            return;
+        }
+
+        this.bubble.destroyBubble();
+    }
+    think( text, properties = {} ) {
+        if( text && (typeof text) == 'string') {
+            this.bubble.think( text , properties );
+            return;
+        }
+
+        this.bubble.destroyBubble();
+    }
+
 };
 module.exports = Sprite;
+
+/***/ }),
+/* 121 */
+/***/ (function(module, exports, __webpack_require__) {
+
+const Process = __webpack_require__(0);
+const StageLayering = __webpack_require__(7);
+const uid = __webpack_require__(122);
+const Bubble = class {
+
+    constructor( sprite ) {
+        this._initBubbleState();
+        this.sprite = sprite;
+        this.process = Process.default;
+        this.renderer = this.process.render.renderer;
+        this._scale = {x:100, y:100};
+    }
+    _initBubbleState() {
+        this.bubbleState = {};
+        this.bubbleState.drawableID = null;
+        this.bubbleState.skinId = null;
+        this.bubbleState.text = "";
+        this.bubbleState.type = "say";
+        this.bubbleState.onSpriteRight = true;
+        this.bubbleState.usageId = null; // <--- 使用用途不明
+    }
+    set direction( _direction ) {
+        this._direction = _direction;
+    }
+    setScale( x, y ) {
+        if( x == 0 || y == 0 ) {
+            // ゼロスケールではDrawできないので回避する。
+            return;
+        }
+        // マイナススケールのとき 文字が反転（鏡文字）となるのでそれを回避する。
+        let _x = Math.abs(x);
+        let _y = Math.abs(y);
+        this.scaleX = _x;
+        this.scaleY = _y;    
+}
+    async createDrawable() {
+        if(this.bubbleState.drawableID == null ) {
+            const bubbleDrawableID = this.renderer.createDrawable( StageLayering.SPRITE_LAYER );
+            this.bubbleState.drawableID = bubbleDrawableID;
+        }
+    }
+
+    async createTextSkin() {
+        if(this.bubbleState.skinId == null ) {
+            this.bubbleState.skinId = this.renderer.createTextSkin(
+                this.bubbleState.type, 
+                this.bubbleState.text, 
+                this.bubbleState.onSpriteRight
+            );
+            this.bubbleState.uid = uid();    
+        }
+    }
+    async say( _text, _properties = {}) {
+        this.bubbleState.type = 'say';
+        this.bubbleState.text = _text;
+        await this._renderBubble(_properties);
+    }
+    async think(_text,  _properties = {}) {
+        this.bubbleState.type = 'think';
+        this.bubbleState.text = _text;
+        await this._renderBubble(_properties);
+    }
+    updateScale( x, y ) { 
+        if(this.bubbleState.drawableID != null){
+            if( x == 0 || y == 0 ) {
+                // ゼロスケールではDrawできないので回避する。
+                return;
+            }
+            // マイナススケールのとき 文字が反転（鏡文字）となるのでそれを回避する。
+            let _x = Math.abs(x);
+            let _y = Math.abs(y);
+            this._scale.x = _x;
+            this._scale.y = _y;
+            this.renderer.updateDrawableScale ( this.bubbleState.drawableID , [_x, _y] );        
+    }
+    }
+    async _renderBubble(_properties={}) {
+        if(this.sprite.visible == false || this.bubbleState.text === '') {
+            if( this.bubbleState.uid != null ) {
+                this.destroyBubble();
+            }
+            return;
+        }
+        if( this.bubbleState.uid == null ) {
+            this.createDrawable();
+            await this.createTextSkin();    
+            if( Object.keys(_properties).length > 0 ) {
+                if( 'scale' in _properties ) {
+                    this.updateScale( _properties.scale.x, _properties.scale.y );
+                }
+            }
+            this.renderer.updateDrawableSkinId(this.bubbleState.drawableID, this.bubbleState.skinId);
+        }else if(this.bubbleState.skinId) {
+            if( Object.keys(_properties).length > 0 ) {
+                if( 'scale' in _properties ) {
+                    this.updateScale( _properties.scale.x, _properties.scale.y );
+                }
+            }
+            this.renderer.updateTextSkin(this.bubbleState.skinId, this.bubbleState.type, this.bubbleState.text, this.bubbleState.onSpriteRight);
+        }
+        this._positionBubble();
+        return;
+    }
+    moveWithSprite() {
+        this._positionBubble();
+    }
+    _positionBubble() {
+        if(this.bubbleState.skinId) {
+            try{
+                const [_bubbleWidth, _bubbleHeight] = this.renderer.getCurrentSkinSize( this.bubbleState.drawableID );
+                const bubbleWidth = _bubbleWidth * this._scale.x / 100; 
+                const bubbleHeight = _bubbleHeight * this._scale.y / 100;
+                const targetBounds = this.renderer.getBoundsForBubble( this.sprite.drawableID );
+                const stageSize = this.renderer.getNativeSize();
+                const stageBounds = {
+                    left: -stageSize[0] / 2,
+                    right: stageSize[0] / 2,
+                    top: stageSize[1] / 2,
+                    bottom: -stageSize[1] / 2
+                };
+                if( this.bubbleState.onSpriteRight === true 
+                    && bubbleWidth + targetBounds.right > stageBounds.right && (targetBounds.left - bubbleWidth > stageBounds.left) ) {
+                    if( this._scale.x > 0) {
+                        this.bubbleState.onSpriteRight = false;
+                    } else {
+                        this.bubbleState.onSpriteRight = false;
+                    }
+                    this.renderer.updateTextSkin(this.bubbleState.skinId, this.bubbleState.type, this.bubbleState.text, this.bubbleState.onSpriteRight);
+                } else if( this.bubbleState.onSpriteRight === false 
+                    && targetBounds.left - bubbleWidth < stageBounds.left && (bubbleWidth + targetBounds.right < stageBounds.right) ) {
+                    if( this._scale.x > 0) {
+                        this.bubbleState.onSpriteRight = true;
+                    } else {
+                        this.bubbleState.onSpriteRight = false;
+                    }
+                    this.renderer.updateTextSkin(this.bubbleState.skinId, this.bubbleState.type, this.bubbleState.text, this.bubbleState.onSpriteRight);
+                } else {
+                    const positionX = (this.bubbleState.onSpriteRight)? 
+                        (Math.max(stageBounds.left,Math.min(stageBounds.right - bubbleWidth, targetBounds.right)))
+                        :(Math.min(stageBounds.right - bubbleWidth, Math.max(stageBounds.left, targetBounds.left - bubbleWidth )));
+                    const positionY = Math.min(stageBounds.top, targetBounds.bottom + bubbleHeight);
+                    this.renderer.updateDrawablePosition(this.bubbleState.drawableID, [positionX, positionY]);
+                }
+        
+            } catch(e) {
+                //console.log(e);
+            }
+        }
+    }
+    destroyBubble() {
+        this.renderer.destroyDrawable( this.bubbleState.drawableID, StageLayering.SPRITE_LAYER);
+        this.renderer.destroySkin( this.bubbleState.skinId ) 
+        this._initBubbleState();
+    }
+}
+
+module.exports = Bubble;
+
+/***/ }),
+/* 122 */
+/***/ (function(module, exports) {
+
+/**
+ * @fileoverview UID generator, from Blockly.
+ */
+
+/**
+ * Legal characters for the unique ID.
+ * Should be all on a US keyboard.  No XML special characters or control codes.
+ * Removed $ due to issue 251.
+ * @private
+ */
+const soup_ = '!#%()*+,-./:;=?@[]^_`{|}~' +
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+/**
+ * Generate a unique ID, from Blockly.  This should be globally unique.
+ * 87 characters ^ 20 length > 128 bits (better than a UUID).
+ * @return {string} A globally unique ID string.
+ */
+const uid = function () {
+    const length = 20;
+    const soupLength = soup_.length;
+    const id = [];
+    for (let i = 0; i < length; i++) {
+        id[i] = soup_.charAt(Math.random() * soupLength);
+    }
+    return id.join('');
+};
+
+module.exports = uid;
 
 /***/ })
 /******/ ]);
