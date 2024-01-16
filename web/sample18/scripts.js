@@ -46,6 +46,11 @@ P.setting = async function() {
             if(P.keyboard.isKeyPressed('ArrowLeft')){
                 this.moveSteps(-10);
             }
+        }    
+    });
+    P.cross.whenFlag( async function() {
+        // ずっと繰り返す
+        for(;;) {
             // Keyboard 改良点
             // 矢印キーを押しながら、スペースキーを検知させたい
             if(P.keyboard.isKeyPressed('Space')){
@@ -55,17 +60,41 @@ P.setting = async function() {
                     c.life = 1000;
                     c.startThread(async function(){
                         for(;;) {
-                            this.moveSteps(5);
-                            this.nextCostume();
-                            if(this.isTouchingEdge() || this.life < 0){
+                            this.moveSteps(10);
+                            if(this.life < 0){
                                 break;
                             }
                         }
                         // this.remove() <--- なんとかすること！
+                        // remove() を２回読んでも ２回目以降は無視したい。
+                        // drawableID が renderer で管理されていないときは無視すること。
+                    });
+                    c.startThread(async function(){
+                        for(;;) {
+                            //this.nextCostume();
+                            // nextCostume() のなかで端に触れたら跳ね返る、を入れたのは失敗だった。
+                            if(this.life < 0){
+                                break;
+                            }
+                        }
+                    });
+                    c.startThread(async function(){
+                        for(;;) {
+                            if(this.isTouchingEdge() || this.life < 0){
+                                break;
+                            }
+                        }
                     });
                 })
-                await P.waitUntil( P.keyboard.isKeyNotPressed.bind(P.keyboard) );
+                //await P.waitUntil( P.keyboard.isKeyNotPressed.bind(P.keyboard) );
             }
         }    
+    });
+    P.cross.whenFlag( async function() {
+        // ずっと繰り返す
+        //for(;;) {
+        //    console.log(P.keyboard._keysPressed);
+        //    await P.wait(100);
+        //}    
     });
 }
