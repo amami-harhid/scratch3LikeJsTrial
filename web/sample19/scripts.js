@@ -29,8 +29,18 @@ P.prepare = async function() {
 }
 
 const bubble = {'type': 'say', 'text': "abcdefg", 'exit': false};
+const bubbleTextArr = [
+    "ABCDEFG",
+    "HIJKLMNOPQRSTU VWXYZ",
+    "私はねこ",
+];
 const bubble2 = {'type': 'think', 'text': "かきくえばぁかねがなるなりほうりゅうじ", 'exit': false};
-
+const bubbleTextArr2 = [
+    "かきくえばぁ鐘がなるなり法隆寺",
+    "💚こんにちは💚",
+    "あなたもねこだね",
+    "★こんばんは★",
+];
 P.setting = async function() {
     P.cat.whenFlag( async function() {
         for(;;) {
@@ -71,24 +81,38 @@ P.setting = async function() {
         }
     });
     P.cat.whenFlag( async function() {
+        let counter = 0
         for(;;) {
-            this.say(bubble.text);
-            //this.say(bubble.text, {'scale':scale});
+            const text = bubbleTextArr[ Math.ceil(Math.random() * bubbleTextArr.length) - 1 ]
+            if( this.ifOnEdgeBounds() ) {
+                counter += 1;
+                counter = counter % 2;
+            }
+            if( counter == 0 ) {
+                this.say(text);
+
+            }else{
+                this.think(text);
+
+            }
             if( bubble.exit === true) {
                 this.say();
                 break;
             }
+            await P.wait(500)
         }
 
     });
     P.cat2.whenFlag( async function() {
         let scale = {x: 60, y:60};
         for(;;) {
-            this.think(bubble2.text, {scale:scale});
+            const text = bubbleTextArr2[ Math.ceil(Math.random() * bubbleTextArr2.length) - 1 ]
+            this.think(text, {scale:scale});
             if( bubble2.exit === true) {
                 this.say();
                 break;
             }
+            await P.wait(500)
         }
 
     });
@@ -102,8 +126,9 @@ P.setting = async function() {
         }
     });
     P.cat.whenFlag( async function() {
-        await P.wait(50000);
-        //bubble.exit = true;
+        await P.wait(20*1000); // 20秒たったらバブルループを終わらせる。
+        bubble.exit = true;
+        bubble2.exit = true;
     });
 
 }
