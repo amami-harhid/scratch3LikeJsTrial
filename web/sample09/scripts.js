@@ -54,8 +54,9 @@ P.setting = async function() {
             me.scale.y = 50;
             me.effect.color = 50;
             // ずっと繰り返す、スレッドを起動する
-            me.startThread( async function() {
+            me.startThread( async function() {                
                 const me = this;
+                me.setVisible(true);
                 const steps = 10;
                 for(;;) {
                     me.moveSteps( steps );
