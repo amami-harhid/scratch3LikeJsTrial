@@ -18,6 +18,7 @@ P.prepare = async function() {
     P.stage.addImage( P.images.Jurassic );
 
     P.cross = new P.Sprite("Cross");
+    P.cross.position.y = -P.stageHeight/2 * 0.6 
     P.cross.addImage( P.images.Cross01 );
     P.cross.addImage( P.images.Cross02 );
     P.cross.setScale(100,100);
@@ -40,10 +41,10 @@ P.setting = async function() {
         this.direction = 90;
         // ずっと繰り返す
         for(;;) {
-            if(P.keyboard.isKeyPressed('ArrowRight')){
+            if(P.getKeyIsDown('RightArrow')){
                 this.moveSteps(10);
             }
-            if(P.keyboard.isKeyPressed('ArrowLeft')){
+            if(P.getKeyIsDown('LeftArrow')){
                 this.moveSteps(-10);
             }
         }    
@@ -53,48 +54,39 @@ P.setting = async function() {
         for(;;) {
             // Keyboard 改良点
             // 矢印キーを押しながら、スペースキーを検知させたい
-            if(P.keyboard.isKeyPressed('Space')){
+            if(P.getKeyIsDown('Space')){
                 const options = {scale:{x:20,y:20},direction:0}
+                const bounds = this.render.renderer.getBounds(this.drawableID);
+                //console.log(bounds);
+                const height = Math.abs(bounds.top - bounds.bottom);
                 this.clone(options).then(c=>{
-                    //console.log('clone', c.id)
-                    c.life = 1000;
+                    // 「スプライトの他のスクリプトを止める」を作りたい。
+                    c.position.y += height / 2;
+                    c.nextCostume();
+                    c.setVisible(true);
                     c.startThread(async function(){
                         for(;;) {
-                            this.moveSteps(10);
-                            if(this.life < 0){
+                            const x = this.position.x;
+                            const y = this.position.y;
+                            this.setXY(x,y+5);
+                            if(this.isTouchingEdge()){
                                 break;
                             }
                         }
-                        // this.remove() <--- なんとかすること！
-                        // remove() を２回読んでも ２回目以降は無視したい。
-                        // drawableID が renderer で管理されていないときは無視すること。
+                        this.remove();
                     });
                     c.startThread(async function(){
                         for(;;) {
-                            //this.nextCostume();
-                            // nextCostume() のなかで端に触れたら跳ね返る、を入れたのは失敗だった。
-                            if(this.life < 0){
+                            this.rotationRight(15);
+                            if(this.isTouchingEdge()){
                                 break;
                             }
                         }
-                    });
-                    c.startThread(async function(){
-                        for(;;) {
-                            if(this.isTouchingEdge() || this.life < 0){
-                                break;
-                            }
-                        }
+                        this.remove();
                     });
                 })
                 //await P.waitUntil( P.keyboard.isKeyNotPressed.bind(P.keyboard) );
             }
         }    
-    });
-    P.cross.whenFlag( async function() {
-        // ずっと繰り返す
-        //for(;;) {
-        //    console.log(P.keyboard._keysPressed);
-        //    await P.wait(100);
-        //}    
     });
 }

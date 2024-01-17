@@ -34,10 +34,24 @@ P.setting = async function() {
         this.direction = (Math.random()-0.5) * 180;
         // 「終わるまで音を鳴らす」をずっと繰り返す、スレッドを起動する
         this.startThread( async function() {
-            const steps = 20;
+            const steps = 10;
+            const stepsNearing = 1
+            const stageWidthHalf = P.stageWidth/2; // half size
+            const stageHeightHalf = P.stageHeight/2; // half size
+            const isNearing = function(me) {
+                const _near = 65/100;
+                if(Math.abs(me.position.x) > stageWidthHalf * _near ) return true;
+                if(Math.abs(me.position.y) > stageHeightHalf * _near) return true;
+                return false;
+            }
             for(;;) {
-                this.moveSteps( steps );
-                this.ifOnEdgeBounds();
+                if( isNearing(this) ) {
+                    // nearing
+                    this.ifOnEdgeBounds();
+                    this.moveSteps( stepsNearing );
+                }else{
+                    this.moveSteps( steps );
+                }
             }
         });
 

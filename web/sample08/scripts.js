@@ -38,15 +38,28 @@ P.setting = async function() {
         // 「終わるまで音を鳴らす」をずっと繰り返す、スレッドを起動する
         this.startThread( async function() {
             const steps = 10;
+            const stepsNearing = 1
+            const stageWidthHalf = P.stageWidth/2; // half size
+            const stageHeightHalf = P.stageHeight/2; // half size
+            const isNearing = function(me) {
+                const _near = 65/100;
+                if(Math.abs(me.position.x) > stageWidthHalf * _near ) return true;
+                if(Math.abs(me.position.y) > stageHeightHalf * _near) return true;
+                return false;
+            }
             for(;;) {
-                this.moveSteps( steps );
+                if( isNearing(this) ) {
+                    this.moveSteps( stepsNearing );
+                }else{
+                    this.moveSteps( steps );
+                }
+                this.ifOnEdgeBounds();
                 // 端に触れたら
                 this.isTouchingEdge(function(){
                     // ミャーと鳴く。
                     // ( this が使えるのは 特別な措置をしているため )
                     this.soundPlay()
                 });
-                this.ifOnEdgeBounds();
             }
         });
 
