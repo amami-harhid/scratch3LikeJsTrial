@@ -43,40 +43,34 @@ P.setting = async function() {
         })
     });
     P.cat.whenFlag( async function() {
-        // 向きをランダムに変える。
-        // ずっと繰り返す、スレッドを起動する
-        this.startThread(async ()=>{
-            for(;;) {
-                if( this.isMouseTouching() ) {
-                    P.spriteClone( this, async function(){
-                        const clone = this; // 'this' is cloned instance;
-                        clone.position.x = 100;
-                        clone.position.y = -100;
-                        clone.scale.x = 50;
-                        clone.scale.y = 50;
-                        clone.effect.color = 50;
-                        clone.life = 1000;
-                        // ずっと繰り返す、スレッドを起動する
-                        clone.setVisible(true)
-                        clone.startThread(async function(){
-                            const _clone = this; // <--- 'this' is clone
-                            const steps = 10;   // <--- TOP SCOPE でないときはスレッド内に定義しないと参照できない！
-                            for(;;) {
-                                _clone.moveSteps( steps );
-                                // 端に触れたら
-                                _clone.isTouchingEdge(function(){
-                                    // ミャーと鳴く。
-                                    _clone.soundPlay()
-                                });
-                                _clone.ifOnEdgeBounds();
-                            }
-                        });           
-                    });
-                }
-                const waitTime = P.Env.pace; 
-                await P.Utils.waitUntil( this.isNotMouseTouching, waitTime,  this ); 
+        // ずっと繰り返す
+        for(;;) {
+            if( this.isMouseTouching() ) {
+                this.clone();
             }
-    
-        });
+            // マウスタッチしないまで待つ
+            await P.Utils.waitUntil( this.isNotMouseTouching, P.Env.pace,  this ); 
+        }
+});
+    P.cat.whenCloned(async function(){
+        const clone = this; // 'this' is cloned instance;
+        clone.position.x = 100;
+        clone.position.y = -100;
+        clone.scale.x = 50;
+        clone.scale.y = 50;
+        clone.effect.color = 50;
+        clone.life = 1000;
+        clone.setVisible(true)
+        const steps = 10;   // <--- TOP SCOPE でないときはスレッド内に定義しないと参照できない！
+        // ずっと繰り返す
+        for(;;) {
+            clone.moveSteps( steps );
+            // 端に触れたら
+            clone.isTouchingEdge(function(){
+                // ミャーと鳴く。
+                clone.soundPlay()
+            });
+            clone.ifOnEdgeBounds();
+        }
     });
 }

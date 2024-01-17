@@ -42,51 +42,53 @@ P.setting = async function() {
         // ずっと繰り返す
         for(;;) {
             if(P.getKeyIsDown('RightArrow')){
-                this.moveSteps(10);
+                this.moveSteps(15);
             }
             if(P.getKeyIsDown('LeftArrow')){
-                this.moveSteps(-10);
+                this.moveSteps(-15);
             }
         }    
     });
     P.cross.whenFlag( async function() {
         // ずっと繰り返す
         for(;;) {
-            // Keyboard 改良点
             // 矢印キーを押しながら、スペースキーを検知させたい
             if(P.getKeyIsDown('Space')){
                 const options = {scale:{x:20,y:20},direction:0}
-                const bounds = this.render.renderer.getBounds(this.drawableID);
-                //console.log(bounds);
-                const height = Math.abs(bounds.top - bounds.bottom);
-                this.clone(options).then(c=>{
-                    // 「スプライトの他のスクリプトを止める」を作りたい。
-                    c.position.y += height / 2;
-                    c.nextCostume();
-                    c.setVisible(true);
-                    c.startThread(async function(){
-                        for(;;) {
-                            const x = this.position.x;
-                            const y = this.position.y;
-                            this.setXY(x,y+5);
-                            if(this.isTouchingEdge()){
-                                break;
-                            }
-                        }
-                        this.remove();
-                    });
-                    c.startThread(async function(){
-                        for(;;) {
-                            this.rotationRight(15);
-                            if(this.isTouchingEdge()){
-                                break;
-                            }
-                        }
-                        this.remove();
-                    });
-                })
+                this.clone(options);
+                //次をコメントアウトしているときは キー押下中連続してクローン作る  
                 //await P.waitUntil( P.keyboard.isKeyNotPressed.bind(P.keyboard) );
             }
         }    
+    });
+    P.cross.whenCloned(function(){
+        const c = this; // <--- cross instance;
+        const bounds = c.render.renderer.getBounds(c.drawableID);
+        const height = Math.abs(bounds.top - bounds.bottom);
+        c.position.y += height / 2;
+        c.nextCostume();
+        c.setVisible(true);
+    });
+    P.cross.whenCloned(function(){
+        const c = this; // <--- cross instance;
+        for(;;) {
+            const x = this.position.x;
+            const y = this.position.y;
+            this.setXY(x,y+15);
+            if(this.isTouchingEdge()){
+                break;
+            }
+        }
+        this.remove();
+    });
+    P.cross.whenCloned(function(){
+        const c = this; // <--- cross instance;
+        for(;;) {
+            this.rotationRight(15);
+            if(this.isTouchingEdge()){
+                break;
+            }
+        }
+        this.remove();
     });
 }

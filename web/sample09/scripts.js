@@ -47,29 +47,31 @@ P.setting = async function() {
     });
 
     P.cat.whenClicked( async function() {
-
-        P.spriteClone( this, async function() {
+        P.cat.clone();
+    });
+    
+    P.cat.whenCloned( async function() {
+    
+        const me = this;
+        me.scale.x = 50;
+        me.scale.y = 50;
+        me.effect.color = 50;
+        // ずっと繰り返す、スレッドを起動する
+        me.startThread( async function() {                
             const me = this;
-            me.scale.x = 50;
-            me.scale.y = 50;
-            me.effect.color = 50;
-            // ずっと繰り返す、スレッドを起動する
-            me.startThread( async function() {                
-                const me = this;
-                me.setVisible(true);
-                const steps = 10;
-                for(;;) {
-                    me.moveSteps( steps );
-                    // 端に触れたら
-                    this.isTouchingEdge(function(){
-                        // ミャーと鳴く。
-                        me.soundPlay()
-                    });
-                    me.ifOnEdgeBounds();
-                }
-            });
+            me.setVisible(true);
+            const steps = 10;
+            for(;;) {
+                me.moveSteps( steps );
+                // 端に触れたら
+                this.isTouchingEdge(function(){
+                    // ミャーと鳴く。
+                    me.soundPlay()
+                });
+                me.ifOnEdgeBounds();
+            }
         });
 
-
     });
+
 }
