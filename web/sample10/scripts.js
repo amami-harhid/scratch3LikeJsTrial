@@ -22,7 +22,6 @@ P.prepare = async function() {
 const _changeDirection = 1;
 
 P.setting = async function() {
-    "use strict";
     P.stage.whenFlag(async function() {
         this.addSound( P.sounds.Chill, { 'volume' : 50 } );
     });
@@ -58,6 +57,7 @@ P.setting = async function() {
                         clone.effect.color = 50;
                         clone.life = 1000;
                         // ずっと繰り返す、スレッドを起動する
+                        clone.setVisible(true)
                         clone.startThread(async function(){
                             const _clone = this; // <--- 'this' is clone
                             const steps = 10;   // <--- TOP SCOPE でないときはスレッド内に定義しないと参照できない！

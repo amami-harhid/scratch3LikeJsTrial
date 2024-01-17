@@ -70,6 +70,7 @@ P.setting = async function() {
                 butterfly.scale.y = scale.y;
                 butterfly.direction = P.randomDirection;
                 P.butterfly.clone().then(async (s)=>{
+                    s.setVisible(true);
                     s.life = 5000; // ミリ秒。クローンが生きている時間。（およその時間）
                     s.setVisible(true);
                     s.startThread(async function(){                        
