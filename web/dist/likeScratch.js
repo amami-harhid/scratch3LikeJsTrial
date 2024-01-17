@@ -21684,6 +21684,14 @@ const Entity = class {
         }, {});
 
     }
+    whenCloned(func) {
+        const runtime = Process.default.runtime;
+        const eventId = `whenClone_${this.name}`;
+        runtime.on(eventId, function(clone){
+            clone._exec( func );
+
+        })
+    }
     isNotMouseTouching() {
         return !(this.isMouseTouching());
     }
@@ -21753,10 +21761,6 @@ const Entity = class {
         const src = this;
         const touching = this.isTouchingTargetToTarget(src,targets);
         return touching;
-    }
-    whenCloned(func) {
-        const me = this;
-
     }
     /**
     * whenEvent - adds the specified event listener to sprite/stage.
@@ -38214,7 +38218,9 @@ const Sprite = class extends Entity {
             // ここで emit 
             // target( = EventEmitter ) を作る。target は renderer を操作するメソッドを持つ。
             // rendererを操作する処理は emit で行う。
-
+            const runtime = Process.default.runtime;
+            const eventId = `whenClone_${this.name}`;
+            runtime.emit(eventId, newSprite);
             return newSprite;
         }
     }

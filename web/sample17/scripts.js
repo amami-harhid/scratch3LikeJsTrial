@@ -44,7 +44,7 @@ P.setting = async function() {
     P.cross.whenFlag( async function() {
         // ずっと繰り返す
         for(;;) {
-            this.rotationRight(5);
+            this.rotationRight(1);
         }    
     });
     P.cross.whenFlag( async function() {
@@ -69,42 +69,43 @@ P.setting = async function() {
                 butterfly.scale.x = scale.x;
                 butterfly.scale.y = scale.y;
                 butterfly.direction = P.randomDirection;
-                P.butterfly.clone().then(async (s)=>{
-                    s.setVisible(true);
-                    s.life = 5000; // ミリ秒。クローンが生きている時間。（およその時間）
-                    s.setVisible(true);
-                    s.startThread(async function(){                        
-                        for(;;) {
-                            // ランダムな場所
-                            const randomPoint = P.randomPoint;
-                            // １秒でどこかに行く。
-                            await this.glideToPosition(1, randomPoint.x, randomPoint.y);
-                            // ライフがゼロになったら「繰り返し」を抜ける
-                            if( this.life < 0) {
-                                break;
-                            }
-                        }
-                    })
-                    s.startThread(async function(){                        
-                        let _scaleRate = 0.5;
-                        for(;;) {
-                            // だんだんと大きくなる
-                            this.scale.x += _scaleRate;
-                            this.scale.y += _scaleRate;
-                            this.nextCostume();
-                            // ライフがゼロになったら「繰り返し」を抜ける
-                            if( this.life < 0) {
-                                break;
-                            }
-                        }
-                    })
-                });
+                await P.butterfly.clone();
                 // 下をコメントアウトすると、十字にさわっている間は クローンを作り続ける
                 // 下を生かすと、十字に触ったときにクローンを作るが、次には進まない
                 await P.Utils.waitUntil( this.isNotMouseTouching, P.Env.pace, this); // 「マウスポインターが触らない」迄待つ。
-                await P.Utils.wait(100); // 100ミリ秒待つ。 <== クローン発生する間隔
+                //await P.Utils.wait(100); // 100ミリ秒待つ。 <== クローン発生する間隔
             }
         }
     });
-
+    P.butterfly.whenCloned( function() {
+        const s = this;
+        s.setVisible(true);
+        s.life = 5000; // ミリ秒。クローンが生きている時間。（およその時間）
+        s.setVisible(true);
+        s.startThread(async function(){                        
+            for(;;) {
+                // ランダムな場所
+                const randomPoint = P.randomPoint;
+                // １秒でどこかに行く。
+                await this.glideToPosition(1, randomPoint.x, randomPoint.y);
+                // ライフがゼロになったら「繰り返し」を抜ける
+                if( this.life < 0) {
+                    break;
+                }
+            }
+        })
+        s.startThread(async function(){                        
+            let _scaleRate = 0.5;
+            for(;;) {
+                // だんだんと大きくなる
+                this.scale.x += _scaleRate;
+                this.scale.y += _scaleRate;
+                this.nextCostume();
+                // ライフがゼロになったら「繰り返し」を抜ける
+                if( this.life < 0) {
+                    break;
+                }
+            }
+        })
+    });
 }
