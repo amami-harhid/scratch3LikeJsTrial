@@ -42831,7 +42831,11 @@ const Entity = class {
         runtime.emit(eventId, ...args);
 
     }
-
+    async sendMessageUntilDone(messageId, time=1000, ...args ){
+        this.sendMessage(messageId, ...args);
+        const wait = Process.default.Utils.wait;
+        await wait(time);
+    }
     // recieveMessage :  runtime で受信したいので 構造作り変えをしてから実装する
     recieveMessage( messageId, func) {
         // func を rewriteしてから使う
@@ -42841,7 +42845,7 @@ const Entity = class {
         const _funcBinded = _func.bind(this);
         const runtime = Process.default.runtime;
         const eventId = `message_${messageId}`;
-        runtime.on(eventId, function(...args){
+        runtime.on(eventId, function( ...args){
             _funcBinded( ...args ).catch(e=>{console.error('script=', func.toString()); throw new Error(e)});
         })
     }
@@ -60115,9 +60119,20 @@ const Sprite = class extends Entity {
             this.bubble.say( text , properties );
             return;
         }
-
         this.bubble.destroyBubble();
     }
+    sayForSecs( text, secs, properties={}) {
+        this.say(text, properties);
+        const me = this;
+        return new Promise(resolve => {
+            this._bubbleTimeout = setTimeout(() => {
+                me.bubble.destroyBubble();
+                me._bubbleTimeout = null;
+                resolve();
+            }, 1000 * secs);
+        });
+    }
+
     think( text, properties = {} ) {
         if( text && (typeof text) == 'string') {
             this.bubble.think( text , properties );
@@ -60125,6 +60140,16 @@ const Sprite = class extends Entity {
         }
 
         this.bubble.destroyBubble();
+    }
+    thinkForSecs( text, secs, properties={}) {
+        this.think(text, properties);
+        return new Promise(resolve => {
+            this._bubbleTimeout = setTimeout(() => {
+                this._bubbleTimeout = null;
+                this.bubble.destroyBubble();
+                resolve();
+            }, 1000 * secs);
+        });
     }
 
 };
