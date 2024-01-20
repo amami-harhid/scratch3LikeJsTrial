@@ -106,12 +106,12 @@ P.setting = async function() {
     P.cat2.whenFlag( async function() {
         let scale = {x: 60, y:60};
         for(;;) {
-            const text = bubbleTextArr2[ Math.ceil(Math.random() * bubbleTextArr2.length) - 1 ]
-            this.sendMessage('think', text, {scale:scale});
+            const text = bubbleTextArr2[ Math.ceil(Math.random() * bubbleTextArr2.length) - 1 ];
+            this.sendMessage('BUBBLE', 'think', text, {scale:scale});
 //            this.think(text, {scale:scale});
             if( bubble2.exit === true) {
-                this.sendMessage('say');
-                this.say();
+                this.sendMessage('BUBBLE', 'say');
+//                this.say();
                 break;
             }
             await P.wait(500)
@@ -133,23 +133,16 @@ P.setting = async function() {
         bubble2.exit = true;
     });
 
-    P.cat2.recieveMessage('think', function(text, scale) {
+    P.cat2.recieveMessage('BUBBLE', function(type="say", text="", scale ) {
         // Cat2 の フキダシ を出す
-        this.think(text, scale);
-
-    });
-    P.cat2.recieveMessage('say', function(text, scale) {
-        // Cat2 の フキダシ を出す
-        if(text) {
-            if(scale) {
-                this.say(text, scale);
-            }else{
-                this.say(text);
-            }
-        }else{
-            this.say();
+        const _scale = (scale)? scale : {};
+        if( type == 'say') {
+            this.say(text, _scale);
         }
+        if( type == 'think') {
+            this.think(text, _scale);
 
+        }
     });
 
 }

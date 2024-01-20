@@ -42842,7 +42842,7 @@ const Entity = class {
         const runtime = Process.default.runtime;
         const eventId = `message_${messageId}`;
         runtime.on(eventId, function(...args){
-            _funcBinded( ...args ).catch(e=>{console.error(func.toString()); throw new Error(e)});
+            _funcBinded( ...args ).catch(e=>{console.error('script=', func.toString()); throw new Error(e)});
         })
     }
 
