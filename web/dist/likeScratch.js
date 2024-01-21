@@ -5764,28 +5764,29 @@
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-const Backdrops = __webpack_require__(23);
+const Backdrops = __webpack_require__(24);
 //const Canvas = require('./canvas');
 //const Css = require('./css');
-const Costumes = __webpack_require__(13);
-const Element = __webpack_require__(26);
+const Costumes = __webpack_require__(14);
+const Element = __webpack_require__(27);
 const Env = __webpack_require__(4);
 const EventEmitter = __webpack_require__(7).EventEmitter;
-const Importer = __webpack_require__(14);
-const Keyboard = __webpack_require__(27);
+const Importer = __webpack_require__(10);
+const Keyboard = __webpack_require__(28);
 const Looks = __webpack_require__(16);
 const MathUtils = __webpack_require__(17);
 const moment = __webpack_require__(0);
 const NowLoading = __webpack_require__(186);
 const Render = __webpack_require__(187);
-const Rewrite = __webpack_require__(176);
-const RotationStyle = __webpack_require__(24);
+const Rewrite = __webpack_require__(177);
+const RotationStyle = __webpack_require__(25);
 const Runtime = __webpack_require__(245);
 const Sensing = __webpack_require__(250);
-const Sounds = __webpack_require__(177);
-const Stage = __webpack_require__(267);
+const Sounds = __webpack_require__(22);
+const Speech = __webpack_require__(267);
+const Sprite = __webpack_require__(268);
+const Stage = __webpack_require__(272);
 const StageLayering = __webpack_require__(6);
-const Sprite = __webpack_require__(269);
 const Utils = __webpack_require__(5);
 const Process = class {
 
@@ -5858,6 +5859,9 @@ const Process = class {
     }
     get Sounds () {
         return Sounds;
+    }
+    get Speech () {
+        return Speech;
     }
     get Stage () {
         return Stage;
@@ -17053,7 +17057,7 @@ const EventEmitter = __webpack_require__(7);
 
 const twgl = __webpack_require__(2);
 
-const RenderConstants = __webpack_require__(10);
+const RenderConstants = __webpack_require__(11);
 const Silhouette = __webpack_require__(196);
 
 class Skin extends EventEmitter {
@@ -17483,6 +17487,74 @@ module.exports = ShaderManager;
 /* 10 */
 /***/ (function(module, exports) {
 
+const Importer = class {
+
+    static get REGEX_DATA_IMAGE_URL() {
+        return /^data:image\\/;
+    }
+    static get REGEX_SVG_DATA_IMAGE_URL() {
+        return /^<svg\s/;
+    }
+    static get REGEX_SVG_DATA_IMAGE_FILE() {
+        return /^.+\.svg$/;
+    }
+    static isSVG(image) {
+        if(typeof image === 'string') {
+            const dataImageUrl = image;
+            if(dataImageUrl.match(Importer.REGEX_SVG_DATA_IMAGE_URL)){
+                return true;
+            }
+        }
+        return false;
+    }
+    static async loadImage(image, name) {
+        if(image) {
+            if(typeof image === 'string') {
+                if(image.match(Importer.REGEX_SVG_DATA_IMAGE_FILE)){
+                    let _text = await Importer._svgText(image);
+                    return {name:name,data:_text};
+                }else{
+                    const localUrl = image;
+                    let _img = await Importer._loadImage(localUrl);
+                    return {name:name,data:_img};
+                }
+            }
+        }
+    }
+    static async _loadImage(src) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = (e) => reject(e);
+            img.src = src;
+        });
+    }
+    static async _svgText(image) {
+        let svg = await fetch(image);
+        let _text = await svg.text();
+        return _text;
+    }
+
+    static async loadSound(sound, name) {
+        if(sound) {
+            if(typeof sound === 'string') {
+                let responce = await fetch(sound);
+                let buffer = await responce.arrayBuffer();
+                let data =  new Uint8Array(buffer);
+                return {name:name, data:data};
+            }
+        }
+        // 例外を起こすべきところ。
+    }
+
+};
+
+module.exports = Importer;
+
+/***/ }),
+/* 11 */
+/***/ (function(module, exports) {
+
 /** @module RenderConstants */
 
 /**
@@ -17520,7 +17592,7 @@ module.exports = {
 
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, exports) {
 
 var g;
@@ -17547,7 +17619,7 @@ module.exports = g;
 
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const minilog = __webpack_require__(18);
@@ -17557,13 +17629,13 @@ module.exports = minilog('scratch-audioengine');
 
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const RotationStyle = __webpack_require__(24);
+const RotationStyle = __webpack_require__(25);
 const Env = __webpack_require__(4);
-const Importer = __webpack_require__(14);
-const MathUtil = __webpack_require__(25);
+const Importer = __webpack_require__(10);
+const MathUtil = __webpack_require__(26);
 const Process = __webpack_require__(1);
 const Utils = __webpack_require__(5);
 const Costumes = class {
@@ -17738,74 +17810,6 @@ const Costumes = class {
 };
 
 module.exports = Costumes;
-
-/***/ }),
-/* 14 */
-/***/ (function(module, exports) {
-
-const Importer = class {
-
-    static get REGEX_DATA_IMAGE_URL() {
-        return /^data:image\\/;
-    }
-    static get REGEX_SVG_DATA_IMAGE_URL() {
-        return /^<svg\s/;
-    }
-    static get REGEX_SVG_DATA_IMAGE_FILE() {
-        return /^.+\.svg$/;
-    }
-    static isSVG(image) {
-        if(typeof image === 'string') {
-            const dataImageUrl = image;
-            if(dataImageUrl.match(Importer.REGEX_SVG_DATA_IMAGE_URL)){
-                return true;
-            }
-        }
-        return false;
-    }
-    static async loadImage(image, name) {
-        if(image) {
-            if(typeof image === 'string') {
-                if(image.match(Importer.REGEX_SVG_DATA_IMAGE_FILE)){
-                    let _text = await Importer._svgText(image);
-                    return {name:name,data:_text};
-                }else{
-                    const localUrl = image;
-                    let _img = await Importer._loadImage(localUrl);
-                    return {name:name,data:_img};
-                }
-            }
-        }
-    }
-    static async _loadImage(src) {
-        return new Promise((resolve, reject) => {
-            const img = new Image();
-            img.onload = () => resolve(img);
-            img.onerror = (e) => reject(e);
-            img.src = src;
-        });
-    }
-    static async _svgText(image) {
-        let svg = await fetch(image);
-        let _text = await svg.text();
-        return _text;
-    }
-
-    static async loadSound(sound, name) {
-        if(sound) {
-            if(typeof sound === 'string') {
-                let responce = await fetch(sound);
-                let buffer = await responce.arrayBuffer();
-                let data =  new Uint8Array(buffer);
-                return {name:name, data:data};
-            }
-        }
-        // 例外を起こすべきところ。
-    }
-
-};
-
-module.exports = Importer;
 
 /***/ }),
 /* 15 */
@@ -23771,6 +23775,140 @@ if (true) {
 
 /***/ }),
 /* 22 */
+/***/ (function(module, exports, __webpack_require__) {
+
+const AudioEngine = __webpack_require__(251);
+const Importer = __webpack_require__(10);
+//const Process = require('./process');
+const SoundPlayer = __webpack_require__(266);
+const Sounds = class {
+
+    constructor() {
+        this.audioEngine = new AudioEngine();
+        this.soundPlayers = new Map();
+        this.soundPlayer = null;
+        this.soundIdx = 0;
+    }
+    async importSound( sound ) {
+        const soundData = await Importer.loadSound(sound);
+        return soundData;
+    }
+    async setSound( name, soundData, options = {} ) {
+        // audioEngine.decodeSoundPlayerの引数は {data} の形にする。変数名は dataでないといけない。
+        const data = soundData;
+        const _soundPlayer = await this.audioEngine.decodeSoundPlayer({data});
+        const _effects = this.audioEngine.createEffectChain();
+        const _options = options;
+        _options.effects = _effects;
+        const soundPlayer = new SoundPlayer(name, _soundPlayer, _options);
+        if(this.soundPlayer == null){
+            this.soundPlayer = soundPlayer;
+        }
+        this.soundPlayers.set(name, soundPlayer);
+        // effects は インスタンスを作るときに渡しているので引数省略。
+        soundPlayer.connect(_effects);
+
+    }
+    async loadSound( name, sound , options = {}) {
+        const data = await Importer.loadSound(sound);
+        await this.setSound(name, data, options);
+    }
+    switch(name) {
+        const me = this;
+        const _keys = Array.from(this.soundPlayers.keys());
+        if( _keys.length > 1) {
+            _keys.map((_name,_idx) => {
+                if(_name == name) {
+                    me.soundIdx = _idx;
+                    const soundPlayer = me.soundPlayers.get(name);
+                    me.soundPlayer = soundPlayer;
+                }
+            });
+
+        } 
+    }
+    nextSound() {
+        const me = this;
+        const _keys = Array.from(this.soundPlayers.keys());
+        if( _keys.length > 1) {
+            const _nextIdx = this.soundIdx + 1;
+            if(_nextIdx < _keys.length) {
+                this.soundIdx = _nextIdx;
+            }else{
+                this.soundIdx = 0;
+            }
+            _keys.map( (_name, _idx) => {
+                if (_idx == me.soundIdx ) {
+                    me.soundPlayer = me.soundPlayers.get(_name);
+                }
+            });
+        }
+    }
+    play() {
+        if ( this.soundPlayer == null) return;
+        const _effects = this.soundPlayer.effects;
+        this.soundPlayer.connect(_effects);
+        this.soundPlayer.play();
+    }
+    setVolume(volume, name) {
+        if(name) {
+            const me = this;
+            const _keys = Array.from(this.soundPlayers.keys());
+            if ( _keys.length > 0 ) {
+                _keys.map((_name,_idx)=>{
+                    if ( _name == name ) {
+                        const _soundPlayer = this.soundPlayers.get(name);
+                        _soundPlayer.volume = volume;               
+                    }
+                });
+            } else {
+                // soundPlayerがない
+                return;
+            }
+        } else {
+            if ( this.soundPlayer == null) return;
+            this.soundPlayer.volume = volume;
+        }
+    }
+    set volume(volume = 100) {
+        if ( this.soundPlayer == null) return;
+        // 現在選択中の soundPlayerへ設定する
+        this.soundPlayer.volume = volume;
+    }
+    get volume(){
+        if ( this.soundPlayer == null) return;
+        // 現在選択中の soundPlayerから取得する
+        return this.soundPlayer.volume;
+    }
+    set pitch(pitch = 1) {
+        if ( this.soundPlayer == null) return;
+        // 現在選択中の soundPlayerへ設定する
+        this.soundPlayer.pitch = pitch;
+    }
+    get pitch() {
+        if ( this.soundPlayer == null) return;
+        // 現在選択中の soundPlayerから取得する
+        return this.soundPlayer.pitch;
+    }
+    async startSoundUntilDone() {
+        if ( this.soundPlayer == null) return;
+        await this.soundPlayer.startSoundUntilDone(); // 終わるまで待つ
+    }
+    stop() {
+        if ( this.soundPlayer == null) return;
+        this.soundPlayer.stop();
+    }
+
+    stopImmediately() {
+        if ( this.soundPlayer == null) return;
+        this.soundPlayer.stopImmediately();
+    }
+};
+
+module.exports = Sounds;
+
+/***/ }),
+/* 23 */
 /***/ (function(module, exports) {
 
 /**
@@ -23948,10 +24086,10 @@ module.exports = Effect;
 
 
 /***/ }),
-/* 23 */
+/* 24 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const Costumes = __webpack_require__(13);
+const Costumes = __webpack_require__(14);
 const Backdrops = class extends Costumes {
 
 
@@ -23960,7 +24098,7 @@ const Backdrops = class extends Costumes {
 module.exports = Backdrops;
 
 /***/ }),
-/* 24 */
+/* 25 */
 /***/ (function(module, exports) {
 
 const RotationStyle = class {
@@ -23978,7 +24116,7 @@ const RotationStyle = class {
 module.exports = RotationStyle;
 
 /***/ }),
-/* 25 */
+/* 26 */
 /***/ (function(module, exports) {
 
 class MathUtil {
@@ -24105,7 +24243,7 @@ class MathUtil {
 module.exports = MathUtil;
 
 /***/ }),
-/* 26 */
+/* 27 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const Canvas = __webpack_require__(15);
@@ -24206,7 +24344,7 @@ module.exports = Element;
 
 
 /***/ }),
-/* 27 */
+/* 28 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const Cast = __webpack_require__(182);
@@ -24376,7 +24514,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 28 */
+/* 29 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -24463,7 +24601,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 29 */
+/* 30 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -24668,7 +24806,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 30 */
+/* 31 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -24840,7 +24978,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 31 */
+/* 32 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -24911,7 +25049,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 32 */
+/* 33 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -25098,7 +25236,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 33 */
+/* 34 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -25170,7 +25308,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 34 */
+/* 35 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -25298,7 +25436,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 35 */
+/* 36 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -25419,7 +25557,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 36 */
+/* 37 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -25490,7 +25628,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 37 */
+/* 38 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -25608,7 +25746,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 38 */
+/* 39 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -25766,7 +25904,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 39 */
+/* 40 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -25869,7 +26007,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 40 */
+/* 41 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -25936,7 +26074,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 41 */
+/* 42 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -26071,7 +26209,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 42 */
+/* 43 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -26216,7 +26354,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 43 */
+/* 44 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -26356,7 +26494,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 44 */
+/* 45 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -26540,7 +26678,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 45 */
+/* 46 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -26716,7 +26854,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 46 */
+/* 47 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -26832,7 +26970,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 47 */
+/* 48 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -27029,7 +27167,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 48 */
+/* 49 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -27108,7 +27246,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 49 */
+/* 50 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -27222,7 +27360,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 50 */
+/* 51 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -27291,7 +27429,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 51 */
+/* 52 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -27385,7 +27523,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 52 */
+/* 53 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -27480,7 +27618,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 53 */
+/* 54 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -27572,7 +27710,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 54 */
+/* 55 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -27678,7 +27816,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 55 */
+/* 56 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -27800,7 +27938,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 56 */
+/* 57 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -27884,7 +28022,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 57 */
+/* 58 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -27964,7 +28102,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 58 */
+/* 59 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -28048,7 +28186,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 59 */
+/* 60 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -28132,7 +28270,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 60 */
+/* 61 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -28212,7 +28350,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 61 */
+/* 62 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -28296,7 +28434,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 62 */
+/* 63 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -28380,7 +28518,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 63 */
+/* 64 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -28464,7 +28602,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 64 */
+/* 65 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -28548,7 +28686,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 65 */
+/* 66 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -28674,7 +28812,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 66 */
+/* 67 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -28798,7 +28936,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 67 */
+/* 68 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -28924,7 +29062,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 68 */
+/* 69 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -29050,7 +29188,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 69 */
+/* 70 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -29144,7 +29282,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 70 */
+/* 71 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -29225,7 +29363,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 71 */
+/* 72 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -29354,7 +29492,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 72 */
+/* 73 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -29494,7 +29632,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 73 */
+/* 74 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -29568,7 +29706,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 74 */
+/* 75 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -29641,7 +29779,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 75 */
+/* 76 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -29765,7 +29903,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 76 */
+/* 77 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -29851,7 +29989,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 77 */
+/* 78 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -29941,7 +30079,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 78 */
+/* 79 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -30032,7 +30170,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 79 */
+/* 80 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -30143,7 +30281,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 80 */
+/* 81 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -30254,7 +30392,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 81 */
+/* 82 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -30345,7 +30483,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 82 */
+/* 83 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -30487,7 +30625,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 83 */
+/* 84 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -30627,7 +30765,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 84 */
+/* 85 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -30765,7 +30903,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 85 */
+/* 86 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -30875,7 +31013,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 86 */
+/* 87 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -31059,7 +31197,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 87 */
+/* 88 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -31231,7 +31369,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 88 */
+/* 89 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -31365,7 +31503,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 89 */
+/* 90 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -31475,7 +31613,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 90 */
+/* 91 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -31567,7 +31705,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 91 */
+/* 92 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -31723,7 +31861,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 92 */
+/* 93 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -31845,7 +31983,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 93 */
+/* 94 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -31925,7 +32063,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 94 */
+/* 95 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -32089,7 +32227,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 95 */
+/* 96 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -32181,7 +32319,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 96 */
+/* 97 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -32289,7 +32427,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 97 */
+/* 98 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -32387,7 +32525,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 98 */
+/* 99 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -32506,7 +32644,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 99 */
+/* 100 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -32646,7 +32784,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 100 */
+/* 101 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -32737,7 +32875,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 101 */
+/* 102 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -32871,7 +33009,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 102 */
+/* 103 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -33001,7 +33139,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 103 */
+/* 104 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -33101,7 +33239,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 104 */
+/* 105 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -33254,7 +33392,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 105 */
+/* 106 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -33336,7 +33474,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 106 */
+/* 107 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -33477,7 +33615,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 107 */
+/* 108 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -33587,7 +33725,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 108 */
+/* 109 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -33720,7 +33858,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 109 */
+/* 110 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -33796,7 +33934,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 110 */
+/* 111 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -33898,7 +34036,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 111 */
+/* 112 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -33996,7 +34134,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 112 */
+/* 113 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -34112,7 +34250,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 113 */
+/* 114 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -34331,7 +34469,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 114 */
+/* 115 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -34422,7 +34560,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 115 */
+/* 116 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -34514,7 +34652,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 116 */
+/* 117 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -34586,7 +34724,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 117 */
+/* 118 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -34693,7 +34831,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 118 */
+/* 119 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -34769,7 +34907,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 119 */
+/* 120 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -34906,7 +35044,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 120 */
+/* 121 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -35026,7 +35164,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 121 */
+/* 122 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -35144,7 +35282,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 122 */
+/* 123 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -35219,7 +35357,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 123 */
+/* 124 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -35320,7 +35458,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 124 */
+/* 125 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -35458,7 +35596,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 125 */
+/* 126 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -35614,7 +35752,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 126 */
+/* 127 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -35693,7 +35831,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 127 */
+/* 128 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -35767,7 +35905,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 128 */
+/* 129 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -35859,7 +35997,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 129 */
+/* 130 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -36088,7 +36226,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 130 */
+/* 131 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -36185,7 +36323,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 131 */
+/* 132 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -36258,7 +36396,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 132 */
+/* 133 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -36343,7 +36481,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 133 */
+/* 134 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -36504,7 +36642,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 134 */
+/* 135 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -36691,7 +36829,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 135 */
+/* 136 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -36772,7 +36910,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 136 */
+/* 137 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -36917,7 +37055,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 137 */
+/* 138 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -37060,7 +37198,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 138 */
+/* 139 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -37160,7 +37298,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 139 */
+/* 140 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -37244,7 +37382,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 140 */
+/* 141 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -37315,7 +37453,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 141 */
+/* 142 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -37462,7 +37600,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 142 */
+/* 143 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -37566,7 +37704,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 143 */
+/* 144 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -37650,7 +37788,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 144 */
+/* 145 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -37783,7 +37921,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 145 */
+/* 146 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -37864,7 +38002,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 146 */
+/* 147 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -37971,7 +38109,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 147 */
+/* 148 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -38044,7 +38182,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 148 */
+/* 149 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -38184,7 +38322,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 149 */
+/* 150 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -38306,7 +38444,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 150 */
+/* 151 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -38411,7 +38549,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 151 */
+/* 152 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -38481,7 +38619,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 152 */
+/* 153 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -38551,7 +38689,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 153 */
+/* 154 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -38678,7 +38816,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 154 */
+/* 155 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -38861,7 +38999,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 155 */
+/* 156 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -38959,7 +39097,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 156 */
+/* 157 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -39026,7 +39164,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 157 */
+/* 158 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -39096,7 +39234,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 158 */
+/* 159 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -39192,7 +39330,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 159 */
+/* 160 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -39281,7 +39419,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 160 */
+/* 161 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -39350,7 +39488,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 161 */
+/* 162 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -39486,7 +39624,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 162 */
+/* 163 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -39603,7 +39741,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 163 */
+/* 164 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -39719,7 +39857,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 164 */
+/* 165 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -39834,7 +39972,7 @@ module.exports = Keyboard;
 
 
 /***/ }),
-/* 165 */
+/* 166 */
 /***/ (function(module, exports) {
 
 class Rectangle {
@@ -40036,7 +40174,7 @@ module.exports = Rectangle;
 
 
 /***/ }),
-/* 166 */
+/* 167 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -40239,7 +40377,7 @@ module.exports = EffectTransform;
 
 
 /***/ }),
-/* 167 */
+/* 168 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const minilog = __webpack_require__(18);
@@ -40249,7 +40387,7 @@ module.exports = minilog('scratch-render');
 
 
 /***/ }),
-/* 168 */
+/* 169 */
 /***/ (function(module, exports) {
 
 var hex = {
@@ -40275,13 +40413,13 @@ module.exports = color;
 
 
 /***/ }),
-/* 169 */
+/* 170 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const DOMPurify = __webpack_require__(170);
+const DOMPurify = __webpack_require__(171);
 const SvgElement = __webpack_require__(19);
-const convertFonts = __webpack_require__(171);
-const fixupSvgString = __webpack_require__(172);
+const convertFonts = __webpack_require__(172);
+const fixupSvgString = __webpack_require__(173);
 const transformStrokeWidths = __webpack_require__(214);
 
 /**
@@ -40615,7 +40753,7 @@ module.exports = loadSvgString;
 
 
 /***/ }),
-/* 170 */
+/* 171 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*! @license DOMPurify | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/2.2.2/LICENSE */
@@ -41967,7 +42105,7 @@ module.exports = loadSvgString;
 
 
 /***/ }),
-/* 171 */
+/* 172 */
 /***/ (function(module, exports) {
 
 /**
@@ -42011,7 +42149,7 @@ module.exports = convertFonts;
 
 
 /***/ }),
-/* 172 */
+/* 173 */
 /***/ (function(module, exports) {
 
 /**
@@ -42078,10 +42216,10 @@ module.exports = function (svgString) {
 
 
 /***/ }),
-/* 173 */
+/* 174 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const inlineSvgFonts = __webpack_require__(174);
+const inlineSvgFonts = __webpack_require__(175);
 
 /**
  * Serialize a given SVG DOM to a string.
@@ -42103,7 +42241,7 @@ module.exports = serializeSvgToString;
 
 
 /***/ }),
-/* 174 */
+/* 175 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -42159,7 +42297,7 @@ module.exports = inlineSvgFonts;
 
 
 /***/ }),
-/* 175 */
+/* 176 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.7.1
@@ -42256,7 +42394,7 @@ module.exports = UnicodeTrie;
 
 
 /***/ }),
-/* 176 */
+/* 177 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -42351,144 +42489,10 @@ const Rewrite = class {
 /* harmony default export */ __webpack_exports__["default"] = (Rewrite.getInstance());
 
 /***/ }),
-/* 177 */
-/***/ (function(module, exports, __webpack_require__) {
-
-const AudioEngine = __webpack_require__(251);
-const Importer = __webpack_require__(14);
-//const Process = require('./process');
-const SoundPlayer = __webpack_require__(266);
-const Sounds = class {
-
-    constructor() {
-        this.audioEngine = new AudioEngine();
-        this.soundPlayers = new Map();
-        this.soundPlayer = null;
-        this.soundIdx = 0;
-    }
-    async importSound( sound ) {
-        const soundData = await Importer.loadSound(sound);
-        return soundData;
-    }
-    async setSound( name, soundData, options = {} ) {
-        // audioEngine.decodeSoundPlayerの引数は {data} の形にする。変数名は dataでないといけない。
-        const data = soundData;
-        const _soundPlayer = await this.audioEngine.decodeSoundPlayer({data});
-        const _effects = this.audioEngine.createEffectChain();
-        const _options = options;
-        _options.effects = _effects;
-        const soundPlayer = new SoundPlayer(name, _soundPlayer, _options);
-        if(this.soundPlayer == null){
-            this.soundPlayer = soundPlayer;
-        }
-        this.soundPlayers.set(name, soundPlayer);
-        // effects は インスタンスを作るときに渡しているので引数省略。
-        soundPlayer.connect(_effects);
-
-    }
-    async loadSound( name, sound , options = {}) {
-        const data = await Importer.loadSound(sound);
-        await this.setSound(name, data, options);
-    }
-    switch(name) {
-        const me = this;
-        const _keys = Array.from(this.soundPlayers.keys());
-        if( _keys.length > 1) {
-            _keys.map((_name,_idx) => {
-                if(_name == name) {
-                    me.soundIdx = _idx;
-                    const soundPlayer = me.soundPlayers.get(name);
-                    me.soundPlayer = soundPlayer;
-                }
-            });
-
-        } 
-    }
-    nextSound() {
-        const me = this;
-        const _keys = Array.from(this.soundPlayers.keys());
-        if( _keys.length > 1) {
-            const _nextIdx = this.soundIdx + 1;
-            if(_nextIdx < _keys.length) {
-                this.soundIdx = _nextIdx;
-            }else{
-                this.soundIdx = 0;
-            }
-            _keys.map( (_name, _idx) => {
-                if (_idx == me.soundIdx ) {
-                    me.soundPlayer = me.soundPlayers.get(_name);
-                }
-            });
-        }
-    }
-    play() {
-        if ( this.soundPlayer == null) return;
-        const _effects = this.soundPlayer.effects;
-        this.soundPlayer.connect(_effects);
-        this.soundPlayer.play();
-    }
-    setVolume(volume, name) {
-        if(name) {
-            const me = this;
-            const _keys = Array.from(this.soundPlayers.keys());
-            if ( _keys.length > 0 ) {
-                _keys.map((_name,_idx)=>{
-                    if ( _name == name ) {
-                        const _soundPlayer = this.soundPlayers.get(name);
-                        _soundPlayer.volume = volume;               
-                    }
-                });
-            } else {
-                // soundPlayerがない
-                return;
-            }
-        } else {
-            if ( this.soundPlayer == null) return;
-            this.soundPlayer.volume = volume;
-        }
-    }
-    set volume(volume = 100) {
-        if ( this.soundPlayer == null) return;
-        // 現在選択中の soundPlayerへ設定する
-        this.soundPlayer.volume = volume;
-    }
-    get volume(){
-        if ( this.soundPlayer == null) return;
-        // 現在選択中の soundPlayerから取得する
-        return this.soundPlayer.volume;
-    }
-    set pitch(pitch = 1) {
-        if ( this.soundPlayer == null) return;
-        // 現在選択中の soundPlayerへ設定する
-        this.soundPlayer.pitch = pitch;
-    }
-    get pitch() {
-        if ( this.soundPlayer == null) return;
-        // 現在選択中の soundPlayerから取得する
-        return this.soundPlayer.pitch;
-    }
-    async startSoundUntilDone() {
-        if ( this.soundPlayer == null) return;
-        await this.soundPlayer.startSoundUntilDone(); // 終わるまで待つ
-    }
-    stop() {
-        if ( this.soundPlayer == null) return;
-        this.soundPlayer.stop();
-    }
-
-    stopImmediately() {
-        if ( this.soundPlayer == null) return;
-        this.soundPlayer.stopImmediately();
-    }
-};
-
-module.exports = Sounds;
-
-/***/ }),
 /* 178 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const Effect = __webpack_require__(22);
+const Effect = __webpack_require__(23);
 
 /**
  * Affect the volume of an effect chain.
@@ -42566,8 +42570,8 @@ const Env = __webpack_require__(4);
 const Looks = __webpack_require__(16);
 const MathUtils = __webpack_require__(17);
 const Process = __webpack_require__(1);
-const Sounds = __webpack_require__(177);
-const Rewrite = __webpack_require__(176);
+const Sounds = __webpack_require__(22);
+const Rewrite = __webpack_require__(177);
 const Utils = __webpack_require__(5);
 const Entity = class {
     constructor (name, layer, options = {} ){
@@ -43116,7 +43120,7 @@ const Entity = class {
 
 module.exports = Entity;
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(268)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(271)))
 
 /***/ }),
 /* 180 */
@@ -43668,280 +43672,280 @@ module.exports = function(module) {
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
-	"./af": 28,
-	"./af.js": 28,
-	"./ar": 29,
-	"./ar-dz": 30,
-	"./ar-dz.js": 30,
-	"./ar-kw": 31,
-	"./ar-kw.js": 31,
-	"./ar-ly": 32,
-	"./ar-ly.js": 32,
-	"./ar-ma": 33,
-	"./ar-ma.js": 33,
-	"./ar-ps": 34,
-	"./ar-ps.js": 34,
-	"./ar-sa": 35,
-	"./ar-sa.js": 35,
-	"./ar-tn": 36,
-	"./ar-tn.js": 36,
-	"./ar.js": 29,
-	"./az": 37,
-	"./az.js": 37,
-	"./be": 38,
-	"./be.js": 38,
-	"./bg": 39,
-	"./bg.js": 39,
-	"./bm": 40,
-	"./bm.js": 40,
-	"./bn": 41,
-	"./bn-bd": 42,
-	"./bn-bd.js": 42,
-	"./bn.js": 41,
-	"./bo": 43,
-	"./bo.js": 43,
-	"./br": 44,
-	"./br.js": 44,
-	"./bs": 45,
-	"./bs.js": 45,
-	"./ca": 46,
-	"./ca.js": 46,
-	"./cs": 47,
-	"./cs.js": 47,
-	"./cv": 48,
-	"./cv.js": 48,
-	"./cy": 49,
-	"./cy.js": 49,
-	"./da": 50,
-	"./da.js": 50,
-	"./de": 51,
-	"./de-at": 52,
-	"./de-at.js": 52,
-	"./de-ch": 53,
-	"./de-ch.js": 53,
-	"./de.js": 51,
-	"./dv": 54,
-	"./dv.js": 54,
-	"./el": 55,
-	"./el.js": 55,
-	"./en-au": 56,
-	"./en-au.js": 56,
-	"./en-ca": 57,
-	"./en-ca.js": 57,
-	"./en-gb": 58,
-	"./en-gb.js": 58,
-	"./en-ie": 59,
-	"./en-ie.js": 59,
-	"./en-il": 60,
-	"./en-il.js": 60,
-	"./en-in": 61,
-	"./en-in.js": 61,
-	"./en-nz": 62,
-	"./en-nz.js": 62,
-	"./en-sg": 63,
-	"./en-sg.js": 63,
-	"./eo": 64,
-	"./eo.js": 64,
-	"./es": 65,
-	"./es-do": 66,
-	"./es-do.js": 66,
-	"./es-mx": 67,
-	"./es-mx.js": 67,
-	"./es-us": 68,
-	"./es-us.js": 68,
-	"./es.js": 65,
-	"./et": 69,
-	"./et.js": 69,
-	"./eu": 70,
-	"./eu.js": 70,
-	"./fa": 71,
-	"./fa.js": 71,
-	"./fi": 72,
-	"./fi.js": 72,
-	"./fil": 73,
-	"./fil.js": 73,
-	"./fo": 74,
-	"./fo.js": 74,
-	"./fr": 75,
-	"./fr-ca": 76,
-	"./fr-ca.js": 76,
-	"./fr-ch": 77,
-	"./fr-ch.js": 77,
-	"./fr.js": 75,
-	"./fy": 78,
-	"./fy.js": 78,
-	"./ga": 79,
-	"./ga.js": 79,
-	"./gd": 80,
-	"./gd.js": 80,
-	"./gl": 81,
-	"./gl.js": 81,
-	"./gom-deva": 82,
-	"./gom-deva.js": 82,
-	"./gom-latn": 83,
-	"./gom-latn.js": 83,
-	"./gu": 84,
-	"./gu.js": 84,
-	"./he": 85,
-	"./he.js": 85,
-	"./hi": 86,
-	"./hi.js": 86,
-	"./hr": 87,
-	"./hr.js": 87,
-	"./hu": 88,
-	"./hu.js": 88,
-	"./hy-am": 89,
-	"./hy-am.js": 89,
-	"./id": 90,
-	"./id.js": 90,
-	"./is": 91,
-	"./is.js": 91,
-	"./it": 92,
-	"./it-ch": 93,
-	"./it-ch.js": 93,
-	"./it.js": 92,
-	"./ja": 94,
-	"./ja.js": 94,
-	"./jv": 95,
-	"./jv.js": 95,
-	"./ka": 96,
-	"./ka.js": 96,
-	"./kk": 97,
-	"./kk.js": 97,
-	"./km": 98,
-	"./km.js": 98,
-	"./kn": 99,
-	"./kn.js": 99,
-	"./ko": 100,
-	"./ko.js": 100,
-	"./ku": 101,
-	"./ku-kmr": 102,
-	"./ku-kmr.js": 102,
-	"./ku.js": 101,
-	"./ky": 103,
-	"./ky.js": 103,
-	"./lb": 104,
-	"./lb.js": 104,
-	"./lo": 105,
-	"./lo.js": 105,
-	"./lt": 106,
-	"./lt.js": 106,
-	"./lv": 107,
-	"./lv.js": 107,
-	"./me": 108,
-	"./me.js": 108,
-	"./mi": 109,
-	"./mi.js": 109,
-	"./mk": 110,
-	"./mk.js": 110,
-	"./ml": 111,
-	"./ml.js": 111,
-	"./mn": 112,
-	"./mn.js": 112,
-	"./mr": 113,
-	"./mr.js": 113,
-	"./ms": 114,
-	"./ms-my": 115,
-	"./ms-my.js": 115,
-	"./ms.js": 114,
-	"./mt": 116,
-	"./mt.js": 116,
-	"./my": 117,
-	"./my.js": 117,
-	"./nb": 118,
-	"./nb.js": 118,
-	"./ne": 119,
-	"./ne.js": 119,
-	"./nl": 120,
-	"./nl-be": 121,
-	"./nl-be.js": 121,
-	"./nl.js": 120,
-	"./nn": 122,
-	"./nn.js": 122,
-	"./oc-lnc": 123,
-	"./oc-lnc.js": 123,
-	"./pa-in": 124,
-	"./pa-in.js": 124,
-	"./pl": 125,
-	"./pl.js": 125,
-	"./pt": 126,
-	"./pt-br": 127,
-	"./pt-br.js": 127,
-	"./pt.js": 126,
-	"./ro": 128,
-	"./ro.js": 128,
-	"./ru": 129,
-	"./ru.js": 129,
-	"./sd": 130,
-	"./sd.js": 130,
-	"./se": 131,
-	"./se.js": 131,
-	"./si": 132,
-	"./si.js": 132,
-	"./sk": 133,
-	"./sk.js": 133,
-	"./sl": 134,
-	"./sl.js": 134,
-	"./sq": 135,
-	"./sq.js": 135,
-	"./sr": 136,
-	"./sr-cyrl": 137,
-	"./sr-cyrl.js": 137,
-	"./sr.js": 136,
-	"./ss": 138,
-	"./ss.js": 138,
-	"./sv": 139,
-	"./sv.js": 139,
-	"./sw": 140,
-	"./sw.js": 140,
-	"./ta": 141,
-	"./ta.js": 141,
-	"./te": 142,
-	"./te.js": 142,
-	"./tet": 143,
-	"./tet.js": 143,
-	"./tg": 144,
-	"./tg.js": 144,
-	"./th": 145,
-	"./th.js": 145,
-	"./tk": 146,
-	"./tk.js": 146,
-	"./tl-ph": 147,
-	"./tl-ph.js": 147,
-	"./tlh": 148,
-	"./tlh.js": 148,
-	"./tr": 149,
-	"./tr.js": 149,
-	"./tzl": 150,
-	"./tzl.js": 150,
-	"./tzm": 151,
-	"./tzm-latn": 152,
-	"./tzm-latn.js": 152,
-	"./tzm.js": 151,
-	"./ug-cn": 153,
-	"./ug-cn.js": 153,
-	"./uk": 154,
-	"./uk.js": 154,
-	"./ur": 155,
-	"./ur.js": 155,
-	"./uz": 156,
-	"./uz-latn": 157,
-	"./uz-latn.js": 157,
-	"./uz.js": 156,
-	"./vi": 158,
-	"./vi.js": 158,
-	"./x-pseudo": 159,
-	"./x-pseudo.js": 159,
-	"./yo": 160,
-	"./yo.js": 160,
-	"./zh-cn": 161,
-	"./zh-cn.js": 161,
-	"./zh-hk": 162,
-	"./zh-hk.js": 162,
-	"./zh-mo": 163,
-	"./zh-mo.js": 163,
-	"./zh-tw": 164,
-	"./zh-tw.js": 164
+	"./af": 29,
+	"./af.js": 29,
+	"./ar": 30,
+	"./ar-dz": 31,
+	"./ar-dz.js": 31,
+	"./ar-kw": 32,
+	"./ar-kw.js": 32,
+	"./ar-ly": 33,
+	"./ar-ly.js": 33,
+	"./ar-ma": 34,
+	"./ar-ma.js": 34,
+	"./ar-ps": 35,
+	"./ar-ps.js": 35,
+	"./ar-sa": 36,
+	"./ar-sa.js": 36,
+	"./ar-tn": 37,
+	"./ar-tn.js": 37,
+	"./ar.js": 30,
+	"./az": 38,
+	"./az.js": 38,
+	"./be": 39,
+	"./be.js": 39,
+	"./bg": 40,
+	"./bg.js": 40,
+	"./bm": 41,
+	"./bm.js": 41,
+	"./bn": 42,
+	"./bn-bd": 43,
+	"./bn-bd.js": 43,
+	"./bn.js": 42,
+	"./bo": 44,
+	"./bo.js": 44,
+	"./br": 45,
+	"./br.js": 45,
+	"./bs": 46,
+	"./bs.js": 46,
+	"./ca": 47,
+	"./ca.js": 47,
+	"./cs": 48,
+	"./cs.js": 48,
+	"./cv": 49,
+	"./cv.js": 49,
+	"./cy": 50,
+	"./cy.js": 50,
+	"./da": 51,
+	"./da.js": 51,
+	"./de": 52,
+	"./de-at": 53,
+	"./de-at.js": 53,
+	"./de-ch": 54,
+	"./de-ch.js": 54,
+	"./de.js": 52,
+	"./dv": 55,
+	"./dv.js": 55,
+	"./el": 56,
+	"./el.js": 56,
+	"./en-au": 57,
+	"./en-au.js": 57,
+	"./en-ca": 58,
+	"./en-ca.js": 58,
+	"./en-gb": 59,
+	"./en-gb.js": 59,
+	"./en-ie": 60,
+	"./en-ie.js": 60,
+	"./en-il": 61,
+	"./en-il.js": 61,
+	"./en-in": 62,
+	"./en-in.js": 62,
+	"./en-nz": 63,
+	"./en-nz.js": 63,
+	"./en-sg": 64,
+	"./en-sg.js": 64,
+	"./eo": 65,
+	"./eo.js": 65,
+	"./es": 66,
+	"./es-do": 67,
+	"./es-do.js": 67,
+	"./es-mx": 68,
+	"./es-mx.js": 68,
+	"./es-us": 69,
+	"./es-us.js": 69,
+	"./es.js": 66,
+	"./et": 70,
+	"./et.js": 70,
+	"./eu": 71,
+	"./eu.js": 71,
+	"./fa": 72,
+	"./fa.js": 72,
+	"./fi": 73,
+	"./fi.js": 73,
+	"./fil": 74,
+	"./fil.js": 74,
+	"./fo": 75,
+	"./fo.js": 75,
+	"./fr": 76,
+	"./fr-ca": 77,
+	"./fr-ca.js": 77,
+	"./fr-ch": 78,
+	"./fr-ch.js": 78,
+	"./fr.js": 76,
+	"./fy": 79,
+	"./fy.js": 79,
+	"./ga": 80,
+	"./ga.js": 80,
+	"./gd": 81,
+	"./gd.js": 81,
+	"./gl": 82,
+	"./gl.js": 82,
+	"./gom-deva": 83,
+	"./gom-deva.js": 83,
+	"./gom-latn": 84,
+	"./gom-latn.js": 84,
+	"./gu": 85,
+	"./gu.js": 85,
+	"./he": 86,
+	"./he.js": 86,
+	"./hi": 87,
+	"./hi.js": 87,
+	"./hr": 88,
+	"./hr.js": 88,
+	"./hu": 89,
+	"./hu.js": 89,
+	"./hy-am": 90,
+	"./hy-am.js": 90,
+	"./id": 91,
+	"./id.js": 91,
+	"./is": 92,
+	"./is.js": 92,
+	"./it": 93,
+	"./it-ch": 94,
+	"./it-ch.js": 94,
+	"./it.js": 93,
+	"./ja": 95,
+	"./ja.js": 95,
+	"./jv": 96,
+	"./jv.js": 96,
+	"./ka": 97,
+	"./ka.js": 97,
+	"./kk": 98,
+	"./kk.js": 98,
+	"./km": 99,
+	"./km.js": 99,
+	"./kn": 100,
+	"./kn.js": 100,
+	"./ko": 101,
+	"./ko.js": 101,
+	"./ku": 102,
+	"./ku-kmr": 103,
+	"./ku-kmr.js": 103,
+	"./ku.js": 102,
+	"./ky": 104,
+	"./ky.js": 104,
+	"./lb": 105,
+	"./lb.js": 105,
+	"./lo": 106,
+	"./lo.js": 106,
+	"./lt": 107,
+	"./lt.js": 107,
+	"./lv": 108,
+	"./lv.js": 108,
+	"./me": 109,
+	"./me.js": 109,
+	"./mi": 110,
+	"./mi.js": 110,
+	"./mk": 111,
+	"./mk.js": 111,
+	"./ml": 112,
+	"./ml.js": 112,
+	"./mn": 113,
+	"./mn.js": 113,
+	"./mr": 114,
+	"./mr.js": 114,
+	"./ms": 115,
+	"./ms-my": 116,
+	"./ms-my.js": 116,
+	"./ms.js": 115,
+	"./mt": 117,
+	"./mt.js": 117,
+	"./my": 118,
+	"./my.js": 118,
+	"./nb": 119,
+	"./nb.js": 119,
+	"./ne": 120,
+	"./ne.js": 120,
+	"./nl": 121,
+	"./nl-be": 122,
+	"./nl-be.js": 122,
+	"./nl.js": 121,
+	"./nn": 123,
+	"./nn.js": 123,
+	"./oc-lnc": 124,
+	"./oc-lnc.js": 124,
+	"./pa-in": 125,
+	"./pa-in.js": 125,
+	"./pl": 126,
+	"./pl.js": 126,
+	"./pt": 127,
+	"./pt-br": 128,
+	"./pt-br.js": 128,
+	"./pt.js": 127,
+	"./ro": 129,
+	"./ro.js": 129,
+	"./ru": 130,
+	"./ru.js": 130,
+	"./sd": 131,
+	"./sd.js": 131,
+	"./se": 132,
+	"./se.js": 132,
+	"./si": 133,
+	"./si.js": 133,
+	"./sk": 134,
+	"./sk.js": 134,
+	"./sl": 135,
+	"./sl.js": 135,
+	"./sq": 136,
+	"./sq.js": 136,
+	"./sr": 137,
+	"./sr-cyrl": 138,
+	"./sr-cyrl.js": 138,
+	"./sr.js": 137,
+	"./ss": 139,
+	"./ss.js": 139,
+	"./sv": 140,
+	"./sv.js": 140,
+	"./sw": 141,
+	"./sw.js": 141,
+	"./ta": 142,
+	"./ta.js": 142,
+	"./te": 143,
+	"./te.js": 143,
+	"./tet": 144,
+	"./tet.js": 144,
+	"./tg": 145,
+	"./tg.js": 145,
+	"./th": 146,
+	"./th.js": 146,
+	"./tk": 147,
+	"./tk.js": 147,
+	"./tl-ph": 148,
+	"./tl-ph.js": 148,
+	"./tlh": 149,
+	"./tlh.js": 149,
+	"./tr": 150,
+	"./tr.js": 150,
+	"./tzl": 151,
+	"./tzl.js": 151,
+	"./tzm": 152,
+	"./tzm-latn": 153,
+	"./tzm-latn.js": 153,
+	"./tzm.js": 152,
+	"./ug-cn": 154,
+	"./ug-cn.js": 154,
+	"./uk": 155,
+	"./uk.js": 155,
+	"./ur": 156,
+	"./ur.js": 156,
+	"./uz": 157,
+	"./uz-latn": 158,
+	"./uz-latn.js": 158,
+	"./uz.js": 157,
+	"./vi": 159,
+	"./vi.js": 159,
+	"./x-pseudo": 160,
+	"./x-pseudo.js": 160,
+	"./yo": 161,
+	"./yo.js": 161,
+	"./zh-cn": 162,
+	"./zh-cn.js": 162,
+	"./zh-hk": 163,
+	"./zh-hk.js": 163,
+	"./zh-mo": 164,
+	"./zh-mo.js": 164,
+	"./zh-tw": 165,
+	"./zh-tw.js": 165
 };
 function webpackContext(req) {
 	return __webpack_require__(webpackContextResolve(req));
@@ -43973,7 +43977,7 @@ module.exports = NowLoadingSVG;
 /* 187 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const Element = __webpack_require__(26);
+const Element = __webpack_require__(27);
 //const Env = require('./env');
 const Process = __webpack_require__(1);
 const ScratchRenderer = __webpack_require__(188);
@@ -44065,14 +44069,14 @@ const twgl = __webpack_require__(2);
 
 const BitmapSkin = __webpack_require__(195);
 const Drawable = __webpack_require__(197);
-const Rectangle = __webpack_require__(165);
+const Rectangle = __webpack_require__(166);
 const PenSkin = __webpack_require__(210);
-const RenderConstants = __webpack_require__(10);
+const RenderConstants = __webpack_require__(11);
 const ShaderManager = __webpack_require__(9);
 const SVGSkin = __webpack_require__(211);
 const TextBubbleSkin = __webpack_require__(229);
-const EffectTransform = __webpack_require__(166);
-const log = __webpack_require__(167);
+const EffectTransform = __webpack_require__(167);
+const log = __webpack_require__(168);
 
 const __isTouchingDrawablesPoint = twgl.v3.create();
 const __candidatesBounds = new Rectangle();
@@ -46869,12 +46873,12 @@ module.exports = Silhouette;
 
 const twgl = __webpack_require__(2);
 
-const Rectangle = __webpack_require__(165);
-const RenderConstants = __webpack_require__(10);
+const Rectangle = __webpack_require__(166);
+const RenderConstants = __webpack_require__(11);
 const ShaderManager = __webpack_require__(9);
 const Skin = __webpack_require__(8);
-const EffectTransform = __webpack_require__(166);
-const log = __webpack_require__(167);
+const EffectTransform = __webpack_require__(167);
+const log = __webpack_require__(168);
 
 /**
  * An internal workspace for calculating texture locations from world vectors
@@ -47930,7 +47934,7 @@ module.exports = logger;
 /***/ (function(module, exports, __webpack_require__) {
 
 var Transform = __webpack_require__(3),
-    color = __webpack_require__(168);
+    color = __webpack_require__(169);
 
 var colors = { debug: ['cyan'], info: ['purple' ], warn: [ 'yellow', true ], error: [ 'red', true ] },
     logger = new Transform();
@@ -47954,7 +47958,7 @@ module.exports = logger;
 /***/ (function(module, exports, __webpack_require__) {
 
 var Transform = __webpack_require__(3),
-    color = __webpack_require__(168),
+    color = __webpack_require__(169),
     colors = { debug: ['gray'], info: ['purple' ], warn: [ 'yellow', true ], error: [ 'red', true ] },
     logger = new Transform();
 
@@ -48107,7 +48111,7 @@ module.exports = AjaxLogger;
 
 const twgl = __webpack_require__(2);
 
-const RenderConstants = __webpack_require__(10);
+const RenderConstants = __webpack_require__(11);
 const Skin = __webpack_require__(8);
 
 const ShaderManager = __webpack_require__(9);
@@ -48708,12 +48712,12 @@ module.exports = SVGSkin;
 
 const SVGRenderer = __webpack_require__(213);
 const BitmapAdapter = __webpack_require__(225);
-const inlineSvgFonts = __webpack_require__(174);
-const loadSvgString = __webpack_require__(169);
+const inlineSvgFonts = __webpack_require__(175);
+const loadSvgString = __webpack_require__(170);
 const sanitizeSvg = __webpack_require__(227);
-const serializeSvgToString = __webpack_require__(173);
+const serializeSvgToString = __webpack_require__(174);
 const SvgElement = __webpack_require__(19);
-const convertFonts = __webpack_require__(171);
+const convertFonts = __webpack_require__(172);
 // /**
 //  * Export for NPM & Node.js
 //  * @type {RenderWebGL}
@@ -48734,8 +48738,8 @@ module.exports = {
 /* 213 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const loadSvgString = __webpack_require__(169);
-const serializeSvgToString = __webpack_require__(173);
+const loadSvgString = __webpack_require__(170);
+const serializeSvgToString = __webpack_require__(174);
 
 /**
  * Main quirks-mode SVG rendering code.
@@ -49934,8 +49938,8 @@ function fromByteArray (uint8) {
  * @fileOverview Sanitize the content of an SVG aggressively, to make it as safe
  * as possible
  */
-const fixupSvgString = __webpack_require__(172);
-const DOMPurify = __webpack_require__(170);
+const fixupSvgString = __webpack_require__(173);
+const DOMPurify = __webpack_require__(171);
 
 const sanitizeSvg = {};
 
@@ -50027,7 +50031,7 @@ g=q?new t(g):g||[]}for(var f=l="",b=0,c=g.length|0,u=c-32|0,e,d,h=0,p=0,m,k=0,n=
 f.subarray(0,c):f.slice(0,c)};E||(r.TextDecoder=x,r.TextEncoder=y)})(""+void 0==typeof global?""+void 0==typeof self?this:self:global);//AnonyCo
 //# sourceMappingURL=https://cdn.jsdelivr.net/gh/AnonyCo/FastestSmallestTextEncoderDecoder/EncoderDecoderTogether.min.js.map
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12)))
 
 /***/ }),
 /* 229 */
@@ -50445,7 +50449,7 @@ module.exports = TextWrapper;
 (function() {
   var AI, AL, BA, BK, CB, CI_BRK, CJ, CP_BRK, CR, DI_BRK, ID, IN_BRK, LF, LineBreaker, NL, NS, PR_BRK, SA, SG, SP, UnicodeTrie, WJ, XX, base64, characterClasses, classTrie, data, fs, pairTable, _ref, _ref1;
 
-  UnicodeTrie = __webpack_require__(175);
+  UnicodeTrie = __webpack_require__(176);
 
   
 
@@ -51239,7 +51243,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
   _ref = __webpack_require__(241), CR = _ref.CR, LF = _ref.LF, Control = _ref.Control, Extend = _ref.Extend, Regional_Indicator = _ref.Regional_Indicator, SpacingMark = _ref.SpacingMark, L = _ref.L, V = _ref.V, T = _ref.T, LV = _ref.LV, LVT = _ref.LVT;
 
-  UnicodeTrie = __webpack_require__(175);
+  UnicodeTrie = __webpack_require__(176);
 
   
 
@@ -53169,7 +53173,7 @@ function isnan (val) {
   return val !== val // eslint-disable-line no-self-compare
 }
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12)))
 
 /***/ }),
 /* 238 */
@@ -56727,7 +56731,7 @@ const EventEmitter = __webpack_require__(7).EventEmitter;
 const StageLayering = __webpack_require__(6);
 // Virtual I/O devices.
 const Clock = __webpack_require__(246);
-const Keyboard = __webpack_require__(27);
+const Keyboard = __webpack_require__(28);
 const Mouse = __webpack_require__(248);
 const MouseWheel = __webpack_require__(249);
 /**
@@ -56914,13 +56918,13 @@ class Timer {
 }
 
 module.exports = Timer;
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12)))
 
 /***/ }),
 /* 248 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const MathUtil = __webpack_require__(25);
+const MathUtil = __webpack_require__(26);
 
 class Mouse {
     constructor (runtime) {
@@ -57206,7 +57210,7 @@ module.exports = AudioEngine;
 const StartAudioContext = __webpack_require__(253);
 const AudioContext = __webpack_require__(255);
 
-const log = __webpack_require__(12);
+const log = __webpack_require__(13);
 const uid = __webpack_require__(257);
 
 const ADPCMSoundDecoder = __webpack_require__(258);
@@ -57746,7 +57750,7 @@ if (typeof window !== "undefined") {
 
 module.exports = win;
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12)))
 
 /***/ }),
 /* 257 */
@@ -57788,7 +57792,7 @@ module.exports = uid;
 /***/ (function(module, exports, __webpack_require__) {
 
 const ArrayBufferStream = __webpack_require__(259);
-const log = __webpack_require__(12);
+const log = __webpack_require__(13);
 
 /**
  * Data used by the decompression algorithm
@@ -58224,7 +58228,7 @@ module.exports = ArrayBufferStream;
 /* 260 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const log = __webpack_require__(12);
+const log = __webpack_require__(13);
 
 class Loudness {
     /**
@@ -58851,7 +58855,7 @@ module.exports = EffectChain;
 /* 263 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const Effect = __webpack_require__(22);
+const Effect = __webpack_require__(23);
 
 /**
  * A pan effect, which moves the sound to the left or right between the speakers
@@ -58955,7 +58959,7 @@ module.exports = PanEffect;
 /* 264 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const Effect = __webpack_require__(22);
+const Effect = __webpack_require__(23);
 
 /**
  * A pitch change effect, which changes the playback rate of the sound in order
@@ -59089,7 +59093,7 @@ module.exports = PitchEffect;
 /* 265 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const log = __webpack_require__(12);
+const log = __webpack_require__(13);
 
 /**
  * A symbol indicating all targets are to be effected.
@@ -59334,359 +59338,202 @@ module.exports = SoundPlayer;
 /* 267 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const Backdrops = __webpack_require__(23);
-const Canvas = __webpack_require__(15);
-const Env = __webpack_require__(4);
-const Entity = __webpack_require__(179);
+const Importer = __webpack_require__(10);
 const Process = __webpack_require__(1);
-const StageLayering = __webpack_require__(6);
-const Stage = class extends Entity {
-    constructor( name='stage', options={} ) {
-        super( name, StageLayering.BACKGROUND_LAYER, options );    
-        this.effect = {
-            color : ('effect' in options)? (('color' in options.effect)? options.effect.color : 0) : 0,
-            mosaic : ('effect' in options)? (('mosaic' in options.effect)? options.effect.mosaic : 0) : 0,
-            fisheye : ('effect' in options)? (('fisheye' in options.effect)? options.effect.fisheye : 0) : 0,
+const Sounds = __webpack_require__(22);
+
+const SERVER = 'https://synthesis-service.scratch.mit.edu';
+/**
+ * The url of the synthesis server.
+ * @type {string}
+ */
+const SERVER_HOST = 'https://synthesis-service.scratch.mit.edu';
+
+/**
+ * How long to wait in ms before timing out requests to synthesis server.
+ * @type {int}
+ */
+const SERVER_TIMEOUT = 10000; // 10 seconds
+
+/**
+ * Volume for playback of speech sounds, as a percentage.
+ * @type {number}
+ */
+const SPEECH_VOLUME = 250;
+
+/**
+ * An id for one of the voices.
+ */
+const ALTO_ID = 'ALTO';
+
+/**
+ * An id for one of the voices.
+ */
+const TENOR_ID = 'TENOR';
+
+/**
+ * An id for one of the voices.
+ */
+const SQUEAK_ID = 'SQUEAK';
+
+/**
+ * An id for one of the voices.
+ */
+const GIANT_ID = 'GIANT';
+
+/**
+ * An id for one of the voices.
+ */
+const KITTEN_ID = 'KITTEN';
+
+/**
+ * Playback rate for the tenor voice, for cases where we have only a female gender voice.
+ */
+const FEMALE_TENOR_RATE = 0.89; // -2 semitones
+
+/**
+ * Playback rate for the giant voice, for cases where we have only a female gender voice.
+ */
+const FEMALE_GIANT_RATE = 0.79; // -4 semitones
+
+/**
+ * Language ids. The value for each language id is a valid Scratch locale.
+ */
+const ENGLISH_ID = 'en';
+const JAPANESE_ID = 'ja';
+
+const GENDER = class {
+    static get MALE() {
+        return 'male';
+    }
+    static get FEMALE() {
+        return 'female';
+    }
+}
+const Speech = class {
+
+    constructor() {
+        this.voice = ALTO_ID;
+        this.language =  JAPANESE_ID;
+        this.gender = GENDER.FEMALE;
+        this.cache = new Map();
+    }
+    /**
+     * An object with info for each voice.
+     */
+    get VOICE_INFO () {
+        return {
+            [ALTO_ID]: {
+                name: formatMessage({
+                    id: 'text2speech.alto',
+                    default: 'alto',
+                    description: 'Name for a voice with ambiguous gender.'
+                }),
+                gender: 'female',
+                playbackRate: 1
+            },
+            [TENOR_ID]: {
+                name: formatMessage({
+                    id: 'text2speech.tenor',
+                    default: 'tenor',
+                    description: 'Name for a voice with ambiguous gender.'
+                }),
+                gender: 'male',
+                playbackRate: 1
+            },
+            [SQUEAK_ID]: {
+                name: formatMessage({
+                    id: 'text2speech.squeak',
+                    default: 'squeak',
+                    description: 'Name for a funny voice with a high pitch.'
+                }),
+                gender: 'female',
+                playbackRate: 1.19 // +3 semitones
+            },
+            [GIANT_ID]: {
+                name: formatMessage({
+                    id: 'text2speech.giant',
+                    default: 'giant',
+                    description: 'Name for a funny voice with a low pitch.'
+                }),
+                gender: 'male',
+                playbackRate: 0.84 // -3 semitones
+            },
+            [KITTEN_ID]: {
+                name: formatMessage({
+                    id: 'text2speech.kitten',
+                    default: 'kitten',
+                    description: 'A baby cat.'
+                }),
+                gender: 'female',
+                playbackRate: 1.41 // +6 semitones
+            }
         };
-        this.position =  ('position' in options)? {x: options.position.x, y: options.position.y} : {x:0, y:0};
-        this.direction = ('direction' in options)? options.direction : 90;
-        this.scale = ('scale' in options)? {x: options.scale.x, y: options.scale.y} : {x:100, y:100};
+    }
+    get LANGUAGE_INFO () {
+        return {
+            [ENGLISH_ID]: {
+                name: 'English',
+                locales: ['en'],
+                speechSynthLocale: 'en-US'
+            },
+            [JAPANESE_ID]: {
+                name: 'Japanese',
+                locales: ['ja', 'ja-hira'],
+                speechSynthLocale: 'ja-JP'
+            },
+        };
+    }
+    /**
+     * The default state, to be used when a target has no existing state.
+     * @type {Text2SpeechState}
+     */
+    static get DEFAULT_TEXT2SPEECH_STATE () {
+        return {
+            voiceId: ALTO_ID
+        };
+    }
 
-        this.keysCode = [];
-        this.keysKey = [];
-        this.backdrops = new Backdrops();
-        this._sprites = [];
-        this.skinIdx = -1;
-        this.mouse = {scratchX:0, scratchY:0, x:0, y:0, down: false, pageX: 0, pageY: 0, clientX: 0, clientY: 0 };
-        const me = this;
-        // これは Canvasをつくる Element クラスで実行したほうがよさそう（関連性強いため）
-        const p = Process.default;
-        const canvas = p.canvas;
-        const body = document.getElementById('main');
-        body.addEventListener('mousemove', (e) => {
-            me.mouse.pageX = e.pageX;
-            me.mouse.pageY = e.pageY;
-            e.stopPropagation()
-        });
-        canvas.addEventListener('mousemove', (e) => {
-            me.mouse.x = e.offsetX;
-            me.mouse.y = e.offsetY;
-
-            me.mouse.clientX = e.clientX;
-            me.mouse.clientY = e.clientY;
-            
-            me.mouse.scratchX = e.offsetX - P.canvas.width/2;
-            me.mouse.scratchY = P.canvas.height/2 - e.offsetY;
-
-//            e.stopPropagation()
-        }, {});
-        canvas.addEventListener('mousedown', (e) => {
-            me.mouse.x = e.offsetX;
-            me.mouse.y = e.offsetY;
-            me.mouse.down = true;
-            e.stopPropagation();
-        })
-        canvas.addEventListener('mouseup', (e) => {
-            me.mouse.x = e.offsetX;
-            me.mouse.y = e.offsetY;
-            me.mouse.down = false;
-            e.stopPropagation();
-        })
-  
-        Process.default.stage = this;
+    /**
+     * A default language to use for speech synthesis.
+     * @type {string}
+     */
+    get DEFAULT_LANGUAGE () {
+        return JAPANESE_ID;
     }
-    get sprites () {
-        return this._sprites;
-    }
-    addSprite (sprite) {
-        //const p = Process.default;
-        const curSprite = sprite;
-        this._sprites.push( curSprite );
-        curSprite.z = this._sprites.length
-        this._sortSprites();
-    }
-    _sortSprites() {
-        const n0_sprites = this._sprites;
-        const n1_sprites = n0_sprites.sort( function( a, b ) {
-            if (a.z > b.z) return -1;
-            if (b.z > a.z) return  1;
-            return 0;
-        });
-        let _z = -1;
-        n1_sprites.map(s=>{
-            s.z = ++_z;
-        });
-        this._sprites = n1_sprites;
-
-    }
-    removeSprite ( sprite ) {
-        const p = Process.default;
-        const curSprite = sprite;
-        const n_sprites = this._sprites.filter( ( item ) => item !== curSprite );
-        this._sprites = n_sprites;
-        this._sortSprites();
-    }
-    update() {
-        super.update();
-        this.backdrops.setPosition(this.position.x, this.position.y);
-        this.backdrops.setScale(this.scale.x, this.scale.y);
-        this.backdrops.setDirection(this.direction);
-        this.backdrops.update(this.drawableID);
-        for(const _sprite of this._sprites){
-            _sprite.update();
+    async speakAndWait(words, properties={}) {
+        // 128文字までしか許容しないとする
+        const text = encodeURIComponent(words.substring(0, 128));
+        let path = `${SERVER_HOST}/synth?locale=${this.locale}&gender=${this.gender}&text=${text}`;
+        if(!this.cache.has(path)) {
+            const name = 'ScratchSpeech'; // <-- なんでもよいが、変数に使える文字であること
+            //const sound = await loadSound(path, name);
+            const sound = await Importer.loadSound(path, name);
+            this.cache.set(path, sound);
         }
+        const sound = this.cache.get(path);
+        const sounds = new Sounds();
+        await sounds.setSound(sound.name, sound.data, properties);
+        await sounds.startSoundUntilDone();
     }
-    draw() {
-        this.render.renderer.draw();
+    static getInstance() {
+        if(Speech.instance == undefined) {
+            Speech.instance = new Speech();
+        }
+        return Speech.instance;
     }
-    sendSpriteBackwards (sprite) {
-        // 工事中
-    
-    }
-    sendSpriteForward (sprite) {
-        // 工事中
-    }
-    sendSpriteToFront (sprite) {
-        // 工事中
-    }
-    sendSpriteToBack (sprite) {
-        // 工事中
-    }
-    isKeyPressed (userKey) {
-        let match = false
-        let check
-    
-        typeof userKey === 'string' ? check = userKey.toLowerCase() : check = userKey
-        this.keysKey.indexOf(check) !== -1 ? match = true : null
-        this.keysCode.indexOf(check) !== -1 ? match = true : null
-    
-        return match
-    }
-    move(x,y) {
-        this.position.x = x;
-        this.position.y = y;
-        this.backdrops.setPosition(this.position.x, this.position.y);
-    }
-    async loadSound(name,soundUrl, options={}) {
-        await this._loadSound(name, soundUrl, options);
-    }
-    async loadImage(name, imageUrl) {
-        this._loadImage(name, imageUrl, this.backdrops);
-    }
-    async addSound(soundData, options={}) {
-        const name = soundData.name;
-        const data = soundData.data;
-        await this._addSound(name, data, options)
-    }
-    async addImage(imageData) {
-        const name = imageData.name;
-        const data = imageData.data;
-        await this._addImage(name, data, this.backdrops);
+}
 
-    }
-
-};
-
-module.exports = Stage;
+module.exports = Speech;
 
 /***/ }),
 /* 268 */
-/***/ (function(module, exports) {
-
-// shim for using process in browser
-var process = module.exports = {};
-
-// cached from whatever global is present so that test runners that stub it
-// don't break things.  But we need to wrap it in a try catch in case it is
-// wrapped in strict mode code which doesn't define any globals.  It's inside a
-// function because try/catches deoptimize in certain engines.
-
-var cachedSetTimeout;
-var cachedClearTimeout;
-
-function defaultSetTimout() {
-    throw new Error('setTimeout has not been defined');
-}
-function defaultClearTimeout () {
-    throw new Error('clearTimeout has not been defined');
-}
-(function () {
-    try {
-        if (typeof setTimeout === 'function') {
-            cachedSetTimeout = setTimeout;
-        } else {
-            cachedSetTimeout = defaultSetTimout;
-        }
-    } catch (e) {
-        cachedSetTimeout = defaultSetTimout;
-    }
-    try {
-        if (typeof clearTimeout === 'function') {
-            cachedClearTimeout = clearTimeout;
-        } else {
-            cachedClearTimeout = defaultClearTimeout;
-        }
-    } catch (e) {
-        cachedClearTimeout = defaultClearTimeout;
-    }
-} ())
-function runTimeout(fun) {
-    if (cachedSetTimeout === setTimeout) {
-        //normal enviroments in sane situations
-        return setTimeout(fun, 0);
-    }
-    // if setTimeout wasn't available but was latter defined
-    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
-        cachedSetTimeout = setTimeout;
-        return setTimeout(fun, 0);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedSetTimeout(fun, 0);
-    } catch(e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
-            return cachedSetTimeout.call(null, fun, 0);
-        } catch(e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
-            return cachedSetTimeout.call(this, fun, 0);
-        }
-    }
-
-
-}
-function runClearTimeout(marker) {
-    if (cachedClearTimeout === clearTimeout) {
-        //normal enviroments in sane situations
-        return clearTimeout(marker);
-    }
-    // if clearTimeout wasn't available but was latter defined
-    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
-        cachedClearTimeout = clearTimeout;
-        return clearTimeout(marker);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedClearTimeout(marker);
-    } catch (e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
-            return cachedClearTimeout.call(null, marker);
-        } catch (e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
-            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
-            return cachedClearTimeout.call(this, marker);
-        }
-    }
-
-
-
-}
-var queue = [];
-var draining = false;
-var currentQueue;
-var queueIndex = -1;
-
-function cleanUpNextTick() {
-    if (!draining || !currentQueue) {
-        return;
-    }
-    draining = false;
-    if (currentQueue.length) {
-        queue = currentQueue.concat(queue);
-    } else {
-        queueIndex = -1;
-    }
-    if (queue.length) {
-        drainQueue();
-    }
-}
-
-function drainQueue() {
-    if (draining) {
-        return;
-    }
-    var timeout = runTimeout(cleanUpNextTick);
-    draining = true;
-
-    var len = queue.length;
-    while(len) {
-        currentQueue = queue;
-        queue = [];
-        while (++queueIndex < len) {
-            if (currentQueue) {
-                currentQueue[queueIndex].run();
-            }
-        }
-        queueIndex = -1;
-        len = queue.length;
-    }
-    currentQueue = null;
-    draining = false;
-    runClearTimeout(timeout);
-}
-
-process.nextTick = function (fun) {
-    var args = new Array(arguments.length - 1);
-    if (arguments.length > 1) {
-        for (var i = 1; i < arguments.length; i++) {
-            args[i - 1] = arguments[i];
-        }
-    }
-    queue.push(new Item(fun, args));
-    if (queue.length === 1 && !draining) {
-        runTimeout(drainQueue);
-    }
-};
-
-// v8 likes predictible objects
-function Item(fun, array) {
-    this.fun = fun;
-    this.array = array;
-}
-Item.prototype.run = function () {
-    this.fun.apply(null, this.array);
-};
-process.title = 'browser';
-process.browser = true;
-process.env = {};
-process.argv = [];
-process.version = ''; // empty string to avoid regexp issues
-process.versions = {};
-
-function noop() {}
-
-process.on = noop;
-process.addListener = noop;
-process.once = noop;
-process.off = noop;
-process.removeListener = noop;
-process.removeAllListeners = noop;
-process.emit = noop;
-process.prependListener = noop;
-process.prependOnceListener = noop;
-
-process.listeners = function (name) { return [] }
-
-process.binding = function (name) {
-    throw new Error('process.binding is not supported');
-};
-
-process.cwd = function () { return '/' };
-process.chdir = function (dir) {
-    throw new Error('process.chdir is not supported');
-};
-process.umask = function() { return 0; };
-
-
-/***/ }),
-/* 269 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const Bubble = __webpack_require__(270);
+const Bubble = __webpack_require__(269);
 const Entity = __webpack_require__(179);
 const Env = __webpack_require__(4);
-const Costumes = __webpack_require__(13);
+const Costumes = __webpack_require__(14);
 const Looks = __webpack_require__(16);
 const MathUtils = __webpack_require__(17);
 const Process = __webpack_require__(1);
@@ -60180,12 +60027,12 @@ const Sprite = class extends Entity {
 module.exports = Sprite;
 
 /***/ }),
-/* 270 */
+/* 269 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const Process = __webpack_require__(1);
 const StageLayering = __webpack_require__(6);
-const uid = __webpack_require__(271);
+const uid = __webpack_require__(270);
 const Bubble = class {
 
     constructor( sprite ) {
@@ -60351,7 +60198,7 @@ const Bubble = class {
 module.exports = Bubble;
 
 /***/ }),
-/* 271 */
+/* 270 */
 /***/ (function(module, exports) {
 
 /**
@@ -60383,6 +60230,355 @@ const uid = function () {
 };
 
 module.exports = uid;
+
+/***/ }),
+/* 271 */
+/***/ (function(module, exports) {
+
+// shim for using process in browser
+var process = module.exports = {};
+
+// cached from whatever global is present so that test runners that stub it
+// don't break things.  But we need to wrap it in a try catch in case it is
+// wrapped in strict mode code which doesn't define any globals.  It's inside a
+// function because try/catches deoptimize in certain engines.
+
+var cachedSetTimeout;
+var cachedClearTimeout;
+
+function defaultSetTimout() {
+    throw new Error('setTimeout has not been defined');
+}
+function defaultClearTimeout () {
+    throw new Error('clearTimeout has not been defined');
+}
+(function () {
+    try {
+        if (typeof setTimeout === 'function') {
+            cachedSetTimeout = setTimeout;
+        } else {
+            cachedSetTimeout = defaultSetTimout;
+        }
+    } catch (e) {
+        cachedSetTimeout = defaultSetTimout;
+    }
+    try {
+        if (typeof clearTimeout === 'function') {
+            cachedClearTimeout = clearTimeout;
+        } else {
+            cachedClearTimeout = defaultClearTimeout;
+        }
+    } catch (e) {
+        cachedClearTimeout = defaultClearTimeout;
+    }
+} ())
+function runTimeout(fun) {
+    if (cachedSetTimeout === setTimeout) {
+        //normal enviroments in sane situations
+        return setTimeout(fun, 0);
+    }
+    // if setTimeout wasn't available but was latter defined
+    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+        cachedSetTimeout = setTimeout;
+        return setTimeout(fun, 0);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedSetTimeout(fun, 0);
+    } catch(e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+            return cachedSetTimeout.call(null, fun, 0);
+        } catch(e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+            return cachedSetTimeout.call(this, fun, 0);
+        }
+    }
+
+
+}
+function runClearTimeout(marker) {
+    if (cachedClearTimeout === clearTimeout) {
+        //normal enviroments in sane situations
+        return clearTimeout(marker);
+    }
+    // if clearTimeout wasn't available but was latter defined
+    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+        cachedClearTimeout = clearTimeout;
+        return clearTimeout(marker);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedClearTimeout(marker);
+    } catch (e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+            return cachedClearTimeout.call(null, marker);
+        } catch (e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+            return cachedClearTimeout.call(this, marker);
+        }
+    }
+
+
+
+}
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+    if (!draining || !currentQueue) {
+        return;
+    }
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
+    }
+    if (queue.length) {
+        drainQueue();
+    }
+}
+
+function drainQueue() {
+    if (draining) {
+        return;
+    }
+    var timeout = runTimeout(cleanUpNextTick);
+    draining = true;
+
+    var len = queue.length;
+    while(len) {
+        currentQueue = queue;
+        queue = [];
+        while (++queueIndex < len) {
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
+        }
+        queueIndex = -1;
+        len = queue.length;
+    }
+    currentQueue = null;
+    draining = false;
+    runClearTimeout(timeout);
+}
+
+process.nextTick = function (fun) {
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
+    }
+    queue.push(new Item(fun, args));
+    if (queue.length === 1 && !draining) {
+        runTimeout(drainQueue);
+    }
+};
+
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+process.prependListener = noop;
+process.prependOnceListener = noop;
+
+process.listeners = function (name) { return [] }
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+};
+
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+process.umask = function() { return 0; };
+
+
+/***/ }),
+/* 272 */
+/***/ (function(module, exports, __webpack_require__) {
+
+const Backdrops = __webpack_require__(24);
+const Canvas = __webpack_require__(15);
+const Env = __webpack_require__(4);
+const Entity = __webpack_require__(179);
+const Process = __webpack_require__(1);
+const StageLayering = __webpack_require__(6);
+const Stage = class extends Entity {
+    constructor( name='stage', options={} ) {
+        super( name, StageLayering.BACKGROUND_LAYER, options );    
+        this.effect = {
+            color : ('effect' in options)? (('color' in options.effect)? options.effect.color : 0) : 0,
+            mosaic : ('effect' in options)? (('mosaic' in options.effect)? options.effect.mosaic : 0) : 0,
+            fisheye : ('effect' in options)? (('fisheye' in options.effect)? options.effect.fisheye : 0) : 0,
+        };
+        this.position =  ('position' in options)? {x: options.position.x, y: options.position.y} : {x:0, y:0};
+        this.direction = ('direction' in options)? options.direction : 90;
+        this.scale = ('scale' in options)? {x: options.scale.x, y: options.scale.y} : {x:100, y:100};
+
+        this.keysCode = [];
+        this.keysKey = [];
+        this.backdrops = new Backdrops();
+        this._sprites = [];
+        this.skinIdx = -1;
+        this.mouse = {scratchX:0, scratchY:0, x:0, y:0, down: false, pageX: 0, pageY: 0, clientX: 0, clientY: 0 };
+        const me = this;
+        // これは Canvasをつくる Element クラスで実行したほうがよさそう（関連性強いため）
+        const p = Process.default;
+        const canvas = p.canvas;
+        const body = document.getElementById('main');
+        body.addEventListener('mousemove', (e) => {
+            me.mouse.pageX = e.pageX;
+            me.mouse.pageY = e.pageY;
+            e.stopPropagation()
+        });
+        canvas.addEventListener('mousemove', (e) => {
+            me.mouse.x = e.offsetX;
+            me.mouse.y = e.offsetY;
+
+            me.mouse.clientX = e.clientX;
+            me.mouse.clientY = e.clientY;
+            
+            me.mouse.scratchX = e.offsetX - P.canvas.width/2;
+            me.mouse.scratchY = P.canvas.height/2 - e.offsetY;
+
+//            e.stopPropagation()
+        }, {});
+        canvas.addEventListener('mousedown', (e) => {
+            me.mouse.x = e.offsetX;
+            me.mouse.y = e.offsetY;
+            me.mouse.down = true;
+            e.stopPropagation();
+        })
+        canvas.addEventListener('mouseup', (e) => {
+            me.mouse.x = e.offsetX;
+            me.mouse.y = e.offsetY;
+            me.mouse.down = false;
+            e.stopPropagation();
+        })
+  
+        Process.default.stage = this;
+    }
+    get sprites () {
+        return this._sprites;
+    }
+    addSprite (sprite) {
+        //const p = Process.default;
+        const curSprite = sprite;
+        this._sprites.push( curSprite );
+        curSprite.z = this._sprites.length
+        this._sortSprites();
+    }
+    _sortSprites() {
+        const n0_sprites = this._sprites;
+        const n1_sprites = n0_sprites.sort( function( a, b ) {
+            if (a.z > b.z) return -1;
+            if (b.z > a.z) return  1;
+            return 0;
+        });
+        let _z = -1;
+        n1_sprites.map(s=>{
+            s.z = ++_z;
+        });
+        this._sprites = n1_sprites;
+
+    }
+    removeSprite ( sprite ) {
+        const p = Process.default;
+        const curSprite = sprite;
+        const n_sprites = this._sprites.filter( ( item ) => item !== curSprite );
+        this._sprites = n_sprites;
+        this._sortSprites();
+    }
+    update() {
+        super.update();
+        this.backdrops.setPosition(this.position.x, this.position.y);
+        this.backdrops.setScale(this.scale.x, this.scale.y);
+        this.backdrops.setDirection(this.direction);
+        this.backdrops.update(this.drawableID);
+        for(const _sprite of this._sprites){
+            _sprite.update();
+        }
+    }
+    draw() {
+        this.render.renderer.draw();
+    }
+    sendSpriteBackwards (sprite) {
+        // 工事中
+    
+    }
+    sendSpriteForward (sprite) {
+        // 工事中
+    }
+    sendSpriteToFront (sprite) {
+        // 工事中
+    }
+    sendSpriteToBack (sprite) {
+        // 工事中
+    }
+    isKeyPressed (userKey) {
+        let match = false
+        let check
+    
+        typeof userKey === 'string' ? check = userKey.toLowerCase() : check = userKey
+        this.keysKey.indexOf(check) !== -1 ? match = true : null
+        this.keysCode.indexOf(check) !== -1 ? match = true : null
+    
+        return match
+    }
+    move(x,y) {
+        this.position.x = x;
+        this.position.y = y;
+        this.backdrops.setPosition(this.position.x, this.position.y);
+    }
+    async loadSound(name,soundUrl, options={}) {
+        await this._loadSound(name, soundUrl, options);
+    }
+    async loadImage(name, imageUrl) {
+        this._loadImage(name, imageUrl, this.backdrops);
+    }
+    async addSound(soundData, options={}) {
+        const name = soundData.name;
+        const data = soundData.data;
+        await this._addSound(name, data, options)
+    }
+    async addImage(imageData) {
+        const name = imageData.name;
+        const data = imageData.data;
+        await this._addImage(name, data, this.backdrops);
+
+    }
+
+};
+
+module.exports = Stage;
 
 /***/ })
 /******/ ]);
