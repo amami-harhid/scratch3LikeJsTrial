@@ -3,7 +3,8 @@
  * 
  * Scratch3 スピーチの実験
  * 
- * 実験では、お話が終わるのを待ってくれないです
+ * 実験では、お話しを broadcast を経由していますが、broadcastAndWait() ではお話しが終わったことがわからないです
+ * --> broadcastAndWait()にてお話の終わりを検知できるようにしました！！やったね。
  * 
  * Scratch3のスピーチは 次の仕組みです
  * 
@@ -48,13 +49,15 @@ P.setting = function() {
 
     // ネコにさわったらお話する
     P.cat.whenFlag( async function(){
+        this.__waitTouching = false;
         const words = `なになに？どうしたの？`;
-        const properties = {'pitch': 1.5, 'volume': 200}
+        const properties = {'pitch': 1.5, 'volume': 100}
         for(;;) {
             if( this.isMouseTouching() ) {
-                await this.broadcastAndWait('SPEECH', words, properties, 'female')
+                await this.broadcastAndWait('SPEECH', words, properties, 'female');
+                
                 // マウスタッチしないまで待つ
-                await P.Utils.waitUntil( this.isNotMouseTouching, P.Env.pace,  this ); 
+                //await P.Utils.waitUntil( this.isNotMouseTouching, P.Env.pace,  this ); 
 
             }
 
@@ -65,7 +68,7 @@ P.setting = function() {
     // ネコをクリックしたらお話する
     P.cat.whenClicked(function(){
         const words = `そこそこ。そこがかゆいの。`;
-        const properties = {'pitch': 1.5, 'volume': 200}
+        const properties = {'pitch': 1.7, 'volume': 500}
         this.broadcast('SPEECH', words, properties, 'female')
     });
 
@@ -82,6 +85,13 @@ P.setting = function() {
 
         const sounds = new P.Sounds()
         const name = 'ScratchSpeech'; // <-- なんでもよいが、変数に使える文字であること
+
+        const sound = await P.loadSound(path, name);
+        const _name = sound.name;
+        const _data = sound.data;
+        await sounds.setSound(_name, _data, _properties);
+        await sounds.startSoundUntilDone();
+/*
         P.loadSound(path, name).then(s=>{
             const name = s.name;
             const data = s.data;
@@ -89,7 +99,7 @@ P.setting = function() {
                 sounds.startSoundUntilDone()
             })
         });
-
+*/
     });
 
 }
