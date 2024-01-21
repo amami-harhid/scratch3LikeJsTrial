@@ -20,10 +20,6 @@
  * https://synthesis-service.scratch.mit.edu/synth?locale=ja-JP&gender=male&text=%E3%81%82%E3%81%84%E3%81%86%E3%81%88%E3%81%8A
  * 
  */
-const SERVER_HOST = 'https://synthesis-service.scratch.mit.edu';
-const SERVER_TIMEOUT = 10000; 
-
-
 P.preload = async function() {
     this.loadImage('../assets/Jurassic.svg','Jurassic');
     this.loadSound('../assets/Chill.wav','Chill');
@@ -55,13 +51,13 @@ P.setting = function() {
         for(;;) {
             if( this.isMouseTouching() ) {
                 await this.broadcastAndWait('SPEECH', words, properties, 'male');
-                // マウスタッチしないまで待つ
+                
+                // 「送って待つ」を使うことで スピーチが終わるまで次のループに進まないため、
+                // 以下の「マウスタッチしない迄待つ」のコードが不要である。
                 //await P.Utils.waitUntil( this.isNotMouseTouching, P.Env.pace,  this ); 
 
             }
-
         }
-
     });
     
     // ネコをクリックしたらお話する
