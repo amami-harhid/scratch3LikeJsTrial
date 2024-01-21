@@ -42780,10 +42780,6 @@ const Entity = class {
         }
     }
 */
-    addModule(func) {
-        console.log("func name=", func);
-        this.modules.set('func', func)
-    }
 
     _exec ( f, ...args ) {
         const _rewriter = Rewrite.default;
@@ -42825,23 +42821,33 @@ const Entity = class {
 */
     }
     
-    sendMessage(messageId, ...args ) {
+    broadcast(messageId, ...args ) {
         const runtime = Process.default.runtime;
         const eventId = `message_${messageId}`;
-        runtime.emit(eventId, ...args);
+        this.modules.set(eventId, []);
+        runtime.emit(eventId, this.modules, ...args);
 
     }
-    async sendMessageUntilDone(messageId, time=1000, ...args ){
-        this.sendMessage(messageId, ...args);
+    async broadcastAndWait(messageId, ...args ){
         const wait = Process.default.Utils.wait;
-        await wait(time);
+        const runtime = Process.default.runtime;
+        const eventId = `message_${messageId}`;
+        this.modules.set(eventId, []);
+        runtime.emit(eventId, this.modules, ...args);
+        await wait(10);
+        const promises = this.modules.get(eventId);
+        if(promises.length > 0) {
+            await Promise.all(promises);
+            return;
+        }
+
     }
     // recieveMessage :  runtime で受信したいので 構造作り変えをしてから実装する
     recieveMessage( messageId, func) {
         // func を rewriteしてから使う
         // this.runtime.on( id, func );
         const _rewriter = Rewrite.default;
-        const _func = _rewriter._rewrite(func);
+        const _func = _rewriter._rewrite(func); // <---- _rewrite とは別を用意したい。
         const _funcBinded = _func.bind(this);
         const runtime = Process.default.runtime;
         const eventId = `message_${messageId}`;
@@ -42849,7 +42855,23 @@ const Entity = class {
             _funcBinded( ...args ).catch(e=>{console.error('script=', func.toString()); throw new Error(e)});
         })
     }
+    whenBroadcastReceived(messageId, func){
+        const _rewriter = Rewrite.default;
+        const _func = _rewriter._rewrite(func); 
+        // ↑ _rewrite とは別を用意したい。
+        const _funcBinded = _func.bind(this);
 
+        const runtime = Process.default.runtime;
+        const eventId = `message_${messageId}`;
+        const me = this;
+        runtime.on(eventId, function( modules, ...args){
+            const promise = _funcBinded( ...args );
+            const arr = modules.get(eventId);
+            arr.push(promise);
+            promise.catch(e=>{console.error('script=', func.toString()); throw new Error(e)});
+        })
+
+    };
     // async としないほうがよいかも。
     async whenFlag (func) {
         const process = Process.default;
@@ -60114,11 +60136,12 @@ const Sprite = class extends Entity {
         await this._addImage(name, data, this.costumes);
     }
 
-    say( text, properties = {} ) {
+    say( text, secs, properties = {} ) {
         if( text && (typeof text) == 'string') {
             this.bubble.say( text , properties );
             return;
         }
+        // 空テキストのときは フキダシを消す。
         this.bubble.destroyBubble();
     }
     sayForSecs( text, secs, properties={}) {
@@ -60126,6 +60149,7 @@ const Sprite = class extends Entity {
         const me = this;
         return new Promise(resolve => {
             this._bubbleTimeout = setTimeout(() => {
+                // タイムアウトしたときに吹き出しを消す
                 me.bubble.destroyBubble();
                 me._bubbleTimeout = null;
                 resolve();
@@ -60178,8 +60202,15 @@ const Bubble = class {
         this.bubbleState.text = "";
         this.bubbleState.type = "say";
         this.bubbleState.onSpriteRight = true;
-        this.bubbleState.usageId = null; // <--- 使用用途不明
+        this.bubbleState.uid = null; // <--- 使用用途不明
     }
+    isBubbleActive() {
+        if( this.bubbleState.uid == null) {
+            return false;
+        }
+        return true;
+    }
+
     set direction( _direction ) {
         this._direction = _direction;
     }
@@ -60309,9 +60340,11 @@ const Bubble = class {
         }
     }
     destroyBubble() {
-        this.renderer.destroyDrawable( this.bubbleState.drawableID, StageLayering.SPRITE_LAYER);
-        this.renderer.destroySkin( this.bubbleState.skinId ) 
-        this._initBubbleState();
+       if(this.isBubbleActive()) {
+            this.renderer.destroyDrawable( this.bubbleState.drawableID, StageLayering.SPRITE_LAYER);
+            this.renderer.destroySkin( this.bubbleState.skinId )
+            this._initBubbleState();    
+        }
     }
 }
 
