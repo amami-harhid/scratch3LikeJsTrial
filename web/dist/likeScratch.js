@@ -42899,8 +42899,8 @@ const Entity = class {
             const mouseX = e.offsetX;
             const mouseY = e.offsetY;
             const p = Process.default;
-            console.log(`event   mouseX=${mouseX}, mouseY=${mouseY}`);
-            console.log(`sensing mouseX=${p.mouseX}, mouseY=${p.mouseY}`);
+//            console.log(`event   mouseX=${mouseX}, mouseY=${mouseY}`);
+//            console.log(`sensing mouseX=${p.mouseX}, mouseY=${p.mouseY}`);
             const _touchDrawableId = me.render.renderer.pick(mouseX,mouseY, 3, 3, [me.drawableID]);
             if(me.drawableID == _touchDrawableId){
                 if( process.preloadDone === true ) {

@@ -39,7 +39,7 @@ const SAYAKA = /Sayaka/;
 const US_FAMELE = /US.+English/;
 const UK_MAN = /UK.+Male/;
 const UK_FAMALE = /UK.+Female/;
-const Target = HARUKA;
+const Target = SAYAKA;
 
 P.setting = function() {
     console.log('setting')
@@ -53,7 +53,7 @@ P.setting = function() {
         })
         if(voiceArr.length>0){
             const voice = voiceArr[0]
-            P.speech(voice, "今日はいい天気だ。晨原結音げんきいっぱい")
+            P.speech(voice, "今日はよい天気ですね")
     
         }
     })
@@ -85,3 +85,4 @@ P.speech = function(voice, text) {
     speechSynthesis.speak(uttr)
 
 }
+
