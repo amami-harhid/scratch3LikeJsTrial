@@ -11,7 +11,6 @@
  * 終わるまで待つ：　await broadcastAndWait(messageID, ～)
  */
 
-//P.Env.bubbleScaleLinkedToSprite = true
 P.preload = async function() {
     this.loadImage('../assets/backdrop.png','BackDrop');
     this.loadImage('../assets/cat.svg','Cat1');
