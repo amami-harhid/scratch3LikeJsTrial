@@ -107,10 +107,10 @@ P.setting = async function() {
         let scale = {x: 60, y:60};
         for(;;) {
             const text = bubbleTextArr2[ Math.ceil(Math.random() * bubbleTextArr2.length) - 1 ];
-            this.sendMessage('BUBBLE', 'think', text, {scale:scale});
+            this.broadcast('BUBBLE', 'think', text, {scale:scale});
 //            this.think(text, {scale:scale});
             if( bubble2.exit === true) {
-                this.sendMessage('BUBBLE', 'say');
+                this.broadcast('BUBBLE', 'say');
 //                this.say();
                 break;
             }
@@ -133,7 +133,7 @@ P.setting = async function() {
         bubble2.exit = true;
     });
 
-    P.cat2.recieveMessage('BUBBLE', function(type="say", text="", scale ) {
+    P.cat2.whenBroadcastReceived('BUBBLE', function(type="say", text="", scale ) {
         // Cat2 の フキダシ を出す
         const _scale = (scale)? scale : {};
         if( type == 'say') {
