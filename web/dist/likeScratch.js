@@ -5783,8 +5783,7 @@ const RotationStyle = __webpack_require__(25);
 const Runtime = __webpack_require__(245);
 const Sensing = __webpack_require__(250);
 const Sounds = __webpack_require__(22);
-const Speech = __webpack_require__(267);
-const Sprite = __webpack_require__(268);
+const Sprite = __webpack_require__(267);
 const Stage = __webpack_require__(272);
 const StageLayering = __webpack_require__(6);
 const Utils = __webpack_require__(5);
@@ -5859,9 +5858,6 @@ const Process = class {
     }
     get Sounds () {
         return Sounds;
-    }
-    get Speech () {
-        return Speech;
     }
     get Stage () {
         return Stage;
@@ -42572,6 +42568,7 @@ const Looks = __webpack_require__(16);
 const MathUtils = __webpack_require__(17);
 const Process = __webpack_require__(1);
 const Sounds = __webpack_require__(22);
+const Speech = __webpack_require__(271);
 const Rewrite = __webpack_require__(177);
 const Utils = __webpack_require__(5);
 const Entity = class {
@@ -43108,6 +43105,26 @@ const Entity = class {
         _renderer.updateDrawablePosition(this.drawableID, _position); // <--- これ、position変化するものすべてに必要なのでは？
 
     }
+    speech(words, properties, gender='male', locale='ja-JP') {
+        const _properties = (properties)? properties : {};
+
+        const speech = Speech.getInstance();
+        speech.gender = gender;
+        speech.locale = locale;
+        speech.speech(words, _properties);
+
+    }
+
+    
+    async speechAndWait(words, properties, gender='male', locale='ja-JP') {
+        const _properties = (properties)? properties : {};
+
+        const speech = Speech.getInstance();
+        speech.gender = gender;
+        speech.locale = locale;
+        await speech.speechAndWait(words, _properties);
+
+    }
 
     update() {
         if(this.life != Infinity) {
@@ -43121,7 +43138,7 @@ const Entity = class {
 
 module.exports = Entity;
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(271)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(270)))
 
 /***/ }),
 /* 180 */
@@ -59339,199 +59356,7 @@ module.exports = SoundPlayer;
 /* 267 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const Importer = __webpack_require__(10);
-const Process = __webpack_require__(1);
-const Sounds = __webpack_require__(22);
-
-const SERVER = 'https://synthesis-service.scratch.mit.edu';
-/**
- * The url of the synthesis server.
- * @type {string}
- */
-const SERVER_HOST = 'https://synthesis-service.scratch.mit.edu';
-
-/**
- * How long to wait in ms before timing out requests to synthesis server.
- * @type {int}
- */
-const SERVER_TIMEOUT = 10000; // 10 seconds
-
-/**
- * Volume for playback of speech sounds, as a percentage.
- * @type {number}
- */
-const SPEECH_VOLUME = 250;
-
-/**
- * An id for one of the voices.
- */
-const ALTO_ID = 'ALTO';
-
-/**
- * An id for one of the voices.
- */
-const TENOR_ID = 'TENOR';
-
-/**
- * An id for one of the voices.
- */
-const SQUEAK_ID = 'SQUEAK';
-
-/**
- * An id for one of the voices.
- */
-const GIANT_ID = 'GIANT';
-
-/**
- * An id for one of the voices.
- */
-const KITTEN_ID = 'KITTEN';
-
-/**
- * Playback rate for the tenor voice, for cases where we have only a female gender voice.
- */
-const FEMALE_TENOR_RATE = 0.89; // -2 semitones
-
-/**
- * Playback rate for the giant voice, for cases where we have only a female gender voice.
- */
-const FEMALE_GIANT_RATE = 0.79; // -4 semitones
-
-/**
- * Language ids. The value for each language id is a valid Scratch locale.
- */
-const ENGLISH_ID = 'en';
-const JAPANESE_ID = 'ja';
-
-const GENDER = class {
-    static get MALE() {
-        return 'male';
-    }
-    static get FEMALE() {
-        return 'female';
-    }
-}
-const Speech = class {
-
-    constructor() {
-        this.voice = ALTO_ID;
-        this.language =  JAPANESE_ID;
-        this.gender = GENDER.FEMALE;
-        this.cache = new Map();
-    }
-    /**
-     * An object with info for each voice.
-     */
-    get VOICE_INFO () {
-        return {
-            [ALTO_ID]: {
-                name: formatMessage({
-                    id: 'text2speech.alto',
-                    default: 'alto',
-                    description: 'Name for a voice with ambiguous gender.'
-                }),
-                gender: 'female',
-                playbackRate: 1
-            },
-            [TENOR_ID]: {
-                name: formatMessage({
-                    id: 'text2speech.tenor',
-                    default: 'tenor',
-                    description: 'Name for a voice with ambiguous gender.'
-                }),
-                gender: 'male',
-                playbackRate: 1
-            },
-            [SQUEAK_ID]: {
-                name: formatMessage({
-                    id: 'text2speech.squeak',
-                    default: 'squeak',
-                    description: 'Name for a funny voice with a high pitch.'
-                }),
-                gender: 'female',
-                playbackRate: 1.19 // +3 semitones
-            },
-            [GIANT_ID]: {
-                name: formatMessage({
-                    id: 'text2speech.giant',
-                    default: 'giant',
-                    description: 'Name for a funny voice with a low pitch.'
-                }),
-                gender: 'male',
-                playbackRate: 0.84 // -3 semitones
-            },
-            [KITTEN_ID]: {
-                name: formatMessage({
-                    id: 'text2speech.kitten',
-                    default: 'kitten',
-                    description: 'A baby cat.'
-                }),
-                gender: 'female',
-                playbackRate: 1.41 // +6 semitones
-            }
-        };
-    }
-    get LANGUAGE_INFO () {
-        return {
-            [ENGLISH_ID]: {
-                name: 'English',
-                locales: ['en'],
-                speechSynthLocale: 'en-US'
-            },
-            [JAPANESE_ID]: {
-                name: 'Japanese',
-                locales: ['ja', 'ja-hira'],
-                speechSynthLocale: 'ja-JP'
-            },
-        };
-    }
-    /**
-     * The default state, to be used when a target has no existing state.
-     * @type {Text2SpeechState}
-     */
-    static get DEFAULT_TEXT2SPEECH_STATE () {
-        return {
-            voiceId: ALTO_ID
-        };
-    }
-
-    /**
-     * A default language to use for speech synthesis.
-     * @type {string}
-     */
-    get DEFAULT_LANGUAGE () {
-        return JAPANESE_ID;
-    }
-    async speakAndWait(words, properties={}) {
-        // 128文字までしか許容しないとする
-        const text = encodeURIComponent(words.substring(0, 128));
-        let path = `${SERVER_HOST}/synth?locale=${this.locale}&gender=${this.gender}&text=${text}`;
-        if(!this.cache.has(path)) {
-            const name = 'ScratchSpeech'; // <-- なんでもよいが、変数に使える文字であること
-            //const sound = await loadSound(path, name);
-            const sound = await Importer.loadSound(path, name);
-            this.cache.set(path, sound);
-        }
-        const sound = this.cache.get(path);
-        const sounds = new Sounds();
-        await sounds.setSound(sound.name, sound.data, properties);
-        await sounds.startSoundUntilDone();
-    }
-    static getInstance() {
-        if(Speech.instance == undefined) {
-            Speech.instance = new Speech();
-        }
-        return Speech.instance;
-    }
-}
-
-module.exports = Speech;
-
-/***/ }),
-/* 268 */
-/***/ (function(module, exports, __webpack_require__) {
-
-const Bubble = __webpack_require__(269);
+const Bubble = __webpack_require__(268);
 const Entity = __webpack_require__(179);
 const Env = __webpack_require__(4);
 const Costumes = __webpack_require__(14);
@@ -60028,12 +59853,12 @@ const Sprite = class extends Entity {
 module.exports = Sprite;
 
 /***/ }),
-/* 269 */
+/* 268 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const Process = __webpack_require__(1);
 const StageLayering = __webpack_require__(6);
-const uid = __webpack_require__(270);
+const uid = __webpack_require__(269);
 const Bubble = class {
 
     constructor( sprite ) {
@@ -60199,7 +60024,7 @@ const Bubble = class {
 module.exports = Bubble;
 
 /***/ }),
-/* 270 */
+/* 269 */
 /***/ (function(module, exports) {
 
 /**
@@ -60233,7 +60058,7 @@ const uid = function () {
 module.exports = uid;
 
 /***/ }),
-/* 271 */
+/* 270 */
 /***/ (function(module, exports) {
 
 // shim for using process in browser
@@ -60421,6 +60246,223 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
+
+/***/ }),
+/* 271 */
+/***/ (function(module, exports, __webpack_require__) {
+
+const Importer = __webpack_require__(10);
+const Process = __webpack_require__(1);
+const Sounds = __webpack_require__(22);
+
+const SERVER = 'https://synthesis-service.scratch.mit.edu';
+/**
+ * The url of the synthesis server.
+ * @type {string}
+ */
+const SERVER_HOST = 'https://synthesis-service.scratch.mit.edu';
+
+/**
+ * How long to wait in ms before timing out requests to synthesis server.
+ * @type {int}
+ */
+const SERVER_TIMEOUT = 10000; // 10 seconds
+
+/**
+ * Volume for playback of speech sounds, as a percentage.
+ * @type {number}
+ */
+const SPEECH_VOLUME = 250;
+
+/**
+ * An id for one of the voices.
+ */
+const ALTO_ID = 'ALTO';
+
+/**
+ * An id for one of the voices.
+ */
+const TENOR_ID = 'TENOR';
+
+/**
+ * An id for one of the voices.
+ */
+const SQUEAK_ID = 'SQUEAK';
+
+/**
+ * An id for one of the voices.
+ */
+const GIANT_ID = 'GIANT';
+
+/**
+ * An id for one of the voices.
+ */
+const KITTEN_ID = 'KITTEN';
+
+/**
+ * Playback rate for the tenor voice, for cases where we have only a female gender voice.
+ */
+const FEMALE_TENOR_RATE = 0.89; // -2 semitones
+
+/**
+ * Playback rate for the giant voice, for cases where we have only a female gender voice.
+ */
+const FEMALE_GIANT_RATE = 0.79; // -4 semitones
+
+/**
+ * Language ids. The value for each language id is a valid Scratch locale.
+ */
+const ENGLISH_ID = 'en';
+const JAPANESE_ID = 'ja';
+
+const GENDER = class {
+    static get MALE() {
+        return 'male';
+    }
+    static get FEMALE() {
+        return 'female';
+    }
+}
+const Speech = class {
+
+    constructor() {
+        this.voice = ALTO_ID;
+        this.language =  JAPANESE_ID;
+        this.gender = GENDER.FEMALE;
+        this.cache = new Map();
+    }
+    /**
+     * An object with info for each voice.
+     */
+    get VOICE_INFO () {
+        return {
+            [ALTO_ID]: {
+                name: formatMessage({
+                    id: 'text2speech.alto',
+                    default: 'alto',
+                    description: 'Name for a voice with ambiguous gender.'
+                }),
+                gender: 'female',
+                playbackRate: 1
+            },
+            [TENOR_ID]: {
+                name: formatMessage({
+                    id: 'text2speech.tenor',
+                    default: 'tenor',
+                    description: 'Name for a voice with ambiguous gender.'
+                }),
+                gender: 'male',
+                playbackRate: 1
+            },
+            [SQUEAK_ID]: {
+                name: formatMessage({
+                    id: 'text2speech.squeak',
+                    default: 'squeak',
+                    description: 'Name for a funny voice with a high pitch.'
+                }),
+                gender: 'female',
+                playbackRate: 1.19 // +3 semitones
+            },
+            [GIANT_ID]: {
+                name: formatMessage({
+                    id: 'text2speech.giant',
+                    default: 'giant',
+                    description: 'Name for a funny voice with a low pitch.'
+                }),
+                gender: 'male',
+                playbackRate: 0.84 // -3 semitones
+            },
+            [KITTEN_ID]: {
+                name: formatMessage({
+                    id: 'text2speech.kitten',
+                    default: 'kitten',
+                    description: 'A baby cat.'
+                }),
+                gender: 'female',
+                playbackRate: 1.41 // +6 semitones
+            }
+        };
+    }
+    get LANGUAGE_INFO () {
+        return {
+            [ENGLISH_ID]: {
+                name: 'English',
+                locales: ['en'],
+                speechSynthLocale: 'en-US'
+            },
+            [JAPANESE_ID]: {
+                name: 'Japanese',
+                locales: ['ja', 'ja-hira'],
+                speechSynthLocale: 'ja-JP'
+            },
+        };
+    }
+    /**
+     * The default state, to be used when a target has no existing state.
+     * @type {Text2SpeechState}
+     */
+    static get DEFAULT_TEXT2SPEECH_STATE () {
+        return {
+            voiceId: ALTO_ID
+        };
+    }
+
+    /**
+     * A default language to use for speech synthesis.
+     * @type {string}
+     */
+    get DEFAULT_LANGUAGE () {
+        return JAPANESE_ID;
+    }
+
+    speech(words, properties={}) {
+        // 128文字までしか許容しないとする
+        const text = encodeURIComponent(words.substring(0, 128));
+        let path = `${SERVER_HOST}/synth?locale=${this.locale}&gender=${this.gender}&text=${text}`;
+        if(!this.cache.has(path)) {
+            const name = 'ScratchSpeech'; // <-- なんでもよいが、変数に使える文字であること
+            const me = this;
+            Importer.loadSound(path,name).then(_sound=>{
+                me.cache.set(path, _sound);
+                me._speechPlay(_sound.name, _sound.data, properties);
+            });
+        }else{
+            const _sound = this.cache.get(path);
+            this._speechPlay(_sound.name, _sound.data, properties);
+        }
+    }
+    _speechPlay(name, data, properties) {
+        const sounds = new Sounds();
+        sounds.setSound(name, data, properties).then(_=>{
+            sounds.play();
+        });
+    }
+    async speechAndWait(words, properties={}) {
+        // 128文字までしか許容しないとする
+        const text = encodeURIComponent(words.substring(0, 128));
+        let path = `${SERVER_HOST}/synth?locale=${this.locale}&gender=${this.gender}&text=${text}`;
+        if(!this.cache.has(path)) {
+            const name = 'ScratchSpeech'; // <-- なんでもよいが、変数に使える文字であること
+            const sound = await Importer.loadSound(path, name);
+            this.cache.set(path, sound);
+        }
+        const sound = this.cache.get(path);
+        await this._speechPlayUntilDone(sound.name, sound.data, properties);
+    }
+    async _speechPlayUntilDone(name, data, properties) {
+        const sounds = new Sounds();
+        await sounds.setSound(name, data, properties);
+        await sounds.startSoundUntilDone();
+    }
+    static getInstance() {
+        if(Speech.instance == undefined) {
+            Speech.instance = new Speech();
+        }
+        return Speech.instance;
+    }
+}
+
+module.exports = Speech;
 
 /***/ }),
 /* 272 */
