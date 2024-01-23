@@ -5764,6 +5764,7 @@
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+<<<<<<< HEAD
 const Backdrops = __webpack_require__(24);
 //const Canvas = require('./canvas');
 //const Css = require('./css');
@@ -6098,6 +6099,338 @@ const Process = class {
 
 }
 
+=======
+const Backdrops = __webpack_require__(24);
+//const Canvas = require('./canvas');
+//const Css = require('./css');
+const Costumes = __webpack_require__(14);
+const Element = __webpack_require__(27);
+const Env = __webpack_require__(4);
+const EventEmitter = __webpack_require__(7).EventEmitter;
+const Importer = __webpack_require__(10);
+const Keyboard = __webpack_require__(28);
+const Looks = __webpack_require__(16);
+const MathUtils = __webpack_require__(17);
+const moment = __webpack_require__(0);
+const NowLoading = __webpack_require__(186);
+const Render = __webpack_require__(187);
+const Rewrite = __webpack_require__(177);
+const RotationStyle = __webpack_require__(25);
+const Runtime = __webpack_require__(245);
+const Sensing = __webpack_require__(250);
+const Sounds = __webpack_require__(22);
+const Sprite = __webpack_require__(267);
+const Stage = __webpack_require__(272);
+const StageLayering = __webpack_require__(6);
+const Utils = __webpack_require__(5);
+const Process = class {
+
+    static getInstance() {
+        if( Process._instance == undefined ) {
+            Process._instance = new Process();
+        }
+        return Process._instance;
+    }
+
+    constructor () {
+        this._render = null;
+        this._id = this._generateUUID();
+        this._preloadImagePromise = [];
+        this._preloadSoundPromise = [];
+        this._sounds = {}
+        this._images = {};
+        this._preloadDone = false;
+    }
+    get images() {
+        return this._images;
+    }
+    get sounds() {
+        return this._sounds;
+    }
+    _generateUUID () {
+        return Utils.generateUUID();
+    }
+    get Backdrops () {
+        return Backdrops;
+    }
+    get Costumes () {
+        return Costumes;
+    }
+    get Element () {
+        return Element;
+    }
+    get Env () {
+        return Env;
+    }
+    get EventEmitter () {
+        return EventEmitter;
+    }
+    get Importer () {
+        return Importer;
+    }
+    get keyboard () {
+        return Keyboard;
+    }
+    get Looks () {
+        return Looks;
+    }
+    get NowLoading () {
+        return NowLoading;
+    }
+    get MathUtils () {
+        return MathUtils;
+    }
+    get moment () {
+        return moment;
+    }
+    get Render () {
+        return Render;
+    }
+    get Rewrite () {
+        return Rewrite.default;
+    }
+    get RotationStyle () {
+        return RotationStyle;
+    }
+    get Sounds () {
+        return Sounds;
+    }
+    get Stage () {
+        return Stage;
+    }
+    get StageLayering () {
+        return StageLayering;
+    }
+    get Sprite () {
+        return Sprite;
+    }
+    get Utils () {
+        return Utils;
+    }
+    get render () {
+        return this._render;
+    }
+    set render( render ) {
+        // _init() の中で設定される。
+        this._render = render;
+    }
+    set stage ( stage ) {
+        this._stage = stage;
+    }
+
+    get stage () {
+        return this._stage;
+    }
+
+    get stageWidth () {
+        return this._render.stageWidth;
+    }
+
+    get stageHeight () {
+        return this._render.stageHeight;
+    }
+
+    get mousePosition () {
+        const _rateX = this._render.stageWidth / this.canvas.width;
+        const _rateY = this._render.stageHeight / this.canvas.height;
+        const _mouseX = (this.stage.mouse.x - this.canvas.width/2 ) * _rateX;
+        const _mouseY = (this.canvas.height/2 - this.stage.mouse.y) * _rateY;
+        return {x: _mouseX, y: _mouseY};
+    }
+
+    get randomPoint () {
+        const randomPointX = (Math.random()-0.5)*this.stageWidth;
+        const randomPointY = (Math.random()-0.5)*this.stageHeight;
+        return { x: randomPointX, y: randomPointY };
+    }
+
+    get randomDirection () {
+        const direction = (Math.random()-0.5)* 2 * 360;
+        if( direction > 180 ){
+            return direction - 180;
+        }
+        return direction;
+    }
+
+    set flag ( flag ) {
+        this._flag = flag;
+    }
+
+    get flag () {
+        return this._flag;
+    }
+
+    get wait () {
+        return Utils.wait;
+    }
+    async _init() {
+//        const keyboard = Keyboard.default;
+//        keyboard.startWatching();
+        // Now Loading 準備 START
+        const mainTmp = document.createElement('main');
+        this.mainTmp = mainTmp;
+        mainTmp.id = 'mainTmp';
+        mainTmp.classList.add('nowLoading');
+        mainTmp.style.zIndex = -1;
+        mainTmp.style.position = 'absolute'
+        mainTmp.style.touchAction = 'manipulation'
+        mainTmp.style.width = `${innerWidth}px`
+        mainTmp.style.height = `${innerHeight}px`
+
+        document.body.appendChild(mainTmp);
+        // ちょっとだけ待つ（ Now Loading を見せたいため )
+        await Utils.wait(1000);
+        // Now Loading 準備 OWARI
+
+        this._preload();
+        await this._waitUntilPreloadDone();
+        await Element.init();
+        const main = this.main;
+        main.classList.add(Element.DISPLAY_NONE);
+        this._render = new Render();
+        this.runtime = new Runtime();
+        this.runtime.attachRenderer(this._render.renderer);
+        this._prepareReload();
+
+        await this._prepare();
+        await this._setting();
+    }
+
+    async _preload () {
+        if( P.preload ) {
+            P.preload();
+        }
+    }
+
+    async _prepare () {
+        // この時点で各種ローディングは終わっているので、NowLoadingを消す。
+        this.mainTmp.remove();
+
+        // Mainタグから非表示のクラスを除去しフラグとキャンバスを表示する
+        const main = this.main;
+        main.classList.remove(Element.DISPLAY_NONE);
+        // prepareメソッドの実行を開始する
+        if( P.prepare ) {
+            await P.prepare();
+            await P.Utils.wait(Env.pace);
+            if( this._stage ) {
+                this._stage.update();
+                this._stage.draw();
+            }    
+        }
+    }
+    async _setting () {
+        if( P.setting ) {
+            await P.setting ();
+        }
+    }
+    // Element.init() 内から呼び出される。
+    _drawingStart() {
+        if( this._stage ) {
+            const me = this;
+            const pace = this.Env.pace;
+            this._stage.update();
+            setTimeout(async function(){
+                for(;;) {
+                    me._draw();
+                    await me.Utils.wait(pace);
+                }
+            }, pace);
+        }
+    }
+    _draw () {
+        if( this._stage ) {
+            this._stage.update ();
+            P._stage.draw();
+            if( P.draw ) {
+                P.draw();
+            }
+        }
+    }
+    getKeyIsDown(key) {
+        return this.runtime.getKeyIsDown(key);
+    }
+    _prepareReload() {
+        const _reloadKickBinded = this._reloadKick.bind(this);
+        this.runtime.on('KEY_PRESSED', _reloadKickBinded);
+    }
+    _reloadKick( key ) {
+        if( key == 'Escape') {
+            // 別スレッドからリロードすると一発でリロードできる
+            setTimeout(function(){
+                window.location.reload( ); // ページの再読み込み
+            },10);            
+        }
+    }
+
+    loadImage(imageUrl, name) {
+        let _name ;
+        if( name ) {
+            _name = name;
+        }else{
+            _name = imageUrl.replace(/\.[^.]+$/)
+        }
+        const data = Importer.loadImage(imageUrl, _name);
+        this._preloadImagePromise.push(data);
+        return data;
+    }
+    loadSound(soundUrl, name) {
+        let _name ;
+        if( name ) {
+            _name = name;
+        }else{
+            _name = imageUrl.replace(/\.[^.]+$/)
+        }
+        const data = Importer.loadSound(soundUrl, _name);
+        this._preloadSoundPromise.push(data);
+        return data;
+    }
+
+    spriteClone( src, callback ) {
+        if( src instanceof P.Sprite ) {
+            src.clone().then( async( c ) =>{
+                if( callback ) {
+                    const _callback = callback.bind( c );
+                    _callback();
+                }
+            });
+        }
+    }
+
+    get preloadDone() {
+        return this._preloadDone;
+    }
+    async _waitUntilPreloadDone() {
+        if(this._preloadImagePromise.length > 0 ) {
+            const _images = await Promise.all(this._preloadImagePromise);
+            for(const v of _images) {
+                this._images[v.name] = {'name': v.name, 'data': v.data };
+            }    
+        }
+        if( this._preloadSoundPromise.length > 0 ) {
+            const _sounds = await Promise.all(this._preloadSoundPromise);
+            for(const v of _sounds) {
+                this._sounds[v.name] = {'name' : v.name, 'data': v.data };
+            }    
+        }
+
+        this._preloadDone = true;
+    }
+    async waitUntil( condition ) {
+        for(;;) {
+            if( condition() ) {
+                break;
+            }
+            await Utils.wait(Env.pace);
+        }
+    }
+
+    
+
+
+}
+
+>>>>>>> 6ca89e12a2e269321ccd0faff69a981f1384538a
 /* harmony default export */ __webpack_exports__["default"] = (Process.getInstance());
 
 /***/ }),
@@ -17487,6 +17820,7 @@ module.exports = ShaderManager;
 /* 10 */
 /***/ (function(module, exports) {
 
+<<<<<<< HEAD
 const Importer = class {
 
     static get REGEX_DATA_IMAGE_URL() {
@@ -17549,6 +17883,71 @@ const Importer = class {
 
 };
 
+=======
+const Importer = class {
+
+    static get REGEX_DATA_IMAGE_URL() {
+        return /^data:image\\/;
+    }
+    static get REGEX_SVG_DATA_IMAGE_URL() {
+        return /^<svg\s/;
+    }
+    static get REGEX_SVG_DATA_IMAGE_FILE() {
+        return /^.+\.svg$/;
+    }
+    static isSVG(image) {
+        if(typeof image === 'string') {
+            const dataImageUrl = image;
+            if(dataImageUrl.match(Importer.REGEX_SVG_DATA_IMAGE_URL)){
+                return true;
+            }
+        }
+        return false;
+    }
+    static async loadImage(image, name) {
+        if(image) {
+            if(typeof image === 'string') {
+                if(image.match(Importer.REGEX_SVG_DATA_IMAGE_FILE)){
+                    let _text = await Importer._svgText(image);
+                    return {name:name,data:_text};
+                }else{
+                    const localUrl = image;
+                    let _img = await Importer._loadImage(localUrl);
+                    return {name:name,data:_img};
+                }
+            }
+        }
+    }
+    static async _loadImage(src) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = "Anonymous";
+            img.onload = () => resolve(img);
+            img.onerror = (e) => reject(e);
+            img.src = src;
+        });
+    }
+    static async _svgText(image) {
+        let svg = await fetch(image);
+        let _text = await svg.text();
+        return _text;
+    }
+
+    static async loadSound(sound, name) {
+        if(sound) {
+            if(typeof sound === 'string') {
+                let responce = await fetch(sound);
+                let buffer = await responce.arrayBuffer();
+                let data =  new Uint8Array(buffer);
+                return {name:name, data:data};
+            }
+        }
+        // 例外を起こすべきところ。
+    }
+
+};
+
+>>>>>>> 6ca89e12a2e269321ccd0faff69a981f1384538a
 module.exports = Importer;
 
 /***/ }),
@@ -42565,6 +42964,7 @@ module.exports = VolumeEffect;
 /* 179 */
 /***/ (function(module, exports, __webpack_require__) {
 
+<<<<<<< HEAD
 /* WEBPACK VAR INJECTION */(function(process) {const Canvas = __webpack_require__(15);
 const Env = __webpack_require__(4);
 const Looks = __webpack_require__(16);
@@ -43119,8 +43519,585 @@ const Entity = class {
 }
 
 module.exports = Entity;
+=======
+/* WEBPACK VAR INJECTION */(function(process) {const Canvas = __webpack_require__(15);
+const Env = __webpack_require__(4);
+const Looks = __webpack_require__(16);
+const MathUtils = __webpack_require__(17);
+const Process = __webpack_require__(1);
+const Sounds = __webpack_require__(22);
+const Speech = __webpack_require__(271);
+const Rewrite = __webpack_require__(177);
+const Utils = __webpack_require__(5);
+const Entity = class {
+    constructor (name, layer, options = {} ){
+        this.pace = Env.pace;
+        const _process = Process.default;
+        this.render = _process.render;
+        this.name = name;
+        this.layer = layer;
+        this.drawableID = this.render.createDrawable(this.layer);
+        Entity.messageListeners = [];
+        this.id = this._generateUUID();
+        this.evented = [
+            'whenFlag',
+            'whenLoaded',
+            'whenClicked',
+            'whenKeyPressed',
+            'whenEvent',
+            'whenReceiveMessage',
+            'whenCloned'
+          ];
+        this.canvas = Canvas.canvas;
+        this.flag = _process.flag;
+        this.position = {x:0, y:0}; // 意味なし
+        this.scale = {x:100,y:100}; // 意味なし
+        this.direction = 90; // 意味なし
+        this._visible = true;
+        this.sound = null;
+        this.importAllDone = [];
+        this.importIdx = -1;
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(271)))
+        const _effect = ('effect' in options )? options.effect: {};
+        this._effect = {};
+        this.setEffectsEachProperties(_effect);
+        this.position =  ('position' in options)? {x: options.position.x, y: options.position.y} : {x:0, y:0};
+        this.direction = ('direction' in options)? options.direction : 90;
+        this.scale = ('scale' in options)? {x: options.scale.x, y: options.scale.y} : {x:100, y:100};
+        this.life = Infinity;
+        //console.log(Rewrite.default);
+        this.modules = new Map();
+    }
+    get effect() {
+        return this._effect;
+    }
+    set effect(_effect) {
+        this.setEffectsEachProperties(_effect);
+    }
+    setEffectsEachProperties(_effect) {
+        if(Looks.COLOR in _effect ){
+            this._effect.color = _effect.color;
+        }
+        if(Looks.FISHEYE in _effect ){
+            this._effect.fisheye = _effect.fisheye;
+        }
+        if(Looks.WHIRL in _effect ){
+            this._effect.whirl = _effect.whirl;
+        }
+        if(Looks.PIXELATE in _effect ){
+            this._effect.pixelate = _effect.pixelate;
+        }
+        if(Looks.PIXELATE in _effect ){
+            this._effect.pixelate = _effect.pixelate;
+        }
+        if(Looks.MOSAIC in _effect ){
+            this._effect.mosaic = _effect.mosaic;
+        }
+        if(Looks.BRIGHTNESS in _effect ){
+            this._effect.brightness = _effect.brightness;
+        }
+        if(Looks.GHOST in _effect ){
+            this._effect.ghost = _effect.ghost;
+        }
+    }
+    clearEffect() {
+        this._effect.color = 0;
+        this._effect.fisheye = 0;
+        this._effect.mosaic = 0;
+        this._effect.brightness = 0;
+        this._effect.brightness = 0;
+        this._effect.ghost = 0;
+    }
+
+
+    _isImportAllDone() {
+        let _allDone = true;
+        this.importAllDone.map(v => {
+            if( v === false ) {
+                _allDone = false;
+            }
+        })
+        return _allDone;
+    }
+    async _addImage(name ,image, costume) {
+        await costume.addImage(name, image);
+    }
+
+    async _loadImage(name, imageUrl, costume) {
+        this.importIdx += 1;
+        const _importIdx = this.importIdx;
+        this.importAllDone.push(false);
+        await costume.loadImage(name, imageUrl);
+        this.importAllDone[_importIdx] = true;
+    }
+    async importSound( sound ) {
+        if ( this.sounds == undefined ) this.sounds = new Sounds();
+        const soundData = await this.sounds.importSound( sound );
+        return soundData;
+    }
+    async _addSound(name, soundData, options={}) {
+        if ( this.sounds == undefined ) this.sounds = new Sounds();
+        await this.sounds.setSound(name, soundData, options);
+    }
+    async _loadSound(name, soundUrl, options={}) {
+        this.importIdx += 1;
+        const _importIdx = this.importIdx;
+        this.importAllDone.push(false);
+        if ( this.sounds == undefined ) this.sounds = new Sounds();
+        await this.sounds.loadSound(name,soundUrl, options);
+        this.importAllDone[_importIdx] = true;
+    }
+    soundSwitch(sound){
+        const name = sound.name;
+        if ( this.sounds == undefined ) return;
+        this.sounds.switch(name);
+    }
+    nextSound() {
+        if ( this.sounds == undefined ) return;
+        this.soundStop();    
+        this.sounds.nextSound();
+    }
+    soundPlay(sound) {
+        if ( this.sounds == undefined ) return;
+        if( sound ) {
+            const name = sound.name;
+            this.soundSwitch(name);
+        } 
+        this.sounds.play();
+    }
+    setSoundVolume(volume) {
+        if ( this.sounds == undefined ) return;
+        this.sounds.volume = volume;
+    }
+    setSoundVolumeByName(name, volume) {
+        if ( this.sounds == undefined ) return;
+        this.sounds.volume = volume;
+    }
+    setSoundPitch(pitch) {
+        if ( this.sounds == undefined ) return;
+        this.sounds.pitch = pitch;
+    }
+    soundStop() {
+        if ( this.sounds == undefined ) return;
+        this.sounds.stop();
+    }
+    soundStopImmediately() {
+        if ( this.sounds == undefined ) return;
+        this.sounds.soundStopImmediately();
+    }
+    async startSoundUntilDone() {
+        if ( this.sounds ) await this.sounds.startSoundUntilDone();
+        return;
+    }
+    setPosition(x, y) {
+        this.position.x = x;
+        this.position.y = y;
+    }
+
+    setScale(x, y) {
+        this.scale.x = x;
+        if( y == undefined) {
+            this.scale.y = x;
+
+        }else{
+            this.scale.y = y;
+        }
+    }
+    _directionChange( direction ) {
+        if( direction > 180 ) {
+            return direction - 360;
+        }
+        return direction;    
+    }
+    setDirection(direction) {
+        const _direction = this._directionChange(direction);
+        this.direction = _direction;
+    }
+
+    rotationRight( value ) {
+        const _direction = this.direction + value;
+        this.setDirection( _direction )
+    }
+
+    rotationLeft( value ) {
+        const _direction = this.direction - value;
+        this.setDirection( _direction )
+    }
+
+    _generateUUID () {
+        return Utils.generateUUID();
+    }
+/* 
+    _releaseWaited (triggeringId) {
+        const event = new window.CustomEvent(`blockLike.waited.${triggeringId}`, { detail: { value: 0 } })
+        document.dispatchEvent(event)
+    }
+    _setToVar (varString, value) {
+        try {
+            eval(`${varString} = '${value}'`) // eslint-disable-line no-eval
+        } catch (error) {
+            throw ('BlockLike.js Error: Variables accepting a value must be declared in the global scope.') // eslint-disable-line no-throw-literal
+        }
+    }
+*/
+
+    _exec ( f, ...args ) {
+        const _rewriter = Rewrite.default;
+        _rewriter.exec( f, this, ...args );
+    }
+    _execThread ( f, ...args ) {
+        const _rewriter = Rewrite.default;
+        let t = _rewriter.execThread( f, this, ...args );
+        return t;
+    }
+/*
+    invoke (func, argsArr, theVar = null, triggeringId = null) {
+        // theVar and triggeringId are not user supplied, they are inserted by rewriter.
+        let args = argsArr;
+        !(argsArr instanceof Array) ? args = [argsArr] : null;
+    
+        this._exec(func, args).then((result) => {
+            // this is the waited method listener. release it.
+            this._releaseWaited(triggeringId)
+            // set the user defined variable to the captured value.
+            theVar ? this._setToVar(theVar, result) : null
+        })
+    }
+ */
+    wait (sec, triggeringId = null) {
+        // triggeringId is not user supplied, it is inserted by rewriter.
+        setTimeout(() => {
+            this._releaseWaited(triggeringId)
+        }, sec * 1000)
+    }
+
+    // preloadが終わったときに呼ぶことにしようかな？
+    async whenLoaded (func) {
+        await func();
+/*
+        setTimeout(() => {
+            this._exec(func, [])
+        }, 0)
+*/
+    }
+    
+    broadcast(messageId, ...args ) {
+        const runtime = Process.default.runtime;
+        const eventId = `message_${messageId}`;
+        this.modules.set(eventId, []);
+        runtime.emit(eventId, this.modules, ...args);
+
+    }
+    async broadcastAndWait(messageId, ...args ){
+        const wait = Process.default.Utils.wait;
+        const runtime = Process.default.runtime;
+        const eventId = `message_${messageId}`;
+        this.modules.set(eventId, []);
+        runtime.emit(eventId, this.modules, ...args);
+        await wait(10);
+        const promises = this.modules.get(eventId);
+        if(promises.length > 0) {
+            await Promise.all(promises);
+            return;
+        }
+
+    }
+    // recieveMessage :  runtime で受信したいので 構造作り変えをしてから実装する
+    recieveMessage( messageId, func) {
+        // func を rewriteしてから使う
+        // this.runtime.on( id, func );
+        const _rewriter = Rewrite.default;
+        const _func = _rewriter._rewrite(func); // <---- _rewrite とは別を用意したい。
+        const _funcBinded = _func.bind(this);
+        const runtime = Process.default.runtime;
+        const eventId = `message_${messageId}`;
+        runtime.on(eventId, function( ...args){
+            _funcBinded( ...args ).catch(e=>{console.error('script=', func.toString()); throw new Error(e)});
+        })
+    }
+    whenBroadcastReceived(messageId, func){
+        const _rewriter = Rewrite.default;
+        const _func = _rewriter._rewrite(func); 
+        // ↑ _rewrite とは別を用意したい。
+        const _funcBinded = _func.bind(this);
+
+        const runtime = Process.default.runtime;
+        const eventId = `message_${messageId}`;
+        const me = this;
+        runtime.on(eventId, function( modules, ...args){
+            const promise = _funcBinded( ...args );
+            const arr = modules.get(eventId);
+            arr.push(promise);
+            promise.catch(e=>{console.error('script=', func.toString()); throw new Error(e)});
+        })
+
+    };
+    // async としないほうがよいかも。
+    async whenFlag (func) {
+        const process = Process.default;
+        const me = this;
+        const _func = func.bind(this);
+        if (process.flag) {
+            // フラグエレメントへのイベント登録とするべき。
+            process.flag.addEventListener('click', async (e) => {
+                //me.flag.remove; // <--- フラグ要素があれば消すとしたい。
+                if( process.preloadDone === true ) {
+//                    const _func = me.modules.get('func')
+                    //(func.bind(this))();
+//                    me._exec( _func );
+                    me._exec( func );
+                }
+                //me._exec(func, [e])
+                e.stopPropagation();  // イベント伝播を停止
+            })
+        }
+    }
+    whenMouseTouched (func) {
+        const process = Process.default;
+        const me = this;
+        Canvas.canvas.addEventListener('mousemove', async(e) => {
+            const mouseX = e.offsetX;
+            const mouseY = e.offsetY;
+            const p = Process.default;
+//            console.log(`event   mouseX=${mouseX}, mouseY=${mouseY}`);
+//            console.log(`sensing mouseX=${p.mouseX}, mouseY=${p.mouseY}`);
+            const _touchDrawableId = me.render.renderer.pick(mouseX,mouseY, 3, 3, [me.drawableID]);
+            if(me.drawableID == _touchDrawableId){
+                if( process.preloadDone === true ) {
+                    //_func();
+                    this._exec( func );
+                }
+            }
+            e.stopPropagation()
+        }, {});
+
+    }
+    whenCloned(func) {
+
+        // func を rewriteすること！
+        const runtime = Process.default.runtime;
+        const eventId = `whenClone_${this.name}`;
+        runtime.on(eventId, function(clone){
+            clone._exec( func );
+
+        })
+    }
+    isNotMouseTouching() {
+        return !(this.isMouseTouching());
+    }
+    isMouseTouching() {
+        const p = Process.default;
+        const mouseX = p.stage.mouse.x;
+        const mouseY = p.stage.mouse.y;
+        const _touchDrawableId = p.render.renderer.pick(mouseX,mouseY, 3, 3, [this.drawableID]); 
+        if(this.drawableID == _touchDrawableId){
+            return true;
+        }
+        return false;
+
+    }
+    whenClicked (func) {
+        const process = Process.default;
+        const me = this;
+        //const _func = func.bind(this);
+        Canvas.canvas.addEventListener('click', async(e) => {
+            const mouseX = e.offsetX;
+            const mouseY = e.offsetY;
+            const _touchDrawableId = me.render.renderer.pick(mouseX,mouseY, 3, 3, [me.drawableID]);
+            if(me.drawableID == _touchDrawableId){
+                if( process.preloadDone === true ) {
+                    //_func();
+                    this._exec( func );
+                }
+            }
+            e.stopPropagation()
+        }, {});
+    }
+    whenTouchingTarget(targets, func) {
+        const me = this;
+        if( process.preloadDone === true ) {
+            //const _func = func.bind(this);
+            setInterval(async function(){
+                const touching = me.isTouchingTarget(me, targets);
+                if(touching === true){
+//                    func();
+                    this._exec( func );
+                }
+            },0);
+        }
+    }
+    isTouchingTargetToTarget(src, targets) {
+        const targetIds = [];
+        if(Array.isArray(targets)){
+            for(const _t of targets) {
+                const _drawableId = _t.drawableID;
+                if( src.render.renderer._allDrawables.includes(_drawableId)){
+                    targetIds.push(_drawableId);
+                }
+            }    
+        }else{
+            const _drawableId = targets.drawableID;
+            if( src.render.renderer._allDrawables.includes(_drawableId)){
+                targetIds.push(_drawableId);
+            }
+        }
+        if( targetIds.length > 0 ) {
+            const touching = src.render.renderer.isTouchingDrawables(src.drawableID, targetIds);
+            return touching;    
+        }
+        return false;
+    }
+    isTouchingTarget(targets) {
+        const src = this;
+        const touching = this.isTouchingTargetToTarget(src,targets);
+        return touching;
+    }
+    /**
+    * whenEvent - adds the specified event listener to sprite/stage.
+    * When triggered will invoke user supplied function.
+    *
+    * @example
+    * let stage = new LS.Stage();
+    * let sprite = new LS.Sprite();
+    *
+    * sprite.addTo(stage);
+    * sprite.whenEvent('mouseover', (e) => {
+    *   console.log(e);
+    * });
+    *
+    * @param {string} eventStr - the named event (mosemove etc.).
+    * @param {function} func - a function to rewrite and execute.
+    */
+    whenEvent( eventStr, func ) {
+        const me = this;
+        let attachTo = Canvas.canvas;
+        let options = {};
+        'keydown|keyup|keypress'.indexOf(eventStr) !== -1 ? attachTo = document : null;
+        'touchstart|touchmove'.indexOf(eventStr) !== -1 ? options = { passive: true } : null;
+        attachTo.addEventListener(eventStr, (e) => {
+//            func(e);
+            this._exec( func, e );
+            e.stopPropagation()
+        }, options);
+    }
+
+    updateVisible( visible ) {
+        this._visible = visible;
+        this.render.renderer.updateDrawableVisible(this.drawableID, visible);
+    }
+
+    set visible( _visible ){
+        this.updateVisible(_visible);
+    }
+
+    get visible() {
+        return this._visible;
+    }
+
+    setRotationStyle () {
+
+    }
+
+    startThread( func ) {
+
+        // whenFlag の中から呼び出されると loopProtectionga
+        // 二重にかかる
+
+        let t = this._execThread( func );
+        return t;
+    }
+    
+    // これは使わない
+    stopThread( t ) {
+        clearTimeout( t );
+    }
+    pointTowardsMouseCursolGlobal( ) {
+        const process = Process.default;
+        const rect = process.canvas.getBoundingClientRect();
+
+        const canvasGlobalCenterX = rect.x + rect.width/2 // - canvasBorderX;
+        const canvasGlobalCenterY = rect.y + rect.height/2 // - canvasBorderY;
+    
+        const pageX = process.stage.mouse.pageX;
+        const pageY = process.stage.mouse.pageY;
+    
+        const _mouseXG = (pageX - canvasGlobalCenterX );
+        const _mouseYG = (canvasGlobalCenterY - pageY);
+    
+        const _rateX = process._render.stageWidth / process.canvas.width;
+        const _rateY = process._render.stageHeight / process.canvas.height;
+    
+        const targetX = (_mouseXG) * _rateX;
+        const targetY = (_mouseYG) * _rateY;
+
+        const dx = targetX - this.position.x;
+        const dy = targetY - this.position.y;
+
+        let direction = 90 - MathUtils.radToDeg(Math.atan2(dy, dx));
+        if(direction > 180) {
+            direction -= 360;
+        }
+        this.direction = direction;
+    
+    }
+    pointTowardsMouseCursol( ) {
+        // CANVAS 外に出てら ポインターを向かない。
+        const process = Process.default;
+        const targetX = process.mousePosition.x;
+        const targetY = process.mousePosition.y;
+        const dx = targetX - this.position.x;
+        const dy = targetY - this.position.y;
+        let direction = 90 - MathUtils.radToDeg(Math.atan2(dy, dx));
+        if(direction > 180) {
+            direction -= 360;
+        }
+        this.direction = direction;
+    }
+    setXY(x, y) {
+        const oldX = this.position.x;
+        const oldY = this.position.y;
+        const _renderer = this.render.renderer;
+        const _position = _renderer.getFencedPositionOfDrawable(this.drawableID, [x, y]);
+        this.position.x = _position[0];
+        this.position.y = _position[1];
+        _renderer.updateDrawablePosition(this.drawableID, _position); // <--- これ、position変化するものすべてに必要なのでは？
+
+    }
+    speech(words, properties, gender='male', locale='ja-JP') {
+        const _properties = (properties)? properties : {};
+
+        const speech = Speech.getInstance();
+        speech.gender = gender;
+        speech.locale = locale;
+        speech.speech(words, _properties);
+
+    }
+
+    
+    async speechAndWait(words, properties, gender='male', locale='ja-JP') {
+        const _properties = (properties)? properties : {};
+
+        const speech = Speech.getInstance();
+        speech.gender = gender;
+        speech.locale = locale;
+        await speech.speechAndWait(words, _properties);
+
+    }
+
+    update() {
+        if(this.life != Infinity) {
+            this.life -= 1 / Process.default.Env.pace * 1000;
+            if( this.life < 0 ) {
+                this.remove();
+            }    
+        }
+    }
+}
+
+module.exports = Entity;
+>>>>>>> 6ca89e12a2e269321ccd0faff69a981f1384538a
+
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(270)))
 
 /***/ }),
 /* 180 */
@@ -59338,6 +60315,7 @@ module.exports = SoundPlayer;
 /* 267 */
 /***/ (function(module, exports, __webpack_require__) {
 
+<<<<<<< HEAD
 const Importer = __webpack_require__(10);
 const Process = __webpack_require__(1);
 const Sounds = __webpack_require__(22);
@@ -60026,12 +61004,509 @@ const Sprite = class extends Entity {
     }
 
 };
+=======
+const Bubble = __webpack_require__(268);
+const Entity = __webpack_require__(179);
+const Env = __webpack_require__(4);
+const Costumes = __webpack_require__(14);
+const Looks = __webpack_require__(16);
+const MathUtils = __webpack_require__(17);
+const Process = __webpack_require__(1);
+const StageLayering = __webpack_require__(6);
+const Utils = __webpack_require__(5);
+const Sprite = class extends Entity {
+
+    constructor(name, options = {}) {
+        super(name, StageLayering.SPRITE_LAYER, options);
+        const stage = Process.default.stage;
+        this.stage = stage;
+        this.bubble = new Bubble(this);
+        this.costumes = new Costumes();
+        this.skinId = null;
+        this.skinIdx = -1;
+        this.z = -1;
+        this.clones = [];
+        this.isClone;
+        this.originalSprite;
+        this.imageDatas = [];
+        this.soundDatas = [];
+        this.touchingEdge = false;
+        this.bubbleDrawableID = null;
+        stage.addSprite(this);
+    }
+    remove() {
+        this.skinId = null;
+        if(this.isClone === true) {
+            const clones = this.originalSprite.clones;
+            this.originalSprite.clones = clones.filter(s=> s.id !== this.id);
+//            this.render.renderer.destroyDrawable(this.drawableID, StageLayering.SPRITE_LAYER);
+        }
+        this.stage.removeSprite(this);
+        this.render.renderer.destroyDrawable(this.drawableID, StageLayering.SPRITE_LAYER);
+    }
+    async clone(options = {}) {
+        if(this.isClone == undefined){
+            const newName = `${this.name}_${this.clones.length+1}`;
+            // クローン時にエフェクトを引き継ぐ。
+            // クローン別にエフェクトを設定したいときは
+            // clone() 実行後に 個別に設定すること。
+            const COLOR = Looks.COLOR;
+            const FISHEYE = Looks.FISHEYE;
+            const WHIRL = Looks.WHIRL;
+            const PIXELATE = Looks.PIXELATE;
+            const MOSAIC = Looks.MOSAIC;
+            const BRIGHTNESS = Looks.BRIGHTNESS;
+            const GHOST = Looks.GHOST;
+            const _options = {
+                'position' : {x: this.position.x, y:this.position.y}, 
+                'scale' : this.scale,
+                'direction' : (this.direction)? this.direction: 90,
+                COLOR : (this._effect.color)? this._effect.color: 0,
+                FISHEYE : (this._effect.fisheye)? this._effect.fisheye: 0,
+                WHIRL: (this._effect.whirl)? this._effect.whirl: 0,
+                PIXELATE: (this._effect.pixelate)? this._effect.pixelate: 0,
+                MOSAIC: (this._effect.mosaic)? this._effect.mosaic: 0,
+                BRIGHTNESS: (this._effect.brightness)? this._effect.brightness: 0,
+                GHOST: (this._effect.ghost)? this._effect.ghost: 0,
+            };
+            const newOptions = Object.assign(_options, options);
+            const newSprite = new this.constructor(newName, newOptions);
+            const _visible = 
+            newSprite.setVisible( false );
+            this.clones.push(newSprite);
+            newSprite.isClone = true;
+            for(const d of this.imageDatas) {
+                // svg image の場合、createSVGSkin の中で非同期になることに注意すること
+                await newSprite.addImage(d); 
+            }
+            for(const d of this.soundDatas) {
+                const _soundData = {};
+                _soundData.name = d.name;
+                _soundData.data = d.data;
+                const _options = d.options;
+                await newSprite.addSound(_soundData, _options); // options引き継ぐ
+            }
+            newSprite.update(); // update() は不要かもしれない。
+            newSprite.originalSprite = this;
+
+            // 注意： Scratch3 風に Sprite duplicate をしてみたい。（調べる）
+            // whenClone
+            // ここで emit 
+            // target( = EventEmitter ) を作る。target は renderer を操作するメソッドを持つ。
+            // rendererを操作する処理は emit で行う。
+            const runtime = Process.default.runtime;
+            const eventId = `whenClone_${this.name}`;
+            runtime.emit(eventId, newSprite);
+            return newSprite;
+        }
+    }
+    _costumeProperties(target) {
+        target.costumes.setPosition(target.position.x, target.position.y);
+        target.costumes.setScale(target.scale.x, target.scale.y);
+        target.costumes.setDirection(target.direction);
+        target.costumes.update(target.drawableID, this._effect);
+
+    }
+    update() {
+        super.update();
+        this._costumeProperties(this);
+        if(Env.bubbleScaleLinkedToSprite === true) {
+            this.bubble.updateScale(this.scale.x, this.scale.y);
+        }
+        this.bubble.moveWithSprite();
+    }
+    moveSteps(steps) {
+        const radians = MathUtils.degToRad(90 - this.direction);
+        const dx = steps * Math.cos(radians);
+        const dy = steps * Math.sin(radians);
+        this.setXY( this.position.x + dx, this.position.y + dy );
+    
+    }
+    setScale(x, y) {
+        super.setScale(x,y);
+        this.bubble.setScale(x, y);
+    }
+
+    goToXY( x, y) {
+        if ( !Utils.isNumber(x)) {
+            return;
+        }
+        if ( !Utils.isNumber(y)) {
+            return;
+        }
+        this.setXY( x, y );
+
+    }
+    moveTo( x, y ) {
+        this.goToXY( x, y);       
+    }
+    onEdgeBounds() {
+        const drawable = this.render.renderer._allDrawables[this.drawableID];
+        if( drawable == null || drawable.skin == null) return null;
+        const bounds = this.render.renderer.getBounds(this.drawableID);
+        if (!bounds) return null;
+        const stageWidth = this.render.stageWidth;
+        const stageHeight = this.render.stageHeight;
+        const distLeft = Math.max(0, (stageWidth / 2) + bounds.left);
+        const distTop = Math.max(0, (stageHeight / 2) - bounds.top);
+        const distRight = Math.max(0, (stageWidth / 2) - bounds.right);
+        const distBottom = Math.max(0, (stageHeight / 2) + bounds.bottom);
+        // find nearest edge
+        let nearestEdge = '';
+        let minDist = Infinity;
+        if (distLeft < minDist) {
+            minDist = distLeft;
+            nearestEdge = 'left';
+        }
+        if (distTop < minDist) {
+            minDist = distTop;
+            nearestEdge = 'top';
+        }
+        if (distRight < minDist) {
+            minDist = distRight;
+            nearestEdge = 'right';
+        }
+        if (distBottom < minDist) {
+            minDist = distBottom;
+            nearestEdge = 'bottom';
+        }
+        if (minDist > 0) {
+            return null// Not touching any edge
+        }
+        return {'minDist': minDist, 'nearestEdge':nearestEdge};
+    }
+    _ifOnEdgeBounds() {
+        const judge = this.onEdgeBounds();
+        if(judge &&  judge.minDist && judge.minDist == Infinity) return null;
+        return judge;
+    }
+    ifOnEdgeBounds() {
+        const drawable = this.render.renderer._allDrawables[this.drawableID];
+        if( drawable == null || drawable.skin == null) return;
+        const bounds = this.render.renderer.getBounds(this.drawableID);
+        if (!bounds) return;
+        const stageWidth = this.render.stageWidth;
+        const stageHeight = this.render.stageHeight;
+        const distLeft = Math.max(0, (stageWidth / 2) + bounds.left);
+        const distTop = Math.max(0, (stageHeight / 2) - bounds.top);
+        const distRight = Math.max(0, (stageWidth / 2) - bounds.right);
+        const distBottom = Math.max(0, (stageHeight / 2) + bounds.bottom);
+        // find nearest edge
+        let nearestEdge = '';
+        let minDist = Infinity;
+        if (distLeft < minDist) {
+            minDist = distLeft;
+            nearestEdge = 'left';
+        }
+        if (distTop < minDist) {
+            minDist = distTop;
+            nearestEdge = 'top';
+        }
+        if (distRight < minDist) {
+            minDist = distRight;
+            nearestEdge = 'right';
+        }
+        if (distBottom < minDist) {
+            minDist = distBottom;
+            nearestEdge = 'bottom';
+        }
+        if (minDist > 0) {
+            return;// Not touching any edge
+        }
+        // Point away from the nearest edge.
+        const radians = MathUtils.degToRad(90 - this.direction);
+        let dx = Math.cos(radians);
+        let dy = -Math.sin(radians);
+        if (nearestEdge === 'left') {
+            dx = Math.max(0.2, Math.abs(dx));
+        } else if (nearestEdge === 'top') {
+            dy = Math.max(0.2, Math.abs(dy));
+        } else if (nearestEdge === 'right') {
+            dx = 0 - Math.max(0.2, Math.abs(dx));
+        } else if (nearestEdge === 'bottom') {
+            dy = 0 - Math.max(0.2, Math.abs(dy));
+        }
+        const newDirection = MathUtils.radToDeg(Math.atan2(dy, dx)) + 90;
+        this.direction = newDirection;
+        // Keep within the stage.
+        this.keepInFence(this.costumes._position.x, this.costumes._position.y);
+        /* 
+        for(;;) {
+            this.keepInFence(this.costumes._position.x, this.costumes._position.y);
+            const touch = this.isTouchingEdge();
+            if( touch === false ) break;
+            await Utils.wait(0);
+        }
+        */
+
+    }
+    keepInFence(x, y) {
+        const fencedPosition = this._keepInFence(x, y);
+        if(fencedPosition){
+            //console.log(fencedPosition);
+            this.position.x = fencedPosition[0];
+            this.position.y = fencedPosition[1];
+            this.costumes._position.x = fencedPosition[0];
+            this.costumes._position.y = fencedPosition[1];
+            // ifOnEdgeBounds の後で isTouchingEdge　が false になる。
+            // この動作は Scratch3の動きと異なるので NG
+            // 次の２行をしているからだと思うのでコメントアウトしてみる。--> コメントアウトで期待した効果が出た。
+            // オリジナルScratch3でも ifOnEdgeBounds の後で isTouchingEdge　が false になることがあるのでまあよしとする。
+            // Scratch3オリジナル、斜めに端に触れるときに この事象が起きやすい。
+            //this.moveSteps(1);
+            //this.update();
+        }
+    }
+    _keepInFence(newX,newY){
+        const drawable = this.render.renderer._allDrawables[this.drawableID];
+        if( drawable == null || drawable.skin == null) return;
+        const bounds = this.render.renderer.getBounds(this.drawableID);
+        if(!bounds) return;
+        const stageWidth = this.render.stageWidth;
+        const stageHeight = this.render.stageHeight;
+        // fence を bounds で調整する
+        const distLeft = Math.max(0, (stageWidth / 2) + bounds.left);
+        const distTop = Math.max(0, (stageHeight / 2) - bounds.top);
+        const distRight = Math.max(0, (stageWidth / 2) - bounds.right);
+        const distBottom = Math.max(0, (stageHeight / 2) + bounds.bottom);
+        const fence = {
+            left: -(stageWidth / 2),
+            top: stageHeight / 2,
+            right: stageWidth / 2,
+            bottom: -(stageHeight / 2),
+        };
+        // Adjust the known bounds to the target position.
+        bounds.left += (newX - this.costumes._position.x);
+        bounds.right += (newX - this.costumes._position.x);
+        bounds.top += (newY - this.costumes._position.y);
+        bounds.bottom += (newY - this.costumes._position.y);
+        // Find how far we need to move the target position.
+        let dx = 0;
+        let dy = 0;
+        if (bounds.left < fence.left) {
+            dx += fence.left - bounds.left;
+        }
+        if (bounds.right > fence.right) {
+            dx += fence.right - bounds.right;
+        }
+        if (bounds.top > fence.top) {
+            dy += fence.top - bounds.top;
+        }
+        if (bounds.bottom < fence.bottom) {
+            dy += fence.bottom - bounds.bottom;
+        }
+        return [newX + dx, newY + dy];
+    }
+    isTouchingEdge (_callback){
+        const judge = this.onEdgeBounds();
+        if(judge  == null )  {
+            if( this.touchingEdge === true) this.touchingEdge = false;
+            return false;
+        }
+        const nearestEdge = judge.nearestEdge;
+        if(nearestEdge == '') {
+            if( this.touchingEdge === true) this.touchingEdge = false;
+            return false;
+        }
+        if(this.touchingEdge === true) return false; 
+
+        if(_callback) {
+            const callback = _callback.bind(this);
+            setTimeout(callback, 0);
+        }
+
+        return true;
+    }
+    turnRight( _degree ) {
+        let _d = this.direction;
+        _d += _degree;
+        this.direction = _calcDegree(_d % 360);
+    }
+
+    turnLeft( _degree ) {
+        let _d = this.direction;
+        _d -= _degree;
+        this.direction = _calcDegree(_d % 360);
+    }
+    _calcDegree(_degree) {
+        const _d = _degree % 360;
+        if( _d > 0) {
+            if( _d > 180) {
+                _d = _d - 360;
+            }
+            return _d;
+        }else if( _d < 0) {
+            if( _d < -180) {
+                _d = _d + 360;
+            }
+            return _d;
+        }
+        return _d;
+    }
+
+    gotoRandomPosition() {
+        const process = Process.default;
+        const _x = (Math.random() - 0.5 ) * process.stageWidth;
+        const _y = (Math.random() - 0.5 ) * process.stageHeight;
+        this.setXY( _x, _y);
+    }
+
+    gotoMousePosition() {
+        // 工事中
+    }
+
+    foundSpriteByName(name){
+        // 工事中
+
+    }
+    gotoSprite(sprite) {
+        if( sprite instanceof Sprite ) {
+            const _x = sprite.position.x;
+            const _y = sprite.position.y;
+            this.setXY(_x, _y);
+        }    
+    }
+
+    glideToPosition(sec, x, y) {
+        return new Promise( async (resolve) => {
+            const framesPerSecond = 1000 / Env.pace;
+            const stepX = (x - this.position.x) / (sec * framesPerSecond);
+            const stepY = (y - this.position.y) / (sec * framesPerSecond);
+            let i = 0;
+            const me = this;
+            const interval = setInterval(() => {
+                i += 1;
+                me.setXY( me.position.x + stepX, me.position.y + stepY  );
+                if (i / framesPerSecond >= sec) {
+                    clearInterval(interval);
+                    me.setXY( x, y );
+                    resolve();
+                }
+            },Env.pace);
+        });
+    }
+    static get Global () {
+        return 'global'
+    }
+    pointToMouse ( _global = null ) {
+        if( _global === Sprite.Global ){
+            this.pointTowardsMouseCursolGlobal();
+        }else{
+            this.pointTowardsMouseCursol();
+        }
+    }
+    
+    pointInDerection( _d ) {
+
+        if(_d < 0) {
+            let _direction = _d % 360;
+            if( _direction < -180) {
+                _direction = 180 + _direction;
+            }
+            this._direction = _direction;
+        }else{
+            // _derection 0 以上 
+            let _direction = _d % 360;
+            if( _direction > 180) {
+                _direction = 180 - _direction;
+            }
+            this._direction = _direction;
+        }
+    }
+    setRotationStyle( _style ) {
+        this.costumes.setRotationStyle( _style );
+    }
+
+    nextCostume() {
+        this.costumes.nextCostume();
+        this.ifOnEdgeBounds();
+    }
+    switchCostume( val ) {
+        if( val ){
+            if( typeof val === 'string') {
+                const _name = val;
+                this.costumes.switchCostumeByName(_name);
+ 
+            }else if( Number.isInteger(val)) {
+                const _idx = val;
+                this.costumes.switchCostumeByNumber(_idx);
+            }    
+        }
+    }
+    setVisible( _visible ) {
+        this.updateVisible(_visible);
+    }
+
+    async loadSound(name,soundUrl, options={}) {
+        this._loadSound(name, soundUrl, options);
+    }
+    async loadImage(name, imageUrl) {
+        this._loadImage(name, imageUrl, this.costumes);
+    }
+    async addSound(soundData, options = {}) {
+        const _soundData = soundData;
+        _soundData.options = options;
+        this.soundDatas.push(_soundData);
+        const name = _soundData.name;
+        const data = _soundData.data;
+        await this._addSound(name, data, options);
+    }
+    async addImage(imageData) {
+        this.imageDatas.push(imageData);
+        const name = imageData.name;
+        const data = imageData.data;
+        await this._addImage(name, data, this.costumes);
+    }
+
+    say( text, secs, properties = {} ) {
+        if( text && (typeof text) == 'string') {
+            this.bubble.say( text , properties );
+            return;
+        }
+        // 空テキストのときは フキダシを消す。
+        this.bubble.destroyBubble();
+    }
+    sayForSecs( text, secs, properties={}) {
+        this.say(text, properties);
+        const me = this;
+        return new Promise(resolve => {
+            this._bubbleTimeout = setTimeout(() => {
+                // タイムアウトしたときに吹き出しを消す
+                me.bubble.destroyBubble();
+                me._bubbleTimeout = null;
+                resolve();
+            }, 1000 * secs);
+        });
+    }
+
+    think( text, properties = {} ) {
+        if( text && (typeof text) == 'string') {
+            this.bubble.think( text , properties );
+            return;
+        }
+
+        this.bubble.destroyBubble();
+    }
+    thinkForSecs( text, secs, properties={}) {
+        this.think(text, properties);
+        return new Promise(resolve => {
+            this._bubbleTimeout = setTimeout(() => {
+                this._bubbleTimeout = null;
+                this.bubble.destroyBubble();
+                resolve();
+            }, 1000 * secs);
+        });
+    }
+
+};
+>>>>>>> 6ca89e12a2e269321ccd0faff69a981f1384538a
 module.exports = Sprite;
 
 /***/ }),
-/* 269 */
+/* 268 */
 /***/ (function(module, exports, __webpack_require__) {
 
+<<<<<<< HEAD
 const Process = __webpack_require__(1);
 const StageLayering = __webpack_require__(6);
 const uid = __webpack_require__(270);
@@ -60197,10 +61672,177 @@ const Bubble = class {
     }
 }
 
+=======
+const Process = __webpack_require__(1);
+const StageLayering = __webpack_require__(6);
+const uid = __webpack_require__(269);
+const Bubble = class {
+
+    constructor( sprite ) {
+        this._initBubbleState();
+        this.sprite = sprite;
+        this.process = Process.default;
+        this.renderer = this.process.render.renderer;
+        this._scale = {x:100, y:100};
+    }
+    _initBubbleState() {
+        this.bubbleState = {};
+        this.bubbleState.drawableID = null;
+        this.bubbleState.skinId = null;
+        this.bubbleState.text = "";
+        this.bubbleState.type = "say";
+        this.bubbleState.onSpriteRight = true;
+        this.bubbleState.uid = null; // <--- 使用用途不明
+    }
+    isBubbleActive() {
+        if( this.bubbleState.uid == null) {
+            return false;
+        }
+        return true;
+    }
+
+    set direction( _direction ) {
+        this._direction = _direction;
+    }
+    setScale( x, y ) {
+        if( x == 0 || y == 0 ) {
+            // ゼロスケールではDrawできないので回避する。
+            return;
+        }
+        // マイナススケールのとき 文字が反転（鏡文字）となるのでそれを回避する。
+        let _x = Math.abs(x);
+        let _y = Math.abs(y);
+        this.scaleX = _x;
+        this.scaleY = _y;    
+}
+    async createDrawable() {
+        if(this.bubbleState.drawableID == null ) {
+            const bubbleDrawableID = this.renderer.createDrawable( StageLayering.SPRITE_LAYER );
+            this.bubbleState.drawableID = bubbleDrawableID;
+        }
+    }
+
+    async createTextSkin() {
+        if(this.bubbleState.skinId == null ) {
+            this.bubbleState.skinId = this.renderer.createTextSkin(
+                this.bubbleState.type, 
+                this.bubbleState.text, 
+                this.bubbleState.onSpriteRight
+            );
+            this.bubbleState.uid = uid();    
+        }
+    }
+    async say( _text, _properties = {}) {
+        this.bubbleState.type = 'say';
+        this.bubbleState.text = _text;
+        await this._renderBubble(_properties);
+    }
+    async think(_text,  _properties = {}) {
+        this.bubbleState.type = 'think';
+        this.bubbleState.text = _text;
+        await this._renderBubble(_properties);
+    }
+    updateScale( x, y ) { 
+        if(this.bubbleState.drawableID != null){
+            if( x == 0 || y == 0 ) {
+                // ゼロスケールではDrawできないので回避する。
+                return;
+            }
+            // マイナススケールのとき 文字が反転（鏡文字）となるのでそれを回避する。
+            let _x = Math.abs(x);
+            let _y = Math.abs(y);
+            this._scale.x = _x;
+            this._scale.y = _y;
+            this.renderer.updateDrawableScale ( this.bubbleState.drawableID , [_x, _y] );        
+    }
+    }
+    async _renderBubble(_properties={}) {
+        if(this.sprite.visible == false || this.bubbleState.text === '') {
+            if( this.bubbleState.uid != null ) {
+                this.destroyBubble();
+            }
+            return;
+        }
+        if( this.bubbleState.uid == null ) {
+            this.createDrawable();
+            await this.createTextSkin();    
+            if( Object.keys(_properties).length > 0 ) {
+                if( 'scale' in _properties ) {
+                    this.updateScale( _properties.scale.x, _properties.scale.y );
+                }
+            }
+            this.renderer.updateDrawableSkinId(this.bubbleState.drawableID, this.bubbleState.skinId);
+        }else if(this.bubbleState.skinId) {
+            if( Object.keys(_properties).length > 0 ) {
+                if( 'scale' in _properties ) {
+                    this.updateScale( _properties.scale.x, _properties.scale.y );
+                }
+            }
+            this.renderer.updateTextSkin(this.bubbleState.skinId, this.bubbleState.type, this.bubbleState.text, this.bubbleState.onSpriteRight);
+        }
+        this._positionBubble();
+        return;
+    }
+    moveWithSprite() {
+        this._positionBubble();
+    }
+    _positionBubble() {
+        if(this.bubbleState.skinId) {
+            try{
+                const [_bubbleWidth, _bubbleHeight] = this.renderer.getCurrentSkinSize( this.bubbleState.drawableID );
+                const bubbleWidth = _bubbleWidth * this._scale.x / 100; 
+                const bubbleHeight = _bubbleHeight * this._scale.y / 100;
+                const targetBounds = this.renderer.getBoundsForBubble( this.sprite.drawableID );
+                const stageSize = this.renderer.getNativeSize();
+                const stageBounds = {
+                    left: -stageSize[0] / 2,
+                    right: stageSize[0] / 2,
+                    top: stageSize[1] / 2,
+                    bottom: -stageSize[1] / 2
+                };
+                if( this.bubbleState.onSpriteRight === true 
+                    && bubbleWidth + targetBounds.right > stageBounds.right && (targetBounds.left - bubbleWidth > stageBounds.left) ) {
+                    if( this._scale.x > 0) {
+                        this.bubbleState.onSpriteRight = false;
+                    } else {
+                        this.bubbleState.onSpriteRight = false;
+                    }
+                    this.renderer.updateTextSkin(this.bubbleState.skinId, this.bubbleState.type, this.bubbleState.text, this.bubbleState.onSpriteRight);
+                } else if( this.bubbleState.onSpriteRight === false 
+                    && targetBounds.left - bubbleWidth < stageBounds.left && (bubbleWidth + targetBounds.right < stageBounds.right) ) {
+                    if( this._scale.x > 0) {
+                        this.bubbleState.onSpriteRight = true;
+                    } else {
+                        this.bubbleState.onSpriteRight = false;
+                    }
+                    this.renderer.updateTextSkin(this.bubbleState.skinId, this.bubbleState.type, this.bubbleState.text, this.bubbleState.onSpriteRight);
+                } else {
+                    const positionX = (this.bubbleState.onSpriteRight)? 
+                        (Math.max(stageBounds.left,Math.min(stageBounds.right - bubbleWidth, targetBounds.right)))
+                        :(Math.min(stageBounds.right - bubbleWidth, Math.max(stageBounds.left, targetBounds.left - bubbleWidth )));
+                    const positionY = Math.min(stageBounds.top, targetBounds.bottom + bubbleHeight);
+                    this.renderer.updateDrawablePosition(this.bubbleState.drawableID, [positionX, positionY]);
+                }
+        
+            } catch(e) {
+                //console.log(e);
+            }
+        }
+    }
+    destroyBubble() {
+       if(this.isBubbleActive()) {
+            this.renderer.destroyDrawable( this.bubbleState.drawableID, StageLayering.SPRITE_LAYER);
+            this.renderer.destroySkin( this.bubbleState.skinId )
+            this._initBubbleState();    
+        }
+    }
+}
+
+>>>>>>> 6ca89e12a2e269321ccd0faff69a981f1384538a
 module.exports = Bubble;
 
 /***/ }),
-/* 270 */
+/* 269 */
 /***/ (function(module, exports) {
 
 /**
@@ -60234,7 +61876,7 @@ const uid = function () {
 module.exports = uid;
 
 /***/ }),
-/* 271 */
+/* 270 */
 /***/ (function(module, exports) {
 
 // shim for using process in browser
@@ -60422,6 +62064,223 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
+
+/***/ }),
+/* 271 */
+/***/ (function(module, exports, __webpack_require__) {
+
+const Importer = __webpack_require__(10);
+const Process = __webpack_require__(1);
+const Sounds = __webpack_require__(22);
+
+const SERVER = 'https://synthesis-service.scratch.mit.edu';
+/**
+ * The url of the synthesis server.
+ * @type {string}
+ */
+const SERVER_HOST = 'https://synthesis-service.scratch.mit.edu';
+
+/**
+ * How long to wait in ms before timing out requests to synthesis server.
+ * @type {int}
+ */
+const SERVER_TIMEOUT = 10000; // 10 seconds
+
+/**
+ * Volume for playback of speech sounds, as a percentage.
+ * @type {number}
+ */
+const SPEECH_VOLUME = 250;
+
+/**
+ * An id for one of the voices.
+ */
+const ALTO_ID = 'ALTO';
+
+/**
+ * An id for one of the voices.
+ */
+const TENOR_ID = 'TENOR';
+
+/**
+ * An id for one of the voices.
+ */
+const SQUEAK_ID = 'SQUEAK';
+
+/**
+ * An id for one of the voices.
+ */
+const GIANT_ID = 'GIANT';
+
+/**
+ * An id for one of the voices.
+ */
+const KITTEN_ID = 'KITTEN';
+
+/**
+ * Playback rate for the tenor voice, for cases where we have only a female gender voice.
+ */
+const FEMALE_TENOR_RATE = 0.89; // -2 semitones
+
+/**
+ * Playback rate for the giant voice, for cases where we have only a female gender voice.
+ */
+const FEMALE_GIANT_RATE = 0.79; // -4 semitones
+
+/**
+ * Language ids. The value for each language id is a valid Scratch locale.
+ */
+const ENGLISH_ID = 'en';
+const JAPANESE_ID = 'ja';
+
+const GENDER = class {
+    static get MALE() {
+        return 'male';
+    }
+    static get FEMALE() {
+        return 'female';
+    }
+}
+const Speech = class {
+
+    constructor() {
+        this.voice = ALTO_ID;
+        this.language =  JAPANESE_ID;
+        this.gender = GENDER.FEMALE;
+        this.cache = new Map();
+    }
+    /**
+     * An object with info for each voice.
+     */
+    get VOICE_INFO () {
+        return {
+            [ALTO_ID]: {
+                name: formatMessage({
+                    id: 'text2speech.alto',
+                    default: 'alto',
+                    description: 'Name for a voice with ambiguous gender.'
+                }),
+                gender: 'female',
+                playbackRate: 1
+            },
+            [TENOR_ID]: {
+                name: formatMessage({
+                    id: 'text2speech.tenor',
+                    default: 'tenor',
+                    description: 'Name for a voice with ambiguous gender.'
+                }),
+                gender: 'male',
+                playbackRate: 1
+            },
+            [SQUEAK_ID]: {
+                name: formatMessage({
+                    id: 'text2speech.squeak',
+                    default: 'squeak',
+                    description: 'Name for a funny voice with a high pitch.'
+                }),
+                gender: 'female',
+                playbackRate: 1.19 // +3 semitones
+            },
+            [GIANT_ID]: {
+                name: formatMessage({
+                    id: 'text2speech.giant',
+                    default: 'giant',
+                    description: 'Name for a funny voice with a low pitch.'
+                }),
+                gender: 'male',
+                playbackRate: 0.84 // -3 semitones
+            },
+            [KITTEN_ID]: {
+                name: formatMessage({
+                    id: 'text2speech.kitten',
+                    default: 'kitten',
+                    description: 'A baby cat.'
+                }),
+                gender: 'female',
+                playbackRate: 1.41 // +6 semitones
+            }
+        };
+    }
+    get LANGUAGE_INFO () {
+        return {
+            [ENGLISH_ID]: {
+                name: 'English',
+                locales: ['en'],
+                speechSynthLocale: 'en-US'
+            },
+            [JAPANESE_ID]: {
+                name: 'Japanese',
+                locales: ['ja', 'ja-hira'],
+                speechSynthLocale: 'ja-JP'
+            },
+        };
+    }
+    /**
+     * The default state, to be used when a target has no existing state.
+     * @type {Text2SpeechState}
+     */
+    static get DEFAULT_TEXT2SPEECH_STATE () {
+        return {
+            voiceId: ALTO_ID
+        };
+    }
+
+    /**
+     * A default language to use for speech synthesis.
+     * @type {string}
+     */
+    get DEFAULT_LANGUAGE () {
+        return JAPANESE_ID;
+    }
+
+    speech(words, properties={}) {
+        // 128文字までしか許容しないとする
+        const text = encodeURIComponent(words.substring(0, 128));
+        let path = `${SERVER_HOST}/synth?locale=${this.locale}&gender=${this.gender}&text=${text}`;
+        if(!this.cache.has(path)) {
+            const name = 'ScratchSpeech'; // <-- なんでもよいが、変数に使える文字であること
+            const me = this;
+            Importer.loadSound(path,name).then(_sound=>{
+                me.cache.set(path, _sound);
+                me._speechPlay(_sound.name, _sound.data, properties);
+            });
+        }else{
+            const _sound = this.cache.get(path);
+            this._speechPlay(_sound.name, _sound.data, properties);
+        }
+    }
+    _speechPlay(name, data, properties) {
+        const sounds = new Sounds();
+        sounds.setSound(name, data, properties).then(_=>{
+            sounds.play();
+        });
+    }
+    async speechAndWait(words, properties={}) {
+        // 128文字までしか許容しないとする
+        const text = encodeURIComponent(words.substring(0, 128));
+        let path = `${SERVER_HOST}/synth?locale=${this.locale}&gender=${this.gender}&text=${text}`;
+        if(!this.cache.has(path)) {
+            const name = 'ScratchSpeech'; // <-- なんでもよいが、変数に使える文字であること
+            const sound = await Importer.loadSound(path, name);
+            this.cache.set(path, sound);
+        }
+        const sound = this.cache.get(path);
+        await this._speechPlayUntilDone(sound.name, sound.data, properties);
+    }
+    async _speechPlayUntilDone(name, data, properties) {
+        const sounds = new Sounds();
+        await sounds.setSound(name, data, properties);
+        await sounds.startSoundUntilDone();
+    }
+    static getInstance() {
+        if(Speech.instance == undefined) {
+            Speech.instance = new Speech();
+        }
+        return Speech.instance;
+    }
+}
+
+module.exports = Speech;
 
 /***/ }),
 /* 272 */
