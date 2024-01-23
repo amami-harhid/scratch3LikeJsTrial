@@ -28,21 +28,21 @@ P.setting = async function() {
 
     // ステージをクリックしたときの動作
     P.stage.whenClicked(async function () {
-        // クリックフラグをみて実行中でないときにスレッドを実行する。
+        if( 1 == 0 ) {
+            console.log(1)
+        }
+        // クリックフラグをみて実行中でないときに音をならす
         if( threadStartFlag == false) {
-            // 「終わるまで音を鳴らす」をずっと繰り返す、スレッドを起動する
-            this.startThread( async function() {
-                // スレッド起動したら
-                threadStartFlag = true;
-                for(;;) {
-                    await this.startSoundUntilDone();
-                    // トップスコープにて定義しているので参照可能。
-                    if( threadStartFlag == false) {
-                        break;
-                    }
+            // 「終わるまで音を鳴らす」をずっと繰り返す
+            threadStartFlag = true;
+            for(;;) {
+                await this.startSoundUntilDone();
+                // トップスコープにて定義しているので参照可能。
+                if( threadStartFlag == false) {
+                    break;
                 }
-                threadStartFlag = false;
-            });
+            }
+            threadStartFlag = false;
         } else {
             threadStartFlag = false;
             this.soundStop(); // 鳴っている音を止める。
