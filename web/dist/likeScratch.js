@@ -42758,12 +42758,12 @@ const Entity = class {
         this.direction = _direction;
     }
 
-    rotationRight( value ) {
+    turnRight( value ) {
         const _direction = this.direction + value;
         this.setDirection( _direction )
     }
 
-    rotationLeft( value ) {
+    turnLeft( value ) {
         const _direction = this.direction - value;
         this.setDirection( _direction )
     }
@@ -59842,6 +59842,7 @@ const Sprite = class extends Entity {
 
         return true;
     }
+/* 
     turnRight( _degree ) {
         let _d = this.direction;
         _d += _degree;
@@ -59868,6 +59869,7 @@ const Sprite = class extends Entity {
         }
         return _d;
     }
+*/
 
     gotoRandomPosition() {
         const process = Process.default;

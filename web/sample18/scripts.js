@@ -79,7 +79,7 @@ P.setting = async function() {
         for(;;) {
             const x = this.position.x;
             const y = this.position.y;
-            this.setXY(x,y+15);
+            this.setXY(x,y+10);
             if(this.isTouchingEdge()){
                 break;
             }
@@ -89,7 +89,7 @@ P.setting = async function() {
     P.cross.whenCloned(function(){
         const c = this; // <--- cross instance;
         for(;;) {
-            this.rotationRight(15);
+            this.turnRight(15);
             if(this.isTouchingEdge()){
                 break;
             }
