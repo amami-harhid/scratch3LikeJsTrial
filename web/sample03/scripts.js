@@ -20,12 +20,13 @@ P.setting = async function() {
     P.stage.whenFlag(async function() {
         // 音を登録する
         this.addSound( P.sounds.Chill, { 'volume' : 100 } );
-        // 「終わるまで音を鳴らす」をずっと繰り返す、スレッドを起動する
-        this.startThread( async function() {
-            for(;;) {
-                // 非同期処理に awaitをつけると、処理が終わるまで待つことができる
-                await this.startSoundUntilDone();
-            }
-        });
+    });
+    // フラグクリック時のステージの動作
+    P.stage.whenFlag(async function() {
+        // 「終わるまで音を鳴らす」をずっと繰り返す
+        for(;;) {
+            // 非同期処理に awaitをつけると、処理が終わるまで待つことができる
+            await this.startSoundUntilDone();
+        }
     });
 }
