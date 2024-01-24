@@ -39,6 +39,7 @@ module.exports = [
             path: path.resolve(__dirname, 'web/dist'),
             filename: '[name].js'
         },
+        devtool: 'source-map',
         plugins: base.plugins.concat([
             new CopyWebpackPlugin([
                 {

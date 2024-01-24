@@ -11,6 +11,7 @@ P.preload = async function() {
     this.loadSound('../assets/Chill.wav','Chill');
     this.loadImage('../assets/cross1.svg','Cross01');
     this.loadImage('../assets/cross2.svg','Cross02');
+    this.loadSound('../assets/Pew.wav','Pew');
 }
 
 P.prepare = async function() {
@@ -30,6 +31,9 @@ const _changeDirection = 1;
 P.setting = async function() {
     P.stage.whenFlag(async function() {
         this.addSound( P.sounds.Chill, { 'volume' : 20 } );
+    });
+    P.cross.whenFlag(async function() {
+        this.addSound( P.sounds.Pew, { 'volume' : 100 } );
     });
     P.stage.whenFlag(async function() {
         // ずっと繰り返す
@@ -54,6 +58,7 @@ P.setting = async function() {
         for(;;) {
             // 矢印キーを押しながら、スペースキーを検知させたい
             if(P.getKeyIsDown('Space')){
+                this.soundPlay();
                 const options = {scale:{x:20,y:20},direction:0}
                 this.clone(options);
                 //次をコメントアウトしているときは キー押下中連続してクローン作る  
@@ -74,7 +79,7 @@ P.setting = async function() {
         for(;;) {
             const x = this.position.x;
             const y = this.position.y;
-            this.setXY(x,y+15);
+            this.setXY(x,y+10);
             if(this.isTouchingEdge()){
                 break;
             }
@@ -84,7 +89,7 @@ P.setting = async function() {
     P.cross.whenCloned(function(){
         const c = this; // <--- cross instance;
         for(;;) {
-            this.rotationRight(15);
+            this.turnRight(15);
             if(this.isTouchingEdge()){
                 break;
             }

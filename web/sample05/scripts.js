@@ -21,32 +21,29 @@ let threadStartFlag = false;
 
 P.setting = async function() {
 
-    P.stage.whenFlag(async function() {
+    P.stage.whenRightNow(async function() {
         // 音を登録する
         this.addSound( P.sounds.Chill, { 'volume' : 100 } );
     });
 
     // ステージをクリックしたときの動作
     P.stage.whenClicked(async function () {
-        // クリックフラグをみて実行中でないときにスレッドを実行する。
+        // クリックフラグをみて実行中でないときに音をならす
         if( threadStartFlag == false) {
-            // 「終わるまで音を鳴らす」をずっと繰り返す、スレッドを起動する
-            this.startThread( async function() {
-                // スレッド起動したら
-                threadStartFlag = true;
-                for(;;) {
-                    await this.startSoundUntilDone();
-                    // トップスコープにて定義しているので参照可能。
-                    if( threadStartFlag == false) {
-                        break;
-                    }
+            // 「終わるまで音を鳴らす」をずっと繰り返す
+            threadStartFlag = true;
+            for(;;) {
+                await this.startSoundUntilDone();
+                // トップスコープにて定義しているので参照可能。
+                if( threadStartFlag == false) {
+                    break;
                 }
-                threadStartFlag = false;
-            });
+            }
+            threadStartFlag = false;
         } else {
             threadStartFlag = false;
             this.soundStop(); // 鳴っている音を止める。
         }
     })
-
+    console.log('setting final')
 }

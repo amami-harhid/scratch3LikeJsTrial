@@ -11,8 +11,8 @@ P.prepare = async function() {
 }
 
 P.setting = async function() {
-    // フラグクリック時のステージの動作
-    P.stage.whenFlag(function() {
+    // いますぐに実行
+    P.stage.whenRightNow(function() {
         this.addImage( P.images.Jurassic );
     });
 }

@@ -1,6 +1,6 @@
 {
   "name": "scratch3likejstrial",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Support using Scratch3 Libraries",
   "main": "scratch3.js",
   "scripts": {
@@ -21,6 +21,7 @@
     "webpack": "^3.10.0"
   },
   "dependencies": {
+    "moment": "^2.30.1",
     "twgl.js": "4.4.0"
   }
 }

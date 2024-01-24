@@ -15,7 +15,7 @@ P.prepare = async function() {
 
 P.setting = async function() {
 
-    P.stage.whenFlag(async function() {
+    P.stage.whenRightNow(async function() {
         // 音を登録する
         this.addSound( P.sounds.Chill, { 'volume' : 100 } );
     });
@@ -24,15 +24,12 @@ P.setting = async function() {
     // ２回クリックすると 二重に動作するので注意！
     P.stage.whenClicked(async function () {
         // 「終わるまで音を鳴らす」をずっと繰り返す、スレッドを起動する
-        this.startThread( async function() {
-            // startThread()の中で P.stageインスタンスを bindしているので
-            // ここの中の this は、P.stageインスタンス　を指している。
-            // わかりにくいならば this ではなくて P.stage を使ってもよい。
-            for(;;) {
-                // 非同期処理に awaitをつけると、処理が終わるまで待つことができる
-                await this.startSoundUntilDone();
-            }
-        });
+        // ここの中の this は、P.stageインスタンス　を指している。
+        // わかりにくいならば this ではなくて P.stage を使ってもよい。
+        for(;;) {
+            // 非同期処理に awaitをつけると、処理が終わるまで待つことができる
+            await this.startSoundUntilDone();
+        }
     });
 
 }
