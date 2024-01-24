@@ -38303,12 +38303,12 @@ const Sprite = class extends Entity {
     }
 
     glideToPosition(sec, x, y) {
-        const process = Process.default;
-        const runtime = process.runtime;
         let _stopper = false;
         const f = function(){
             _stopper = true;
         }
+        const process = Process.default;
+        const runtime = process.runtime;
         runtime.once(Sprite.EmitIdMovePromise, f);
         return new Promise( async (resolve) => {
             const framesPerSecond = 1000 / Env.pace;
@@ -38324,9 +38324,9 @@ const Sprite = class extends Entity {
                 i += 1;
                 me.setXY( me.position.x + stepX, me.position.y + stepY  );
                 if (i / framesPerSecond >= sec) {
-                    clearInterval(interval);
                     me.setXY( x, y );
-                    this.removeListener(Sprite.EmitIdMovePromise, f);
+                    runtime.removeListener(Sprite.EmitIdMovePromise, f);
+                    clearInterval(interval);
                     resolve();
                 }
             },Env.pace);
