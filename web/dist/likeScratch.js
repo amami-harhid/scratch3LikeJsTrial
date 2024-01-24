@@ -42696,6 +42696,9 @@ const Speech = __webpack_require__(271);
 const Rewrite = __webpack_require__(178);
 const Utils = __webpack_require__(5);
 const Entity = class extends EventEmitter{
+    static get EmitIdMovePromise () {
+        return '_MovePromise_';
+    } 
     constructor (name, layer, options = {} ){
         super();
         this.pace = Env.pace;
@@ -43085,6 +43088,7 @@ const Entity = class extends EventEmitter{
      */
     whenClicked (func) {
         const process = Process.default;
+        const runtime = process.runtime;
         const me = this;
         //const _func = func.bind(this);
         Canvas.canvas.addEventListener('click', async(e) => {
@@ -43097,6 +43101,7 @@ const Entity = class extends EventEmitter{
 //                    this._exec( func );
                     const EmitId = 'WhenClickedStopper';
                     this.emit( EmitId );
+                    runtime.emit( Entity.EmitIdMovePromise );
                     this._execWithEmit( func, EmitId );
                 }
             }
@@ -59779,6 +59784,13 @@ const Sprite = class extends Entity {
     }
 
     glideToPosition(sec, x, y) {
+        const process = Process.default;
+        const runtime = process.runtime;
+        let _stopper = false;
+        const f = function(){
+            _stopper = true;
+        }
+        runtime.once(Sprite.EmitIdMovePromise, f);
         return new Promise( async (resolve) => {
             const framesPerSecond = 1000 / Env.pace;
             const stepX = (x - this.position.x) / (sec * framesPerSecond);
@@ -59786,11 +59798,16 @@ const Sprite = class extends Entity {
             let i = 0;
             const me = this;
             const interval = setInterval(() => {
+                if(_stopper === true) {
+                    clearInterval(interval);
+                    resolve();
+                }
                 i += 1;
                 me.setXY( me.position.x + stepX, me.position.y + stepY  );
                 if (i / framesPerSecond >= sec) {
                     clearInterval(interval);
                     me.setXY( x, y );
+                    this.removeListener(Sprite.EmitIdMovePromise, f);
                     resolve();
                 }
             },Env.pace);
