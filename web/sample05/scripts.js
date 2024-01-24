@@ -21,16 +21,13 @@ let threadStartFlag = false;
 
 P.setting = async function() {
 
-    P.stage.whenFlag(async function() {
+    P.stage.whenRightNow(async function() {
         // 音を登録する
         this.addSound( P.sounds.Chill, { 'volume' : 100 } );
     });
 
     // ステージをクリックしたときの動作
     P.stage.whenClicked(async function () {
-        if( 1 == 0 ) {
-            console.log(1)
-        }
         // クリックフラグをみて実行中でないときに音をならす
         if( threadStartFlag == false) {
             // 「終わるまで音を鳴らす」をずっと繰り返す
@@ -48,5 +45,5 @@ P.setting = async function() {
             this.soundStop(); // 鳴っている音を止める。
         }
     })
-
+    console.log('setting final')
 }

@@ -18,7 +18,7 @@ P.prepare = async function() {
 
 P.setting = async function() {
 
-    P.stage.whenFlag(async function() {
+    P.stage.whenRightNow(async function() {
         this.addSound( P.sounds.Chill, { 'volume' : 50 } );
     });
     P.stage.whenFlag(async function() {
@@ -28,7 +28,7 @@ P.setting = async function() {
             }
         });
     });
-    P.cat.whenFlag( async function() {
+    P.cat.whenRightNow( async function() {
         // 音を登録する
         this.addSound( P.sounds.Mya, { 'volume' : 100 } );
     });

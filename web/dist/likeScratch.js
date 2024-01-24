@@ -42541,7 +42541,8 @@ const Rewrite = class {
         return {
             RegexLoopDef : /((while|for)\s\([^\)]*?\)\s)({)/g ,
             LoopProtectionIsDone : /_waitRapperRewrited/,
-            LoopProtectionCode : `if(_stopper_===true){break;}\n await P.Utils._waitRapperRewrited(P.Env.pace); \n` ,
+            LoopProtectionStopper : `if(_stopper_===true){break;}\n` ,
+            LoopProtectionCode : `await P.Utils._waitRapperRewrited(P.Env.pace); \n` ,
             JsBeautifyOptions : {
                 indent_size: 2,
                 space_in_empty_paren: false,
@@ -42569,7 +42570,11 @@ const Rewrite = class {
         code = js_beautify(code, Rewrite.constant.JsBeautifyOptions);
         const _loopProtectionIsDone = code.match(Rewrite.constant.LoopProtectionIsDone);
         if( _loopProtectionIsDone === null) {
-            code = code.replace(Rewrite.constant.RegexLoopDef, '$1$3' + Rewrite.constant.LoopProtectionCode);
+            if(emitterEventId ) {
+                code = code.replace(Rewrite.constant.RegexLoopDef, '$1$3' + Rewrite.constant.LoopProtectionStopper + Rewrite.constant.LoopProtectionCode);
+            }else{
+                code = code.replace(Rewrite.constant.RegexLoopDef, '$1$3' + Rewrite.constant.LoopProtectionCode);
+            }
         }
         code = js_beautify(code, Rewrite.constant.JsBeautifyOptions);
         // function() {　}　の外側を除去する
@@ -42581,7 +42586,7 @@ const Rewrite = class {
 //            code = ` this.emit('${emitterEventId}');const _STOPF_=()=>{stopper=true;}\nlet stopper=false;this.once('${emitterEventId}',_STOPF_);\n `+ code;
             code = code + ` this.removeListener('${emitterEventId}',_STOPF_);\n`;                
             code = js_beautify(code, Rewrite.constant.JsBeautifyOptions);
-            console.log(code);
+            //console.log(code);
         }
 
         const AsyncFunction = Object.getPrototypeOf(async () => {}).constructor
@@ -42999,6 +43004,14 @@ const Entity = class extends EventEmitter{
         })
 
     };
+
+    // すぐに実行する
+    whenRightNow(func) {
+
+        this._exec( func );
+
+    }
+
     // async としないほうがよいかも。
     async whenFlag (func) {
         const process = Process.default;
@@ -43056,9 +43069,9 @@ const Entity = class extends EventEmitter{
     }
     isMouseTouching() {
         const p = Process.default;
-        const mouseX = p.stage.mouse.x;
-        const mouseY = p.stage.mouse.y;
-        const _touchDrawableId = p.render.renderer.pick(mouseX,mouseY, 3, 3, [this.drawableID]); 
+        const mouseX = p.stage.mouse.x +1; // +1 は暫定、理由不明
+        const mouseY = p.stage.mouse.y +1;
+        const _touchDrawableId = p.render.renderer.pick(mouseX,mouseY, 2, 2, [this.drawableID]); 
         if(this.drawableID == _touchDrawableId){
             return true;
         }

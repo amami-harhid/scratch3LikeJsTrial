@@ -28,7 +28,7 @@ P.preload = async function() {
 P.prepare = function() {
     P.stage = new P.Stage("stage");
     P.stage.addImage( P.images.Jurassic );
-    P.cat = new P.Sprite("Cat");
+    P.cat = new P.Sprite("Cat", {scale:{x:200,y:200}});
     P.cat.addImage( P.images.Cat );
 
 }
@@ -50,12 +50,15 @@ P.setting = function() {
         const properties = {'pitch': 2, 'volume': 100}
         for(;;) {
             if( this.isMouseTouching() ) {
+                this.say(words);
                 await this.broadcastAndWait('SPEECH', words, properties, 'male');
                 
                 // 「送って待つ」を使うことで スピーチが終わるまで次のループに進まないため、
                 // 以下の「マウスタッチしない迄待つ」のコードが不要である。
                 //await P.Utils.waitUntil( this.isNotMouseTouching, P.Env.pace,  this ); 
 
+            }else{
+                this.say("");
             }
         }
     });

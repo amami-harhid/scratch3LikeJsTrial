@@ -16,8 +16,8 @@ P.prepare = async function() {
 
 P.setting = async function() {
 
-    // フラグクリック時のステージの動作
-    P.stage.whenFlag(async function() {
+    // ステージの動作（いますぐに）
+    P.stage.whenRightNow(async function() {
         // 音を登録する
         this.addSound( P.sounds.Chill, { 'volume' : 100 } );
     });

@@ -17,7 +17,7 @@ P.prepare = async function() {
 
 P.setting = async function() {
 
-    P.stage.whenFlag(async function() {
+    P.stage.whenRightNow(async function() {
         // 音を登録する
         this.addSound( P.sounds.Chill, { 'volume' : 100 } );
     });
