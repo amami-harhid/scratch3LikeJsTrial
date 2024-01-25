@@ -21798,28 +21798,77 @@ const Entity = class extends EventEmitter{
         }, 0)
 */
     }
-    
     broadcast(messageId, ...args ) {
         const runtime = Process.default.runtime;
         const eventId = `message_${messageId}`;
         this.modules.set(eventId, []);
-        runtime.emit(eventId, this.modules, ...args);
-
+        const sendTargets = [];
+        runtime.emit(eventId, this.modules, sendTargets, ...args);
     }
     async broadcastAndWait(messageId, ...args ){
         const wait = Process.default.Utils.wait;
         const runtime = Process.default.runtime;
         const eventId = `message_${messageId}`;
         this.modules.set(eventId, []);
-        runtime.emit(eventId, this.modules, ...args);
+        const sendTarges = [];
+        runtime.emit(eventId, this.modules, sendTarges, ...args);
         await wait(10);
         const promises = this.modules.get(eventId);
         if(promises.length > 0) {
             await Promise.all(promises);
             return;
         }
-
     }
+    broadcastToTargets(messageId, target, ...args) {
+        const runtime = Process.default.runtime;
+        const eventId = `message_${messageId}`;
+        this.modules.set(eventId, []);
+        const _targets = [];
+        if( Array.isArray(target) ) {
+            target.map(v=>{
+                if( v instanceof Entity) {
+                    _targets.push(v);
+                }
+            })
+        }else{
+            const _target = target;
+            if( _target instanceof Entity) {
+                _targets.push(_target);
+            }
+        }
+        if(sendTargets.length > 0) {
+            runtime.emit(eventId, this.modules, _targets, ...args);
+        } 
+    }
+    async broadcastAndWaitToTargets(messageId, target, ...args) {
+        const runtime = Process.default.runtime;
+        const wait = Process.default.Utils.wait;
+        const eventId = `message_${messageId}`;
+        this.modules.set(eventId, []);
+        const _targets = [];
+        if( Array.isArray(target) ) {
+            target.map(v=>{
+                if( v instanceof Entity) {
+                    _targets.push(v);
+                }
+            })
+        }else{
+            const _target = target;
+            if( _target instanceof Entity) {
+                _targets.push(_target);
+            }
+        }
+        if(sendTargets.length > 0) {
+            runtime.emit(eventId, this.modules, _targets, ...args);
+            await wait(10);
+            const promises = this.modules.get(eventId);
+            if(promises.length > 0) {
+                await Promise.all(promises);
+                return;
+            }
+        }
+    }
+/*  
     // recieveMessage :  runtime で受信したいので 構造作り変えをしてから実装する
     recieveMessage( messageId, func) {
         // func を rewriteしてから使う
@@ -21829,10 +21878,27 @@ const Entity = class extends EventEmitter{
         const _funcBinded = _func.bind(this);
         const runtime = Process.default.runtime;
         const eventId = `message_${messageId}`;
-        runtime.on(eventId, function( ...args){
-            _funcBinded( ...args ).catch(e=>{console.error('script=', func.toString()); throw new Error(e)});
+        runtime.on(eventId, function(modules, toTarget, ...args){
+            let isTarget = false;
+            if(toTarget.length == 0){
+                // 全てで受信
+                isTarget = true;
+            }else{
+                for(let i=0; i<toTarget.length;i++){
+                    const t = toTarget[i];
+                    if(this.id == t.id ) {
+                        isTarget = true;
+                        break;
+                    }
+                }
+            }
+            if(isTarget === true) {
+                _funcBinded( ...args ).catch(e=>{console.error('script=', func.toString()); throw new Error(e)});
+            }
         })
     }
+*/
+
     whenBroadcastReceived(messageId, func){
         const _rewriter = Rewrite.default;
         const _func = _rewriter._rewrite(func); 
@@ -21842,13 +21908,27 @@ const Entity = class extends EventEmitter{
         const runtime = Process.default.runtime;
         const eventId = `message_${messageId}`;
         const me = this;
-        runtime.on(eventId, function( modules, ...args){
-            const promise = _funcBinded( ...args );
-            const arr = modules.get(eventId);
-            arr.push(promise);
-            promise.catch(e=>{console.error('script=', func.toString()); throw new Error(e)});
+        runtime.on(eventId, function( modules, toTarget, ...args){
+            let isTarget = false;
+            if(toTarget.length == 0){
+                // 全てで受信
+                isTarget = true;
+            }else{
+                for(let i=0; i<toTarget.length;i++){
+                    const t = toTarget[i];
+                    if(this.id == t.id ) {
+                        isTarget = true;
+                        break;
+                    }
+                }
+            }
+            if(isTarget === true) {
+                const promise = _funcBinded( ...args );
+                const arr = modules.get(eventId);
+                arr.push(promise);
+                promise.catch(e=>{console.error('script=', func.toString()); throw new Error(e)});
+            }
         })
-
     };
 
     // すぐに実行する
