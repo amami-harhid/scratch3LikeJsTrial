@@ -74,7 +74,7 @@ const Backdrops = __webpack_require__(23);
 //const Css = require('./css');
 const Costumes = __webpack_require__(13);
 const Element = __webpack_require__(26);
-const Env = __webpack_require__(3);
+const Env = __webpack_require__(4);
 const EventEmitter = __webpack_require__(5).EventEmitter;
 const Importer = __webpack_require__(9);
 const js_beautify = __webpack_require__(27);
@@ -91,7 +91,8 @@ const Sounds = __webpack_require__(21);
 const Sprite = __webpack_require__(127);
 const Stage = __webpack_require__(132);
 const StageLayering = __webpack_require__(6);
-const Utils = __webpack_require__(4);
+const Utils = __webpack_require__(3);
+const Variable = __webpack_require__(133);
 const Process = class {
 
     static getInstance() {
@@ -175,6 +176,9 @@ const Process = class {
     }
     get Utils () {
         return Utils;
+    }
+    get Variable () {
+        return Variable;
     }
     get render () {
         return this._render;
@@ -10710,25 +10714,10 @@ module.exports = Transform;
 /* 3 */
 /***/ (function(module, exports) {
 
-const Env = {
-
-    pace : 33,
-
-    bubbleScaleLinkedToSprite : false,
-
-    WindowSize : {w: innerWidth, h: innerHeight},
-}
-
-module.exports = Env;
-
-/***/ }),
-/* 4 */
-/***/ (function(module, exports) {
-
 const Utils = class {
 
     static isNumber( val ){
-        if( val && typeof val === 'number' && isFinite(val)) {
+        if( val != undefined && typeof val === 'number' && isFinite(val)) {
             return true;
         }
         return false;
@@ -10811,6 +10800,21 @@ const Utils = class {
 }
 
 module.exports = Utils;
+
+/***/ }),
+/* 4 */
+/***/ (function(module, exports) {
+
+const Env = {
+
+    pace : 33,
+
+    bubbleScaleLinkedToSprite : false,
+
+    WindowSize : {w: innerWidth, h: innerHeight},
+}
+
+module.exports = Env;
 
 /***/ }),
 /* 5 */
@@ -11935,11 +11939,11 @@ module.exports = minilog('scratch-audioengine');
 /***/ (function(module, exports, __webpack_require__) {
 
 const RotationStyle = __webpack_require__(24);
-const Env = __webpack_require__(3);
+const Env = __webpack_require__(4);
 const Importer = __webpack_require__(9);
 const MathUtil = __webpack_require__(25);
 const Process = __webpack_require__(0);
-const Utils = __webpack_require__(4);
+const Utils = __webpack_require__(3);
 const Costumes = class {
     static get RotationStyle () {
         return RotationStyle;
@@ -12123,11 +12127,16 @@ const Canvas = class{
         if( Canvas.canvas ) {
             return;
         }
+        const stageCanvasWrapper = document.createElement('div');
+        stageCanvasWrapper.id = 'stageCanvasWrapper';
+        stageCanvasWrapper.style.position = 'relative';
+        main.appendChild(stageCanvasWrapper);
+
         let canvas = document.getElementById('canvas');
         if( canvas == undefined) {
             canvas = document.createElement('canvas');
             canvas.id = 'canvas';
-            main.appendChild(canvas);
+            stageCanvasWrapper.appendChild(canvas);
         }
         Canvas.canvas = canvas;
         return canvas;
@@ -18550,9 +18559,9 @@ module.exports = MathUtil;
 
 const Canvas = __webpack_require__(14);
 const CSS = __webpack_require__(44);
-const Env = __webpack_require__(3);
+const Env = __webpack_require__(4);
 const Process = __webpack_require__(0);
-const Utils = __webpack_require__(4);
+const Utils = __webpack_require__(3);
 const Element = class {
     static get DISPLAY_NONE () {
         return "displayNone";
@@ -18569,7 +18578,7 @@ const Element = class {
         main.style.touchAction = 'manipulation'
 //        Element.main = main;
         Process.default.main = main;
-        Element.mainPositioning(main);
+        Element.mainPositioning(main);    
         return main
     }
     static mainPositioning(main=Element.main) {
@@ -21529,7 +21538,7 @@ module.exports = VolumeEffect;
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(process) {const Canvas = __webpack_require__(14);
-const Env = __webpack_require__(3);
+const Env = __webpack_require__(4);
 const EventEmitter = __webpack_require__(5).EventEmitter;
 const Looks = __webpack_require__(17);
 const MathUtils = __webpack_require__(18);
@@ -21537,7 +21546,7 @@ const Process = __webpack_require__(0);
 const Sounds = __webpack_require__(21);
 const Speech = __webpack_require__(131);
 const Rewrite = __webpack_require__(40);
-const Utils = __webpack_require__(4);
+const Utils = __webpack_require__(3);
 const Entity = class extends EventEmitter{
     static get EmitIdMovePromise () {
         return '_MovePromise_';
@@ -35788,7 +35797,7 @@ module.exports = MouseWheel;
 /***/ (function(module, exports, __webpack_require__) {
 
 const Process = __webpack_require__(0)
-const Utils = __webpack_require__(4);
+const Utils = __webpack_require__(3);
 const Sensing = {
 
 
@@ -38020,13 +38029,13 @@ module.exports = SoundPlayer;
 
 const Bubble = __webpack_require__(128);
 const Entity = __webpack_require__(42);
-const Env = __webpack_require__(3);
+const Env = __webpack_require__(4);
 const Costumes = __webpack_require__(13);
 const Looks = __webpack_require__(17);
 const MathUtils = __webpack_require__(18);
 const Process = __webpack_require__(0);
 const StageLayering = __webpack_require__(6);
-const Utils = __webpack_require__(4);
+const Utils = __webpack_require__(3);
 const Sprite = class extends Entity {
 
     constructor(name, options = {}) {
@@ -39146,7 +39155,7 @@ module.exports = Speech;
 
 const Backdrops = __webpack_require__(23);
 const Canvas = __webpack_require__(14);
-const Env = __webpack_require__(3);
+const Env = __webpack_require__(4);
 const Entity = __webpack_require__(42);
 const Process = __webpack_require__(0);
 const StageLayering = __webpack_require__(6);
@@ -39298,6 +39307,126 @@ const Stage = class extends Entity {
 };
 
 module.exports = Stage;
+
+/***/ }),
+/* 133 */
+/***/ (function(module, exports, __webpack_require__) {
+
+const Utils = __webpack_require__(3);
+
+const Variable = class {
+    constructor(name, label, no=1, scale=1) {
+        this.name = name;
+        if( label == undefined) {
+            this.label = name;
+        }else{
+            this.label = label;
+        }
+        this.id = Utils.generateUUID();
+        this.value = '';
+        this.stageMonitorContainer = null;
+        this.monitorLabel = null;
+        this.monitorLabel = null;
+        this.no = no
+        this.scale = scale;
+        this.init();
+    }
+
+    init() {
+
+        const getElementById = (id) => document.getElementById(id)
+        const createElement = (node) => document.createElement(node); 
+        const _stageCanvasWrapper = getElementById('stageCanvasWrapper');
+    
+        const stageMonitorContainer = createElement('div');
+        this.stageMonitorContainer = stageMonitorContainer;
+        stageMonitorContainer.classList.add('monitor_monitor-container');
+        stageMonitorContainer.classList.add('dragged-item');
+        stageMonitorContainer.classList.add('dragTarget');
+        stageMonitorContainer.id = `stageMonitorContainer_${this.id}`
+        stageMonitorContainer.setAttribute("style","touch-action: none;");
+    
+        _stageCanvasWrapper.appendChild(stageMonitorContainer);
+    
+        const defaultMonitor = createElement('div');
+        defaultMonitor.top = "100px";
+        defaultMonitor.left = "100px";
+        defaultMonitor.classList.add('monitor_default-monitor');
+        stageMonitorContainer.appendChild(defaultMonitor);
+        
+        const monitorRaw = createElement('div');
+        monitorRaw.classList.add('monitor_row');
+        defaultMonitor.appendChild(monitorRaw);
+    
+        const monitorLabel = createElement('div');
+        this.monitorLabel = monitorLabel;
+
+        monitorLabel.classList.add('monitor_label');
+        monitorRaw.appendChild(monitorLabel);
+        monitorLabel.innerHTML  = `${this.label}`;
+
+        const monitorValue = createElement('div');
+        this.monitorValue = monitorValue;
+
+        monitorValue.classList.add('monitor_value');
+        monitorRaw.appendChild(monitorValue);
+        monitorValue.innerHTML  = '    '; // 初期値スペース４文字分
+    
+        // canvas左上基準で位置決めする
+        // すでに存在する Variable の表示をさけて表示させたい。
+        // canvas のサイズ変更に合わせて top, left を変更したい。
+        const top = 10;
+        const left = 10;
+        const scale = this.scale;
+        stageMonitorContainer.style.top = `${top}px`;// (canvasClientRect.top+50) +"px";
+        stageMonitorContainer.style.left =`${left}px` ;// (canvasClientRect.left+50) +"px";
+        stageMonitorContainer.style.transform = `scale(${scale})`
+        interact(stageMonitorContainer).styleCursor(false)
+        interact(stageMonitorContainer).draggable({
+          manualStart: false,
+          listeners: {
+            start(event) {
+              event.target.classList.add('dragging');
+            },
+            move(event) {
+              pos.x += event.dx
+              pos.y += event.dy
+              if( !event.target.classList.contains('dragging')) {
+                //event.target.classList.add('dragging');
+              }
+              event.target.style.transform = `translate(${pos.x}px, ${pos.y}px) scale(${scale})`
+            },
+            end(event) {
+              event.target.classList.remove('dragging');
+            }
+          },
+        })
+            
+    }
+    hide() {
+        this.stageMonitorContainer.style.display = 'none';
+    }
+    show() {
+        this.stageMonitorContainer.style.display = '';
+
+    }
+    changeLabel(label) {
+        this.label = label;
+        this.monitorLabel.innerHTML = `${this.label}`;
+    }
+    setValue(value, maxSize=10) {
+        this.value = value;
+        const _maxSize = maxSize;
+        if(Utils.isNumber(this.value)) {
+            const str = String(this.value);
+            this.monitorValue.innerHTML = str.padStart(_maxSize, ' ');
+        }else{
+            this.monitorValue.innerHTML = this.value.padEnd(_maxSize, ' ');
+        }
+    }
+}
+
+module.exports = Variable;
 
 /***/ })
 /******/ ]);

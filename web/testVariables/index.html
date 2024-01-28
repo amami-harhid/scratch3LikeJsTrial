@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <script crossorigin src="https://unpkg.com/interactjs/dist/interact.min.js"></script>
+<!--
+
+    <script crossorigin src="https://unpkg.com/react@16/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>	
+-->
+
+    <script src="../dist/likeScratch.js"></script>
+    <meta charset="utf-8" />
+    <script>
+    </script>
+    <style>
+      .monitor_monitor-container {
+        position: absolute;
+       background: hsla(255, 100%, 100%, 100);
+       z-index: 999;
+    border: 1px solid hsla(0, 0%, 0%, 0.15);
+    border-radius: calc(0.5rem / 2);
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 0.75rem;
+    -webkit-transition: -webkit-box-shadow 0.2s;
+    transition: -webkit-box-shadow 0.2s;
+    -o-transition: box-shadow 0.2s;
+    transition: box-shadow 0.2s;
+    transition: box-shadow 0.2s, -webkit-box-shadow 0.2s;
+    pointer-events: all;
+    overflow: hidden;
+      }
+      .monitor_default-monitor {
+        display: -webkit-box;
+        display: -webkit-flex;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-box-orient: vertical;
+        -webkit-box-direction: normal;
+        -webkit-flex-direction: column;
+        -ms-flex-direction: column;
+        flex-direction: column;
+        padding: 3px;
+    }
+    .monitor_row {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-orient: horizontal;
+    -webkit-box-direction: normal;
+    -webkit-flex-direction: row;
+    -ms-flex-direction: row;
+    flex-direction: row;
+}
+.monitor_label {
+    font-weight: bold;
+    text-align: center;
+    margin: 0 5px;
+}
+.monitor_value {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-pack: center;
+    -webkit-justify-content: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+    -ms-flex-align: center;
+    align-items: center;
+    min-width: 40px;
+    text-align: center;
+    margin: 0 5px;
+    border-radius: calc(0.5rem / 2);
+    padding: 0 2px;
+    white-space: pre-wrap;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    background: rgb(255, 140, 26); 
+    color: rgb(255, 255, 255);
+}
+.drag {
+  background-color: skyblue;
+}
+.dragTarget {
+  cursor: grab;
+}
+.dragging {
+    box-shadow: 3px 3px 5px #888888;
+}
+.dragTest {
+  display: grid;
+  place-items: center;
+  width: 120px;
+  height: 120px;
+  border-radius: 10px;
+  background: skyblue;
+  touch-action: none;
+  user-select: none;
+  cursor: grab;
+}
+    </style>
+  </head>
+  <body>
+    <script src="./scripts.js"></script>
+    <script>
+
+const pos = { x: 0, y: 0 }
+// https://iwb.jp/javascript-interactjs-drag-and-drop/
+/* 
+
+interact('.dragTest').on("hover",function(event){
+  console.log(event.target)
+  event.target.style.cursor = 'grab'
+});
+*/
+
+
+interact('.dragTarget2').styleCursor(false)
+interact('.dragTarget2').draggable({
+  manualStart: false,
+  listeners: {
+    start(event) {
+      event.target.classList.add('dragging');
+    },
+    move(event) {
+      pos.x += event.dx
+      pos.y += event.dy
+      if( !event.target.classList.contains('dragging')) {
+        //event.target.classList.add('dragging');
+      }
+      event.target.style.transform = `translate(${pos.x}px, ${pos.y}px)`
+    },
+    end(event) {
+      event.target.classList.remove('dragging');
+    }
+  },
+})
+
+    </script>
+  </body>
+</html>
