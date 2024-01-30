@@ -86,11 +86,19 @@
   background-color: skyblue;
 }
 .dragTarget {
-  cursor: grab;
+  cursor: grab;  
 }
+.dragTarget:hover .monitor_balloon {
+  display: inline;
+}
+.dragTarget_hover_monitor_balloon {
+  display: inline;
+}
+
 .dragging {
     box-shadow: 3px 3px 5px #888888;
 }
+/*
 .dragTest {
   display: grid;
   place-items: center;
@@ -102,43 +110,40 @@
   user-select: none;
   cursor: grab;
 }
+*/
+.monitor_balloon {
+  position   : absolute; 
+  display: none;
+  padding: 2px;
+  color: #ffffff;
+  background-color: rgba(0, 0, 0, 0.90);
+  width:150px; 
+  left : -1%; 
+  font-size: 90%; 
+}
+.monitor_balloon {
+  position   : absolute;
+  border-left: 5px solid rgba(102, 102, 255, 0.50);   /* 吹き出し口の幅・色 */
+  border-top: 5px solid transparent;     /* 吹き出し口の高さ１／２ */
+  border-bottom: 5px solid transparent;  /* 吹き出し口の高さ１／２ */
+  right: -12px;                           /* 吹き出し口の位置調整 */
+  top: 0%;                                /* 吹き出し口の縦位置 */
+  content: "aaa";                       /* コンテンツの挿入 */
+}
+
+#stageCanvasWrapper {
+  background-color: rgba(0, 0, 0, 0.50);
+}
+#canvas {
+  background-color: rgba(0, 0, 0, 0.20);
+}
+
+
     </style>
   </head>
   <body>
     <script src="./scripts.js"></script>
     <script>
-
-const pos = { x: 0, y: 0 }
-// https://iwb.jp/javascript-interactjs-drag-and-drop/
-/* 
-
-interact('.dragTest').on("hover",function(event){
-  console.log(event.target)
-  event.target.style.cursor = 'grab'
-});
-*/
-
-
-interact('.dragTarget2').styleCursor(false)
-interact('.dragTarget2').draggable({
-  manualStart: false,
-  listeners: {
-    start(event) {
-      event.target.classList.add('dragging');
-    },
-    move(event) {
-      pos.x += event.dx
-      pos.y += event.dy
-      if( !event.target.classList.contains('dragging')) {
-        //event.target.classList.add('dragging');
-      }
-      event.target.style.transform = `translate(${pos.x}px, ${pos.y}px)`
-    },
-    end(event) {
-      event.target.classList.remove('dragging');
-    }
-  },
-})
 
     </script>
   </body>
