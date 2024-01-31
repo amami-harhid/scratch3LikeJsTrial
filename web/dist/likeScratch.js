@@ -39340,42 +39340,134 @@ module.exports = Stage;
 const Process = __webpack_require__(0);
 const Monitor = __webpack_require__(134);
 
+const CSS = {
+monitar_container :`
+.monitor_monitor-container {
+    position: absolute;
+    background: hsla(255, 100%, 100%, 100);
+    z-index: 999;
+    border: 1px solid hsla(0, 0%, 0%, 0.15);
+    border-radius: calc(0.5rem / 2);
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 0.75rem;
+    -webkit-transition: -webkit-box-shadow 0.2s;
+    transition: -webkit-box-shadow 0.2s;
+    -o-transition: box-shadow 0.2s;
+    transition: box-shadow 0.2s;
+    transition: box-shadow 0.2s, -webkit-box-shadow 0.2s;
+    pointer-events: all;
+    overflow: hidden;
+}
+.monitor_default-monitor {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+    -webkit-flex-direction: column;
+    -ms-flex-direction: column;
+    flex-direction: column;
+    padding: 3px;
+}
+.monitor_row {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-orient: horizontal;
+    -webkit-box-direction: normal;
+    -webkit-flex-direction: row;
+    -ms-flex-direction: row;
+    flex-direction: row;
+}
+.monitor_label {
+    font-weight: bold;
+    text-align: center;
+    margin: 0 5px;
+}
+.monitor_value {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-pack: center;
+    -webkit-justify-content: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+    -ms-flex-align: center;
+    align-items: center;
+    min-width: 40px;
+    text-align: center;
+    margin: 0 5px;
+    border-radius: calc(0.5rem / 2);
+    padding: 0 2px;
+    white-space: pre-wrap;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    background: rgb(255, 140, 26); 
+    color: rgb(255, 255, 255);
+}
+.dragTarget {
+    cursor: grab;  
+}
+.dragging {
+    box-shadow: 3px 3px 5px #888888;
+/*    transform-origin: right bottom; */
+}
+`,
+monitor_balloon:
+`
+.monitor_balloon {
+    position   : absolute; 
+    display: none;
+    padding: 2px;
+    color: #ffffff;
+    background-color: rgba(0, 0, 0, 0.90);
+    width:150px; 
+    left : -1%; 
+    font-size: 90%; 
+}
+.dragging .monitor_balloon {
+    position   : absolute;
+    display: inline;
+    border-left: 5px solid rgba(102, 102, 255, 0.50);   /* 吹き出し口の幅・色 */
+    border-top: 5px solid transparent;     /* 吹き出し口の高さ１／２ */
+    border-bottom: 5px solid transparent;  /* 吹き出し口の高さ１／２ */
+    right: -12px;                           /* 吹き出し口の位置調整 */
+    top: 0%;                                /* 吹き出し口の縦位置 */
+    content: "aaa";                       /* コンテンツの挿入 */
+}
+`
+};
+
 const Monitors = class {
+
 
     constructor() {
         this.map = new Map();
         this.v = {};
         const me = this;
-        let timeoutId = 0;
-        const delay = 100;
-        // Scale させると位置がずれる問題。
-        // 参考：https://www.ipentec.com/document/css-representation-position-of-scaled-element
-        // --> 結局のところ、style.top , style.left で操作するのがよさそうだと思う。
+        this._insertCss();
+        
         window.addEventListener('resize', async function(){
-            
-            clearTimeout(timeoutId);
             const keys = Array.from(me.map.keys());
             keys.map((k)=>{
                 const v = me.map.get(k);
                 v.resize();
             });
-            
-            timeoutId = setTimeout(async function(){
-                const process = Process.default;
-                //console.log('resize')
-                const r1 = process.getRenderRate();
-                //console.log('resize(1)', r1);
-                await process.wait(100);
-                const r2 = process.getRenderRate();
-                //console.log('resize(2)', r2);
-                const keys = Array.from(me.map.keys());
-                keys.map((k)=>{
-                    const v = me.map.get(k);
-                    v.resize(true);
-                });
-
-            }, delay);
         }, false);
+    }   
+    _insertCss() {
+        const style = document.createElement('style');
+//        const _style = style.innerHTML;
+        style.innerHTML = `
+            ${CSS.monitar_container}\n\n
+            ${CSS.monitor_balloon}\n\n
+        `;
+        document.getElementsByTagName('head')[0].appendChild(style);
     }
     add(label, scale) {
         if(!this.map.has(label)) {
@@ -39466,7 +39558,7 @@ const Monitor = class {
         const stageMonitorContainer = createElement('div');
         this.stageMonitorContainer = stageMonitorContainer;
         stageMonitorContainer.classList.add('monitor_monitor-container');
-        stageMonitorContainer.classList.add('dragged-item');
+        //stageMonitorContainer.classList.add('dragged-item');
         stageMonitorContainer.classList.add('dragTarget');
         stageMonitorContainer.id = `stageMonitorContainer_${uid}`
         stageMonitorContainer.setAttribute("style","touch-action: none;");
@@ -39604,7 +39696,7 @@ const Monitor = class {
            
             const _balloon = balloon[0];
 //            _balloon.innerHTML = `(${Math.ceil(x)}, ${Math.ceil(y)}, ${Math.ceil(rect.width)}, ${Math.ceil(rect.height)})`;
-            _balloon.innerHTML = `(${Math.ceil(x)}, ${Math.ceil(y)}`;
+            _balloon.innerHTML = `(${Math.ceil(x)} , ${Math.ceil(y)} )`;
         }
 
     }
@@ -39630,7 +39722,7 @@ const Monitor = class {
         this._balloonHTML( target, this.x, this.y);
         this.resize();
     }
-    resize(scaleChange) {
+    resize( ) {
         const target = this.stageMonitorContainer;
         const process = Process.default;
         const renderRate = process.getRenderRate();
@@ -39654,22 +39746,8 @@ const Monitor = class {
         target.style.left = `${adjustPosition.x}px`;// (canvasClientRect.top+50) +"px";
         target.style.top = `${adjustPosition.y}px` ;// (canvasClientRect.left+50) +"px";
         target.style.transform = `scale(${scaleX}, ${scaleY})`;
-
-/* 
-        if(scaleChange) {
-            const scaleX = this._scale / renderRate.x;
-            const scaleY = this._scale / renderRate.y;
-    
-            target.setAttribute('scale-x', scaleX)
-            target.setAttribute('scale-y', scaleY)
-            target.style.transform = `scale(${scaleX}, ${scaleY})`;
-        }else{
-            const _scaleX = parseFloat(target.getAttribute('scale-x')) || this._scale;
-            const _scaleY = parseFloat(target.getAttribute('scale-y')) || this._scale;
-            target.style.transform = `scale(${_scaleX}, ${_scaleY})`;
-        }
-*/  
     }
+    
     _adjustPositionByScale(x, y, scaleX, scaleY) {
 
         const original_rect = this.original_rect;
