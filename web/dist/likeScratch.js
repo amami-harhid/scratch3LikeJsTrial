@@ -39520,8 +39520,10 @@ const Monitor = class {
 
         const original_rect = stageMonitorContainer.getBoundingClientRect();
 
-        this.original_rect = original_rect;
+        const scratch_rect_size = process.toScratchPosition(original_rect.width, original_rect.height);
 
+        this.original_rect = {width: scratch_rect_size.x, height: scratch_rect_size.y};
+//        console.log(this.original_rect)
         return stageMonitorContainer;
     }
     interact(target , scale) {
@@ -39561,8 +39563,13 @@ const Monitor = class {
                     actualPosition.x += event.dx;
                     actualPosition.y += event.dy;
 
-                    target.style.left = `${actualPosition.x}px`;
-                    target.style.top = `${actualPosition.y}px`;
+                    const actualScaleX = target.getAttribute('actualScale-x') || null;        
+                    const actualScaleY = target.getAttribute('actualScale-y') || null;
+            
+                    const adjustPosition = me._adjustPositionByScale(actualPosition.x, actualPosition.y, actualScaleX, actualScaleY);
+
+                    target.style.left = `${adjustPosition.x}px`;
+                    target.style.top = `${adjustPosition.y}px`;
 
                     const dScratchPosition = process.toScratchPosition(  actualPosition.x, actualPosition.y );
                     target.setAttribute('scratch-x', dScratchPosition.x);
@@ -39575,7 +39582,7 @@ const Monitor = class {
                     const scaleX = (parseFloat(target.getAttribute('scale-x')) || null);
                     const scaleY = (parseFloat(target.getAttribute('scale-y')) || null);
                     */
-                    me._balloonHTML( scratchX, scratchY );
+                    me._balloonHTML( target,  scratchX, scratchY );
                 },
 
                 end(event) {
@@ -39589,14 +39596,15 @@ const Monitor = class {
 
     }
     _balloonHTML( target, x, y) {
-
+        const rect = target.getBoundingClientRect();
         const thisId = target.id;
         const balloon = document.querySelectorAll(`#${thisId} .monitor_balloon`);
 
         if( balloon && balloon.length>0) {
            
             const _balloon = balloon[0];
-            _balloon.innerHTML = `(${Math.ceil(x)}, ${Math.ceil(y)})`;
+//            _balloon.innerHTML = `(${Math.ceil(x)}, ${Math.ceil(y)}, ${Math.ceil(rect.width)}, ${Math.ceil(rect.height)})`;
+            _balloon.innerHTML = `(${Math.ceil(x)}, ${Math.ceil(y)}`;
         }
 
     }
@@ -39636,21 +39644,16 @@ const Monitor = class {
         const scaleX = this._scale / renderRate.x;
         const scaleY = this._scale / renderRate.y;
 
+        target.setAttribute('actualScale-x', scaleX)        
+        target.setAttribute('actualScale-y', scaleY)        
+
         const original_rect = this.original_rect;
         const scaled_rect = {width: original_rect.width * scaleX, height: original_rect.height * scaleY };
         const d = {x: (scaled_rect.width - original_rect.width) /2, y: (scaled_rect.height - original_rect.height) /2 }
-
-        if( scaleChange == undefined && d.x == 0 && d.y == 0 ) {
-            target.style.left = `${dActualPosition.x}px`;// (canvasClientRect.top+50) +"px";
-            target.style.top = `${dActualPosition.y}px` ;// (canvasClientRect.left+50) +"px";
-
-        }else{
-            target.style.top = `${dActualPosition.y + d.y}px` ;// (canvasClientRect.left+50) +"px";
-            target.style.left = `${dActualPosition.x + d.x}px`;// (canvasClientRect.top+50) +"px";
-            target.style.transform = `scale(${scaleX}, ${scaleY})`;
-
-        }
-
+        const adjustPosition = this._adjustPositionByScale(dActualPosition.x, dActualPosition.y, scaleX, scaleY);
+        target.style.left = `${adjustPosition.x}px`;// (canvasClientRect.top+50) +"px";
+        target.style.top = `${adjustPosition.y}px` ;// (canvasClientRect.left+50) +"px";
+        target.style.transform = `scale(${scaleX}, ${scaleY})`;
 
 /* 
         if(scaleChange) {
@@ -39667,7 +39670,15 @@ const Monitor = class {
         }
 */  
     }
+    _adjustPositionByScale(x, y, scaleX, scaleY) {
 
+        const original_rect = this.original_rect;
+        const scaled_rect = {width: original_rect.width * scaleX, height: original_rect.height * scaleY };
+        const d = {x: (scaled_rect.width - original_rect.width) /2, y: (scaled_rect.height - original_rect.height) /2 }
+
+        return {x: x + d.x, y: y + d.y};
+
+    }
 
     set balloonText ( text ) {
         this.balloon.innerHTML = text;
