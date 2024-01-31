@@ -92,7 +92,7 @@ const Sprite = __webpack_require__(127);
 const Stage = __webpack_require__(132);
 const StageLayering = __webpack_require__(6);
 const Utils = __webpack_require__(3);
-const Variable = __webpack_require__(133);
+const Monitors = __webpack_require__(133);
 const Process = class {
 
     static getInstance() {
@@ -147,6 +147,9 @@ const Process = class {
     get Looks () {
         return Looks;
     }
+    get Monitors () {
+        return Monitors;
+    }
     get NowLoading () {
         return NowLoading;
     }
@@ -176,9 +179,6 @@ const Process = class {
     }
     get Utils () {
         return Utils;
-    }
-    get Variable () {
-        return Variable;
     }
     get render () {
         return this._render;
@@ -39338,9 +39338,102 @@ module.exports = Stage;
 /***/ (function(module, exports, __webpack_require__) {
 
 const Process = __webpack_require__(0);
+const Monitor = __webpack_require__(134);
+
+const Monitors = class {
+
+    constructor() {
+        this.map = new Map();
+        this.v = {};
+        const me = this;
+        let timeoutId = 0;
+        const delay = 100;
+        // Scale させると位置がずれる問題。
+        // 参考：https://www.ipentec.com/document/css-representation-position-of-scaled-element
+        // --> 結局のところ、style.top , style.left で操作するのがよさそうだと思う。
+        window.addEventListener('resize', async function(){
+            
+            clearTimeout(timeoutId);
+            const keys = Array.from(me.map.keys());
+            keys.map((k)=>{
+                const v = me.map.get(k);
+                v.resize();
+            });
+            
+            timeoutId = setTimeout(async function(){
+                const process = Process.default;
+                //console.log('resize')
+                const r1 = process.getRenderRate();
+                //console.log('resize(1)', r1);
+                await process.wait(100);
+                const r2 = process.getRenderRate();
+                //console.log('resize(2)', r2);
+                const keys = Array.from(me.map.keys());
+                keys.map((k)=>{
+                    const v = me.map.get(k);
+                    v.resize(true);
+                });
+
+            }, delay);
+        }, false);
+    }
+    add(label, scale) {
+        if(!this.map.has(label)) {
+            const length = this.map.size;
+            const v = new Monitor(label, length+1,  scale);
+            this.map.set(label, v);
+            this.v[label] = v;
+        }
+    }
+
+    getVariable(label) {
+        if(this.map.has(label)) {
+            const v = this.map.get(label);
+            return v;
+        }
+        return null;
+    }
+    automatic () {
+
+        const mapKeys = this.map.keys();
+        const keys = [...mapKeys];
+        const sortKeys = keys.sort(function(a, b){
+            a.no < b.no;
+        })
+        //console.log(sortKeys);
+
+        let prevPosition;
+        sortKeys.map((key,idx)=>{
+            const v = this.map.get(key);
+            const size = v.size;
+            //console.log(size);
+            if( prevPosition == undefined) {
+                const x = 10;
+                const y = 10;
+                prevPosition = {x: x, y: y};
+                v.setPosition( {x: x, y: y} );
+            }else{
+                const x = 10;
+                const y = prevPosition.y + size.h;
+                prevPosition = {x: x, y: y};
+                v.setPosition( {x: x, y: y} );
+            }
+        })
+
+    }
+
+}
+
+module.exports = Monitors;
+
+/***/ }),
+/* 134 */
+/***/ (function(module, exports, __webpack_require__) {
+
+const Process = __webpack_require__(0);
 const Utils = __webpack_require__(3);
 
-const Variable = class {
+const Monitor = class {
     constructor(label, no=1, scale) {
         this._label = label;
         this.id = Utils.generateUUID();
@@ -39429,6 +39522,7 @@ const Variable = class {
     interact(target , scale) {
         const me = this;
         const process = Process.default;
+        const _scale = scale;
         interact(target).styleCursor(false)
         interact(target).draggable({
             inertia: true,
@@ -39454,53 +39548,49 @@ const Variable = class {
                     // data-x, data-y へ保存
                     // 使うときには、表示率を使って 実際の大きさへ直して使う！
                     // うまくうごかない！！
+                    const scratchX = (parseFloat(target.getAttribute('scratch-x')) || 0);
+                    const scratchY = (parseFloat(target.getAttribute('scratch-y')) || 0);
+                    const actualPosition = process.toActualPosition(scratchX, scratchY);
 
-                    // data-x, data-y は Scratch Base Position
+                    actualPosition.x += event.dx;
+                    actualPosition.y += event.dy;
 
-                    const dxScratchPosition = process.toScratchPosition(  event.dx, event.dy );
+                    target.style.left = `${actualPosition.x}px`;
+                    target.style.top = `${actualPosition.y}px`;
 
-                    // keep the dragged position in the data-x/data-y attributes
-                    const scratchX = (parseFloat(target.getAttribute('scratch-x')) || 0) + dxScratchPosition.x;
-                    const scratchY = (parseFloat(target.getAttribute('scratch-y')) || 0) + dxScratchPosition.y;
-                    // update the posiion attributes
-                    target.setAttribute('scratch-x', scratchX);
-                    target.setAttribute('scratch-y', scratchY);
+                    const dScratchPosition = process.toScratchPosition(  actualPosition.x, actualPosition.y );
+                    target.setAttribute('scratch-x', dScratchPosition.x);
+                    target.setAttribute('scratch-y', dScratchPosition.y);
+
+                    /* transform　Scale 変わらないので 設定不要だと思う。
                     const scale = me._scale; //(parseFloat(target.getAttribute('scratch-scale')) || 1);
                     const actualScale = {x: scale /  renderRate.x , y: scale / renderRate.y };
-                    const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
-                    const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
-                    target.setAttribute('data-x', x);
-                    target.setAttribute('data-y', y);
 
-                    // translate the element
-            
-                    if(scale == undefined) {
-                        target.style.transform = `translate( ${x}px, ${y}px )`;
-                    }else{
+                    const scaleX = (parseFloat(target.getAttribute('scale-x')) || null);
+                    const scaleY = (parseFloat(target.getAttribute('scale-y')) || null);
+
+                    if(  scaleX != null ) {
                         target.setAttribute('scale-x', actualScale.x)
                         target.setAttribute('scale-y', actualScale.y)
-                        target.style.transform = `scale( ${actualScale.x, actualScale.y} ) translate( ${x/actualScale.x}px, ${y/actualScale.y}px )`;
+                        target.style.transform = `scale( ${scaleX, scaleY} )`;
                     }
-
+                    */
+                    me._balloonHTML( scratchX, scratchY );
+                    /*
                     const thisId = target.id;
                     const balloon = document.querySelectorAll(`#${thisId} .monitor_balloon`);
 
                     if( balloon && balloon.length>0) {
+                       
                         const _balloon = balloon[0];
-                        const stageCanvas = document.getElementById('stageCanvasWrapper');
-                        const stageRect = stageCanvas.getBoundingClientRect();
-                        const targetRect = target.getBoundingClientRect();
-                        const top = targetRect.top - stageRect.top;
-                        const left = targetRect.left - stageRect.left;
-                        //console.log(`top= ${top}, left=${left}`);
-                        const baloonScratchPosition = process.toScratchPosition(left, top);
                         _balloon.innerHTML = `(${Math.ceil(scratchX)}, ${Math.ceil(scratchY)})`;
                     }
+                    */
                 },
 
                 end(event) {
                     event.target.classList.remove('dragging');
-                    console.log(`me.translateX= ${me.translateX}, me.translateY= ${me.translateX}`);
+                    //console.log(`me.translateX= ${me.translateX}, me.translateY= ${me.translateX}`);
 
                 }
 
@@ -39508,6 +39598,28 @@ const Variable = class {
         })         
 
     }
+    _balloonHTML( target, x, y) {
+
+        const thisId = target.id;
+        const balloon = document.querySelectorAll(`#${thisId} .monitor_balloon`);
+
+        if( balloon && balloon.length>0) {
+           
+            const _balloon = balloon[0];
+            /* 
+            const stageCanvas = document.getElementById('stageCanvasWrapper');
+            const stageRect = stageCanvas.getBoundingClientRect();
+            const targetRect = target.getBoundingClientRect();
+            const top = targetRect.top - stageRect.top;
+            const left = targetRect.left - stageRect.left;
+            //console.log(`top= ${top}, left=${left}`);
+            const baloonScratchPosition = process.toScratchPosition(left, top);
+            */ 
+            _balloon.innerHTML = `(${Math.ceil(x)}, ${Math.ceil(y)})`;
+        }
+
+    }
+
     hide() {
         this.stageMonitorContainer.style.display = 'none';
     }
@@ -39526,25 +39638,22 @@ const Variable = class {
         const target = this.stageMonitorContainer;
         target.setAttribute('scratch-x', this.x)
         target.setAttribute('scratch-y', this.y)
+        this._balloonHTML( target, this.x, this.y);
         this.resize();
     }
     resize(scaleChange) {
         const target = this.stageMonitorContainer;
-        const _rect = target.getBoundingClientRect();
-        console.log('_rect.left=',_rect.left);
+//        const _rect = target.getBoundingClientRect();
         const process = Process.default;
         const renderRate = process.getRenderRate();
-        const actualPosition = process.toActualPosition(this.x, this.y);
-        const left = actualPosition.x;
-        const top = actualPosition.y;
-        const scaleX = this._scale / renderRate.x;
-        const scaleY = this._scale / renderRate.y;
 
-        target.style.top = 0; //`${top}px`;// (canvasClientRect.top+50) +"px";
-        target.style.left = 0; //`${left}px` ;// (canvasClientRect.left+50) +"px";
         const dataX = parseFloat(target.getAttribute('scratch-x')) || 0;
         const dataY = parseFloat(target.getAttribute('scratch-y')) || 0;
+  
         const dActualPosition = process.toActualPosition(dataX, dataY);
+        target.style.left = `${dActualPosition.x}px`;// (canvasClientRect.top+50) +"px";
+        target.style.top = `${dActualPosition.y}px` ;// (canvasClientRect.left+50) +"px";
+  
 
 /* 
         const style = window.getComputedStyle(this.stageMonitorContainer)
@@ -39558,17 +39667,20 @@ const Variable = class {
         const _x = dataX * renderRate.x;
         const _y = dataY * renderRate.y;
 */
-        target.setAttribute('data-x', dActualPosition.x)
-        target.setAttribute('data-y', dActualPosition.y)
+    //    target.setAttribute('data-x', dActualPosition.x)
+    //    target.setAttribute('data-y', dActualPosition.y)
 //        target.style.transform = `translate(${dActualPosition.x}px, ${dActualPosition.y}px) scale(${scaleX, scaleY})`;
         if(scaleChange) {
+            const scaleX = this._scale / renderRate.x;
+            const scaleY = this._scale / renderRate.y;
+    
             target.setAttribute('scale-x', scaleX)
             target.setAttribute('scale-y', scaleY)
-            target.style.transform = `scale(${scaleX}, ${scaleY}) translate(${dActualPosition.x}px, ${dActualPosition.y}px)`;
+            target.style.transform = `scale(${scaleX}, ${scaleY})`;
         }else{
             const _scaleX = parseFloat(target.getAttribute('scale-x')) || this._scale;
             const _scaleY = parseFloat(target.getAttribute('scale-y')) || this._scale;
-            target.style.transform = `scale(${_scaleX}, ${_scaleY}) translate(${dActualPosition.x}px, ${dActualPosition.y}px)`;
+            target.style.transform = `scale(${_scaleX}, ${_scaleY})`;
         }
     }
 
@@ -39595,7 +39707,7 @@ const Variable = class {
     }
 }
 
-module.exports = Variable;
+module.exports = Monitor;
 
 /***/ })
 /******/ ]);
