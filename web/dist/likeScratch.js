@@ -39690,6 +39690,9 @@ const Monitor = class {
     set maxSize (maxSize) {
         this._maxSize =  maxSize;
     }
+    get value( ) {
+        return this._value;
+    }
     set value(value) {
         this._value = value;
         const _maxSize = this._maxSize;
