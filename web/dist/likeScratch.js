@@ -12070,6 +12070,23 @@ const Costumes = class {
         }
         // do nothing
     }
+    currentSkinName() {
+        const costumesKeys = Array.from(this.costumes.keys());
+        if(costumesKeys.length == 0) {
+            return null;
+        }
+        if(this.skinId == null) {
+            const name = costumesKeys[0];
+            return name;
+        }
+        for(const _name of costumesKeys) {
+            const _skinId = this.costumes.get(_name);
+            if(_skinId == this.skinId) {
+                return _name;
+            }
+        }
+        return null;
+    }
     nextCostume() {
         const costumesKeys = Array.from(this.costumes.keys());
         if(costumesKeys.length == 0) {
@@ -22086,22 +22103,44 @@ const Entity = class extends EventEmitter{
         if(Array.isArray(targets)){
             for(const _t of targets) {
                 const _drawableId = _t.drawableID;
-                if( src.render.renderer._allDrawables.includes(_drawableId)){
-                    targetIds.push(_drawableId);
-                }
+                targetIds.push(_drawableId);
             }    
         }else{
             const _drawableId = targets.drawableID;
-            if( src.render.renderer._allDrawables.includes(_drawableId)){
-                targetIds.push(_drawableId);
-            }
+            targetIds.push(_drawableId);
         }
         if( targetIds.length > 0 ) {
-            const touching = src.render.renderer.isTouchingDrawables(src.drawableID, targetIds);
-            return touching;    
+            try{
+                const touching = src.render.renderer.isTouchingDrawables(src.drawableID, targetIds);
+                return touching;    
+    
+            }catch(e){
+            }
         }
         return false;
     }
+
+    getTouchingTarget(targets) {
+        const src = this;
+        const touchingTragets = []
+        if(Array.isArray(targets)){
+            for(const t of targets){
+                const touching = this.isTouchingTargetToTarget(src,t);
+                if( touching === true) {
+                    touchingTragets.push(t);
+                }
+            }
+        }else{
+            const t = targets
+            const touching = this.isTouchingTargetToTarget(src, t);
+            if( touching === true) {
+                touchingTragets.push(t);
+            }
+        }
+
+        return touchingTragets;
+    }
+
     isTouchingTarget(targets) {
         const src = this;
         const touching = this.isTouchingTargetToTarget(src,targets);
@@ -22209,14 +22248,58 @@ const Entity = class extends EventEmitter{
         this.direction = direction;
     }
     setXY(x, y) {
-        const oldX = this.position.x;
-        const oldY = this.position.y;
+ //       const oldX = this.position.x;
+ //       const oldY = this.position.y;
         const _renderer = this.render.renderer;
         const _position = _renderer.getFencedPositionOfDrawable(this.drawableID, [x, y]);
         this.position.x = _position[0];
         this.position.y = _position[1];
         _renderer.updateDrawablePosition(this.drawableID, _position); // <--- これ、position変化するものすべてに必要なのでは？
 
+    }
+    setXY(x, y) {
+ //       const oldX = this.position.x;
+ //       const oldY = this.position.y;
+        const _renderer = this.render.renderer;
+        const _position = _renderer.getFencedPositionOfDrawable(this.drawableID, [x, y]);
+        this.position.x = _position[0];
+        this.position.y = _position[1];
+        _renderer.updateDrawablePosition(this.drawableID, _position); // <--- これ、position変化するものすべてに必要なのでは？
+
+    }
+    setX(x) {
+        const _renderer = this.render.renderer;
+        const _position = _renderer.getFencedPositionOfDrawable(this.drawableID, [x, this.position.y]);
+        this.position.x = _position[0];
+        this.position.y = _position[1];
+         _renderer.updateDrawablePosition(this.drawableID, _position); // <--- これ、position変化するものすべてに必要なのでは？
+       
+    }
+    changeX(x) {
+        const _renderer = this.render.renderer;
+        let _x = this.position.x + x;
+        const _position = _renderer.getFencedPositionOfDrawable(this.drawableID, [_x, this.position.y]);
+        this.position.x = _position[0];
+        this.position.y = _position[1];
+         _renderer.updateDrawablePosition(this.drawableID, _position); // <--- これ、position変化するものすべてに必要なのでは？
+       
+    }
+    setY(y) {
+        const _renderer = this.render.renderer;
+        const _position = _renderer.getFencedPositionOfDrawable(this.drawableID, [this.position.x, y]);
+        this.position.x = _position[0];
+        this.position.y = _position[1];
+         _renderer.updateDrawablePosition(this.drawableID, _position); // <--- これ、position変化するものすべてに必要なのでは？
+       
+    }
+    changeY(y) {
+        const _renderer = this.render.renderer;
+        let _y = this.position.y + y;
+        const _position = _renderer.getFencedPositionOfDrawable(this.drawableID, [this.position.x, _y]);
+        this.position.x = _position[0];
+        this.position.y = _position[1];
+         _renderer.updateDrawablePosition(this.drawableID, _position); // <--- これ、position変化するものすべてに必要なのでは？
+       
     }
     speech(words, properties, gender='male', locale='ja-JP') {
         const _properties = (properties)? properties : {};
@@ -38079,18 +38162,30 @@ const Sprite = class extends Entity {
         this.soundDatas = [];
         this.touchingEdge = false;
         this.bubbleDrawableID = null;
+        this._isAlive = true;
         stage.addSprite(this);
     }
     remove() {
-        this.skinId = null;
+        if(this._isAlive === false) return;
         if(this.isClone === true) {
             const clones = this.originalSprite.clones;
             this.originalSprite.clones = clones.filter(s=> s.id !== this.id);
 //            this.render.renderer.destroyDrawable(this.drawableID, StageLayering.SPRITE_LAYER);
         }
         this.stage.removeSprite(this);
-        this.render.renderer.destroyDrawable(this.drawableID, StageLayering.SPRITE_LAYER);
+        try{
+            this.render.renderer.destroyDrawable(this.drawableID, StageLayering.SPRITE_LAYER);
+        }catch(e){
+            
+        }finally{
+            this._isAlive = false;
+        }
     }
+
+    isAlive() {
+        return this._isAlive ==  true;
+    }
+
     async clone(options = {}) {
         if(this.isClone == undefined){
             const newName = `${this.name}_${this.clones.length+1}`;
@@ -38125,6 +38220,10 @@ const Sprite = class extends Entity {
             for(const d of this.imageDatas) {
                 // svg image の場合、createSVGSkin の中で非同期になることに注意すること
                 await newSprite.addImage(d); 
+            }
+            let _name = this.costumes.currentSkinName();
+            if( _name != null ){
+                newSprite.costumes.switchCostumeByName(_name);
             }
             for(const d of this.soundDatas) {
                 const _soundData = {};
@@ -38362,6 +38461,31 @@ const Sprite = class extends Entity {
             setTimeout(callback, 0);
         }
 
+        return true;
+    }
+    isTouchingVirticalEdge (){
+        const touch = this.isTouchingEdge();
+        if( touch === false) {
+            return false;
+        }        
+        const judge = this.onEdgeBounds();
+        const nearestEdge = judge.nearestEdge;
+        if(nearestEdge == 'bottom' || nearestEdge == 'top') {
+            return false;
+        }
+        return true;
+    }
+
+    isTouchingHorizontalEdge (){
+        const touch = this.isTouchingEdge();
+        if( touch === false) {
+            return false;
+        }        
+        const judge = this.onEdgeBounds();
+        const nearestEdge = judge.nearestEdge;
+        if(nearestEdge == 'right' || nearestEdge == 'left') {
+            return false;
+        }
         return true;
     }
 /* 
