@@ -12070,6 +12070,14 @@ const Costumes = class {
         }
         // do nothing
     }
+    destroyAllSkin() {
+        const costumesKeys = Array.from(this.costumes.keys());
+        for(const name of costumesKeys) {
+            const skinId = this.costumes.get(name);
+            this.render.renderer.destroySkin(skinId);
+        }
+        this.costumes = []
+    }
     currentSkinName() {
         const costumesKeys = Array.from(this.costumes.keys());
         if(costumesKeys.length == 0) {
@@ -18445,7 +18453,6 @@ module.exports = Effect;
 const Costumes = __webpack_require__(13);
 const Backdrops = class extends Costumes {
 
-
 };
 
 module.exports = Backdrops;
@@ -21631,6 +21638,10 @@ const Entity = class extends EventEmitter{
         this.life = Infinity;
         //console.log(Rewrite.default);
         this.modules = new Map();
+    }
+    delete () {
+        this.modules = null;
+        delete this.modules;
     }
     get effect() {
         return this._effect;
@@ -38165,21 +38176,41 @@ const Sprite = class extends Entity {
         this._isAlive = true;
         stage.addSprite(this);
     }
+    delete () {
+        super.delete();
+        this.bubble = null;
+        delete this.bubble;
+        this.costumes = null;
+        delete this.costumes;
+        this.clones = null;
+        delete this.clones;
+        this.originalSprite = null;
+        delete this.originalSprite;
+        this.imageDatas = null;
+        delete this.imageDatas;
+        this.soundDatas = null;
+        delete this.soundDatas;
+        this._isAlive = false;
+    }
     remove() {
         if(this._isAlive === false) return;
         if(this.isClone === true) {
             const clones = this.originalSprite.clones;
             this.originalSprite.clones = clones.filter(s=> s.id !== this.id);
-//            this.render.renderer.destroyDrawable(this.drawableID, StageLayering.SPRITE_LAYER);
         }
         this.stage.removeSprite(this);
         try{
             this.render.renderer.destroyDrawable(this.drawableID, StageLayering.SPRITE_LAYER);
+
         }catch(e){
             
         }finally{
             this._isAlive = false;
         }
+        
+        this.costumes.destroyAllSkin();
+
+        this.delete();
     }
 
     isAlive() {
