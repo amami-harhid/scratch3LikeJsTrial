@@ -38611,7 +38611,19 @@ const Sprite = class extends Entity {
             this.pointTowardsMouseCursol();
         }
     }
-    
+
+    pointToTarget( target ) {
+
+        let dx = target.position.x - this.position.x;
+        let dy = target.position.y - this.position.y;
+
+        let direction = 90 - MathUtils.radToDeg(Math.atan2(dy, dx));
+        if(direction > 180) {
+            direction -= 360;
+        }
+        this.pointInDerection( direction );
+    }
+
     pointInDerection( _d ) {
 
         if(_d < 0) {
@@ -38619,14 +38631,14 @@ const Sprite = class extends Entity {
             if( _direction < -180) {
                 _direction = 180 + _direction;
             }
-            this._direction = _direction;
+            this.direction = _direction;
         }else{
             // _derection 0 以上 
             let _direction = _d % 360;
             if( _direction > 180) {
                 _direction = 180 - _direction;
             }
-            this._direction = _direction;
+            this.direction = _direction;
         }
     }
     setRotationStyle( _style ) {
