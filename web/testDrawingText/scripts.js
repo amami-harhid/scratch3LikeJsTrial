@@ -15,6 +15,7 @@ P.prepare = async function() {
 }
 
 P.setting = async function() {
+    const textDraw = new P.TextDraw();
 
     // フラグクリック時のステージの動作
     P.stage.whenFlag(async function() {
@@ -30,7 +31,8 @@ P.setting = async function() {
             colorG -= 2;
             colorB -= 2;
             textDraw.clear()
-            textDraw.textDrawer("Game Start", x, y, 60, "myFont", `#${colorR}${colorG}${colorB}`);    
+            textDraw.textDraw("Game Start", x, y);    
+            //textDraw.textDraw("Game Start", x, y, 60, "myFont", `#${colorR}${colorG}${colorB}`);    
             await P.wait( )
         }
         for(;;){
@@ -40,7 +42,8 @@ P.setting = async function() {
                 colorG += 2;
                 colorB += 2;
                 textDraw.clear()
-                textDraw.textDrawer("Game Start", x, y, 60, "myFont", `#${colorR}${colorG}${colorB}`);    
+                textDraw.textDraw("Game Start", x, y);    
+//                textDraw.textDraw("Game Start", x, y, 60, "myFont", `#${colorR}${colorG}${colorB}`);    
                 await P.wait( )
             }
             for(let count in Array(20).fill()) {
@@ -49,7 +52,8 @@ P.setting = async function() {
                 colorG -= 2;
                 colorB -= 2;
                 textDraw.clear()
-                textDraw.textDrawer("Game Start", x, y, 60, "myFont", `#${colorR}${colorG}${colorB}`);    
+                textDraw.textDraw("Game Start", x, y);    
+//                textDraw.textDraw("Game Start", x, y, 60, "myFont", `#${colorR}${colorG}${colorB}`);    
                 await P.wait( )
             }
         }
