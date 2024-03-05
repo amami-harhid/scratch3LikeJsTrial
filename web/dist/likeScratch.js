@@ -93,7 +93,7 @@ const Sounds = __webpack_require__(21);
 const Sprite = __webpack_require__(128);
 const Stage = __webpack_require__(133);
 const StageLayering = __webpack_require__(5);
-const Text = __webpack_require__(134);
+const TextDraw = __webpack_require__(134);
 const Utils = __webpack_require__(4);
 const Monitors = __webpack_require__(135);
 const Process = class {
@@ -178,8 +178,8 @@ const Process = class {
     get Sprite () {
         return Sprite;
     }
-    get Text () {
-        return Text;
+    get TextDraw () {
+        return TextDraw;
     }
     get Utils () {
         return Utils;
@@ -223,16 +223,59 @@ const Process = class {
         return {x: _x, y: _y};
 
     }
+    /**
+     * change scratch position to local position
+     * @param {*} x  scratch x position
+     * @param {*} y  scratch y position
+     * @returns local position
+     */
+    scratchToLocalPos( x, y ) {
 
+        const w = this._render.stageWidth;
+        const h = this._render.stageHeight;
+
+        let localPosX = x + w / 2;
+        let localPosY = h / 2 - y;
+        return {x: localPosX, y: localPosY};
+    }
+
+    /**
+     * change local position to scratch position
+     * @param {*} x  local x position
+     * @param {*} y  local y position
+     * @returns scratch position
+     */
+    localToScratchPos( x, y ) {
+
+        const w = this._render.stageWidth;
+        const h = this._render.stageHeight;
+
+        let scratchPosX = x - w / 2;
+        let scratchPosY = h / 2 - y;
+
+        return {x: scratchPosX, y: scratchPosY};
+
+    }
+
+    /**
+     * get randering rate ( when resized )
+     * @returns 
+     */
     getRenderRate() {
         return this.renderRate;        
     }
 
+    /**
+     * get rendering rate object
+     */
     get renderRate() {
         const _rateX = this._render.stageWidth / this.canvas.width;
         const _rateY = this._render.stageHeight / this.canvas.height;
         return {x: _rateX, y:_rateY};
     }
+    /**
+     * mousePosition ( on canvas )
+     */
     get mousePosition () {
         const rate = this.renderRate;
         const _mouseX = (this.stage.mouse.x - this.canvas.width/2 ) * rate.x;
@@ -262,9 +305,13 @@ const Process = class {
         return this._flag;
     }
 
-    get wait () {
-        return Utils.wait;
+    async wait ( t ) {
+        await Utils.wait( t );
     }
+
+//    get wait () {
+//    }
+
     async _init() {
 //        const keyboard = Keyboard.default;
 //        keyboard.startWatching();
@@ -10810,7 +10857,8 @@ const Utils = class {
         });
     }
     static get WAIT_TIME () {
-        return 5;
+        //return 5;
+        return 0;
     }    
 
     static mapDeepCopy(src, dist, defaultValue) {
@@ -11401,6 +11449,82 @@ function eventTargetAgnosticAddListener(emitter, name, listener, flags) {
 
 /***/ }),
 /* 7 */
+/***/ (function(module, exports) {
+
+const StageCanvasWrapperID = "stageCanvasWrapper";
+const CanvasText2dId = "canvas-text2D";
+const CanvasText2dClassName = "likeScratch-text-canvas";
+const CanvasText2dZIndex = 90;
+
+const Canvas = class{
+    static StageCanvasWrapperID( ) {
+        return StageCanvasWrapperID;
+    }
+    static CanvasText2D ( ) {
+        return CanvasText2D;
+    }
+    static createCanvas( ) {
+        if( Canvas.canvas ) {
+            return;
+        }
+        const stageCanvasWrapper = Canvas.getStageCanvasWrapper();
+        let canvas = document.getElementById('canvas');
+        if( canvas == undefined) {
+            canvas = document.createElement('canvas');
+            canvas.id = 'canvas';
+            stageCanvasWrapper.appendChild(canvas);
+        }
+        Canvas.canvas = canvas;
+        Canvas.createTextCanvas( );
+        return canvas;
+    }
+    static createTextCanvas( ) {
+        let canvasText2D = document.getElementById( CanvasText2dId );
+
+        if( canvasText2D ) {
+            return;
+        }
+
+        const stageCanvasWrapper = Canvas.getStageCanvasWrapper();
+        canvasText2D = document.createElement('canvas')
+        stageCanvasWrapper.appendChild( canvasText2D )
+        canvasText2D.id = CanvasText2dId;
+        canvasText2D.className = CanvasText2dClassName;
+        canvasText2D.style.position = 'absolute'
+        canvasText2D.style.border = 'none';
+        canvasText2D.style.zIndex = CanvasText2dZIndex
+    
+        Canvas.textCanvas = canvasText2D;
+        return canvasText2D;
+    }
+    
+    static resize2DContext(width, height) {
+        const textCanvas = Canvas.textCanvas;
+        textCanvas.style.left = '0px';
+        textCanvas.style.top = '0px';
+        textCanvas.width = width;
+        textCanvas.height = height;
+    }
+    
+
+    static getStageCanvasWrapper() {
+        let stageCanvasWrapper = document.getElementById( StageCanvasWrapperID );
+        if( stageCanvasWrapper ) {
+            return stageCanvasWrapper;
+        }
+        stageCanvasWrapper = document.createElement('div');
+        stageCanvasWrapper.id = StageCanvasWrapperID;
+        stageCanvasWrapper.style.position = 'relative';
+        main.appendChild(stageCanvasWrapper);
+
+        return stageCanvasWrapper;
+    }
+}
+
+module.exports = Canvas;
+
+/***/ }),
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const EventEmitter = __webpack_require__(6);
@@ -11641,7 +11765,7 @@ module.exports = Skin;
 
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const twgl = __webpack_require__(1);
@@ -11832,66 +11956,6 @@ ShaderManager.DRAW_MODE = {
 
 module.exports = ShaderManager;
 
-
-/***/ }),
-/* 9 */
-/***/ (function(module, exports) {
-
-const Canvas = class{
-
-    static createCanvas(main) {
-        if( Canvas.canvas ) {
-            return;
-        }
-        const stageCanvasWrapper = Canvas.getStageCanvasWrapper();
-//        const stageCanvasWrapper = document.createElement('div');
-//        stageCanvasWrapper.id = 'stageCanvasWrapper';
-//        stageCanvasWrapper.style.position = 'relative';
-//        main.appendChild(stageCanvasWrapper);
-
-        let canvas = document.getElementById('canvas');
-        if( canvas == undefined) {
-            canvas = document.createElement('canvas');
-            canvas.id = 'canvas';
-            stageCanvasWrapper.appendChild(canvas);
-        }
-        Canvas.canvas = canvas;
-        return canvas;
-    }
-    static createTextCanvas(main) {
-        if( Canvas.textCanvas ) {
-            return;
-        }
-        const stageCanvasWrapper = Canvas.getStageCanvasWrapper();
-//        const stageCanvasWrapper = document.createElement('div');
-//        stageCanvasWrapper.id = 'stageCanvasWrapper';
-//        stageCanvasWrapper.style.position = 'relative';
-//        main.appendChild(stageCanvasWrapper);
-
-        let canvas = document.getElementById('textCanvas');
-        if( canvas == undefined) {
-            canvas = document.createElement('canvas');
-            canvas.id = 'textCanvas';
-            stageCanvasWrapper.appendChild(canvas);
-        }
-        Canvas.textCanvas = canvas;
-        return canvas;
-    }
-    static getStageCanvasWrapper() {
-        let stageCanvasWrapper = document.getElementById('stageCanvasWrapper');
-        if( stageCanvasWrapper ) {
-            return stageCanvasWrapper;
-        }
-        stageCanvasWrapper = document.createElement('div');
-        stageCanvasWrapper.id = 'stageCanvasWrapper';
-        stageCanvasWrapper.style.position = 'relative';
-        main.appendChild(stageCanvasWrapper);
-
-        return stageCanvasWrapper;
-    }
-}
-
-module.exports = Canvas;
 
 /***/ }),
 /* 10 */
@@ -18456,7 +18520,7 @@ module.exports = Effect;
 /* 23 */
 /***/ (function(module, exports, __webpack_require__) {
 
-/* WEBPACK VAR INJECTION */(function(process) {const Canvas = __webpack_require__(9);
+/* WEBPACK VAR INJECTION */(function(process) {const Canvas = __webpack_require__(7);
 const Env = __webpack_require__(3);
 const EventEmitter = __webpack_require__(6).EventEmitter;
 const Looks = __webpack_require__(17);
@@ -19433,7 +19497,7 @@ module.exports = MathUtil;
 /* 28 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const Canvas = __webpack_require__(9);
+const Canvas = __webpack_require__(7);
 const CSS = __webpack_require__(45);
 const Env = __webpack_require__(3);
 const Process = __webpack_require__(0);
@@ -19461,8 +19525,8 @@ const Element = class {
         main.style.width = `${innerWidth}px`
         main.style.height = `${innerHeight}px`
     }
-    static createCanvas(main) {
-        const canvas = Canvas.createCanvas(main);
+    static createCanvas( ) {
+        const canvas = Canvas.createCanvas( );
         canvas.classList.add("likeScratch-canvas");
         Element.canvas = canvas;
         Process.default.canvas = canvas;
@@ -19516,7 +19580,6 @@ const Element = class {
             ${CSS.documentCss}\n\n
             ${CSS.flagCss}\n\n
             ${CSS.canvasCss}\n\n
-            ${CSS.textCanvasCss}\n\n
             ${CSS.mainTmpCss}\n\n
         `;
         document.getElementsByTagName('head')[0].appendChild(style);
@@ -19527,7 +19590,7 @@ const Element = class {
         // text Canvas
         //Element.createTextCanvas(main);
         // normal Canvas
-        Element.createCanvas(main);
+        Element.createCanvas( );
         const flag = Element.createFlag(main);
         flag.addEventListener('click', async function() {
             //flag.remove();
@@ -20028,7 +20091,7 @@ module.exports = Rectangle;
 const twgl = __webpack_require__(1);
 
 const {rgbToHsv, hsvToRgb} = __webpack_require__(64);
-const ShaderManager = __webpack_require__(8);
+const ShaderManager = __webpack_require__(9);
 
 /**
  * A texture coordinate is between 0 and 1. 0.5 is the center position.
@@ -22498,12 +22561,6 @@ html, body{
         display: block;
         border: 5px solid #444444;
         border-radius: 20px;
-  }  
-`,
-    textCanvasCss : `
-.likeScratch-text-canvas {
-        display: block;
-        border: 1px solid #000000;
   }  
 `,
     mainTmpCss : `
@@ -26129,8 +26186,8 @@ module.exports = NowLoadingSVG;
 /* 51 */
 /***/ (function(module, exports, __webpack_require__) {
 
+const Canvas = __webpack_require__(7);
 const Element = __webpack_require__(28);
-//const Env = require('./env');
 const Process = __webpack_require__(0);
 const ScratchRenderer = __webpack_require__(52);
 const StageLayering = __webpack_require__(5);
@@ -26181,6 +26238,8 @@ const Render = class {
         this.stageWidth = _nativeSize[0];
         this.stageHeight = _nativeSize[1];
 
+        Canvas.resize2DContext( w, h);
+
     }
     createRenderer (w = Render.W , h = Render.H ) {
         this.canvas = Element.canvas;
@@ -26224,7 +26283,7 @@ const Drawable = __webpack_require__(61);
 const Rectangle = __webpack_require__(31);
 const PenSkin = __webpack_require__(74);
 const RenderConstants = __webpack_require__(10);
-const ShaderManager = __webpack_require__(8);
+const ShaderManager = __webpack_require__(9);
 const SVGSkin = __webpack_require__(75);
 const TextBubbleSkin = __webpack_require__(93);
 const EffectTransform = __webpack_require__(32);
@@ -28636,7 +28695,7 @@ module.exports = convex;
 
 const twgl = __webpack_require__(1);
 
-const Skin = __webpack_require__(7);
+const Skin = __webpack_require__(8);
 
 class BitmapSkin extends Skin {
     /**
@@ -29027,8 +29086,8 @@ const twgl = __webpack_require__(1);
 
 const Rectangle = __webpack_require__(31);
 const RenderConstants = __webpack_require__(10);
-const ShaderManager = __webpack_require__(8);
-const Skin = __webpack_require__(7);
+const ShaderManager = __webpack_require__(9);
+const Skin = __webpack_require__(8);
 const EffectTransform = __webpack_require__(32);
 const log = __webpack_require__(33);
 
@@ -30264,9 +30323,9 @@ module.exports = AjaxLogger;
 const twgl = __webpack_require__(1);
 
 const RenderConstants = __webpack_require__(10);
-const Skin = __webpack_require__(7);
+const Skin = __webpack_require__(8);
 
-const ShaderManager = __webpack_require__(8);
+const ShaderManager = __webpack_require__(9);
 
 /**
  * Attributes to use when drawing with the pen
@@ -30619,9 +30678,9 @@ module.exports = PenSkin;
 
 const twgl = __webpack_require__(1);
 
-const Skin = __webpack_require__(7);
+const Skin = __webpack_require__(8);
 const {loadSvgString, serializeSvgToString} = __webpack_require__(76);
-const ShaderManager = __webpack_require__(8);
+const ShaderManager = __webpack_require__(9);
 
 const MAX_TEXTURE_DIMENSION = 2048;
 
@@ -32193,7 +32252,7 @@ const twgl = __webpack_require__(1);
 
 const TextWrapper = __webpack_require__(94);
 const CanvasMeasurementProvider = __webpack_require__(106);
-const Skin = __webpack_require__(7);
+const Skin = __webpack_require__(8);
 
 const BubbleStyle = {
     MAX_LINE_WIDTH: 170, // Maximum width, in Scratch pixels, of a single line of text
@@ -39373,7 +39432,7 @@ module.exports = Speech;
 /***/ (function(module, exports, __webpack_require__) {
 
 const Backdrops = __webpack_require__(24);
-const Canvas = __webpack_require__(9);
+const Canvas = __webpack_require__(7);
 const Env = __webpack_require__(3);
 const Entity = __webpack_require__(23);
 const Process = __webpack_require__(0);
@@ -39531,24 +39590,50 @@ module.exports = Stage;
 /* 134 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const Canvas = __webpack_require__(9);
+const Canvas = __webpack_require__(7);
 const Env = __webpack_require__(3);
 const Entity = __webpack_require__(23);
 const Process = __webpack_require__(0);
 const StageLayering = __webpack_require__(5);
 const Utils = __webpack_require__(4);
-const Text = class  {
-    constructor( name='text' ) {
-        this.render = Process.default.render;
-        this.drawableID = this.render.createDrawable( StageLayering.TEXT_LAYER );
-        this.id = Utils.generateUUID();
+
+const TextDraw = class  {
+    constructor( ) {
+        Canvas.createTextCanvas( );
+        this.textCanvas = Canvas.textCanvas
+        this.ctx = this.textCanvas.getContext('2d');
     }
-    drawText( text ) {
+    clear() {
+        const width = this.textCanvas.width;
+        const height = this.textCanvas.height;
+        this.ctx.clearRect( 0, 0, width, height)
 
     }
+    textDrawer( text, x, y, fontSize, fontName, color) {
+        const _fontRate = (Process.default.renderRate.x > Process.default.renderRate.y )? Process.default.renderRate.x : Process.default.renderRate.y
+        const _fontSize = fontSize / _fontRate;
+        const width = this.textCanvas.width;
+        const maxSize = width;
+        this.ctx.font = `${_fontSize}px ${fontName}`
+        this.ctx.fillStyle = color;
+        this.ctx.shadowColor ="black";
+        this.ctx.shadowOffsetX = 5;
+        this.ctx.shadowOffsetY = 5;
+        this.ctx.shadowBlur = 10;
+        const m = this.ctx.measureText(text);
+        
+        const p1 = P.scratchToLocalPos(x, y)
+        const p2 = P.toActualPosition(p1.x, p1.y)
+        const _x = p2.x - ((maxSize > m.width)? m.width / 2 : maxSize/2);
+        const _y = p2.y +  m.fontBoundingBoxAscent / 2;
+        this.ctx.fillText(text, _x, _y, maxSize);
+
+        return m;
+    }
+    
 };
 
-module.exports = Text;
+module.exports = TextDraw;
 
 /***/ }),
 /* 135 */

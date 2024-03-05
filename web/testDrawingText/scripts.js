@@ -6,22 +6,53 @@
 
 P.preload = async function() {
     this.loadImage('../assets/Jurassic.svg','Jurassic');
-    await loadFont('myFont', "./fonts/PottaOne-Regular.ttf")
+    this.loadFont('./fonts/PottaOne-Regular.ttf', 'myFont');
 }
 
 P.prepare = async function() {
     P.stage = new P.Stage();
     P.stage.addImage( P.images.Jurassic );
-    create2DContext() 
 }
 
 P.setting = async function() {
 
     // フラグクリック時のステージの動作
     P.stage.whenFlag(async function() {
-        textDrawer("Game Start", 0, 0, 550, "myFont", "#6080A0");
-        textDrawer("愛うえお", 0, -50, 100, "myFont", "red");
-        textDrawer("愛うえお", 0, -50, 95, "myFont", "white");
+        const textDraw = new P.TextDraw();
+        let x = 0;
+        let y = 0;
+        let colorR = 10;
+        let colorG = 10;
+        let colorB = 10;
+        for(let count in Array(10).fill()) {
+            y -= 1;
+            colorR -= 2;
+            colorG -= 2;
+            colorB -= 2;
+            textDraw.clear()
+            textDraw.textDrawer("Game Start", x, y, 60, "myFont", `#${colorR}${colorG}${colorB}`);    
+            await P.wait( )
+        }
+        for(;;){
+            for(let count in Array(20).fill()) {
+                y += 1;
+                colorR += 2;
+                colorG += 2;
+                colorB += 2;
+                textDraw.clear()
+                textDraw.textDrawer("Game Start", x, y, 60, "myFont", `#${colorR}${colorG}${colorB}`);    
+                await P.wait( )
+            }
+            for(let count in Array(20).fill()) {
+                y -= 1;
+                colorR -= 2;
+                colorG -= 2;
+                colorB -= 2;
+                textDraw.clear()
+                textDraw.textDrawer("Game Start", x, y, 60, "myFont", `#${colorR}${colorG}${colorB}`);    
+                await P.wait( )
+            }
+        }
     });
 }
 

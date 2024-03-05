@@ -1,3 +1,4 @@
+const Canvas2D = "canvas-text2D";
 function create2DContext() {
     const stageCanvasWrapper = document.getElementById('stageCanvasWrapper');
     const canvas3D = document.getElementById('canvas');
@@ -14,7 +15,7 @@ function create2DContext() {
 
 function resize2DContext() {
     const canvas3D = document.getElementById('canvas');
-    const canvas2D = document.getElementById('canvas-2d')
+    const canvas2D = document.getElementById(Canvas2D)
     canvas2D.style.left = '0px';// `${(innerWidth / 2) + x}px`;
     canvas2D.style.top = '0px'; //`${(innerHeight / 2) + y}px`;
     canvas2D.width = canvas3D.width;
@@ -29,7 +30,7 @@ async function loadFont(name , url) {
 }
 
 function textDrawer( text, x, y, fontSize, fontName, color) {
-    const canvas2D = document.getElementById('canvas-2d')
+    const canvas2D = document.getElementById(Canvas2D)
     const width = canvas2D.width;
     const height = canvas2D.height;
     const maxSize = width;
