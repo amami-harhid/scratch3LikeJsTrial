@@ -18568,7 +18568,7 @@ const TextOption = class  {
     get fontSize() {
         return this._fontSize;
     }
-    set fontName( fontSize ) {
+    set fontSize( fontSize ) {
         this._fontSize = fontSize;
     }
 
@@ -39714,7 +39714,7 @@ const TextDraw = class  {
 
     }
     drawText( text , x, y) {
-        
+
     }
     textDraw( text, x, y, textOption) {
         let _textOption = textOption;
@@ -39722,11 +39722,11 @@ const TextDraw = class  {
             _textOption = new TextOption();
         }
         const _fontRate = (Process.default.renderRate.x > Process.default.renderRate.y )? Process.default.renderRate.x : Process.default.renderRate.y
-        const _fontSize = fontSize / _fontRate;
+        //const _fontSize = fontSize / _fontRate;
         const width = this.textCanvas.width;
         const maxSize = width;
 
-        _textOption.setCtxFontOption(this.ctx, _fontSize);
+        _textOption.setCtxFontOption(this.ctx, _fontRate);
 
         const m = this.ctx.measureText(text);
         const p1 = P.scratchToLocalPos(x, y)

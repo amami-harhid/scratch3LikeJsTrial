@@ -20,6 +20,9 @@ P.setting = async function() {
     // フラグクリック時のステージの動作
     P.stage.whenFlag(async function() {
         const textDraw = new P.TextDraw();
+        const textOption = new P.TextOption();
+        textOption.fontName = 'myFont'
+        textOption.fontSize = 300;
         let x = 0;
         let y = 0;
         let colorR = 10;
@@ -31,7 +34,7 @@ P.setting = async function() {
             colorG -= 2;
             colorB -= 2;
             textDraw.clear()
-            textDraw.textDraw("Game Start", x, y);    
+            textDraw.textDraw("Game Start", x, y, textOption);    
             //textDraw.textDraw("Game Start", x, y, 60, "myFont", `#${colorR}${colorG}${colorB}`);    
             await P.wait( )
         }
@@ -42,7 +45,7 @@ P.setting = async function() {
                 colorG += 2;
                 colorB += 2;
                 textDraw.clear()
-                textDraw.textDraw("Game Start", x, y);    
+                textDraw.textDraw("Game Start", x, y, textOption);    
 //                textDraw.textDraw("Game Start", x, y, 60, "myFont", `#${colorR}${colorG}${colorB}`);    
                 await P.wait( )
             }
@@ -52,7 +55,7 @@ P.setting = async function() {
                 colorG -= 2;
                 colorB -= 2;
                 textDraw.clear()
-                textDraw.textDraw("Game Start", x, y);    
+                textDraw.textDraw("Game Start", x, y, textOption);    
 //                textDraw.textDraw("Game Start", x, y, 60, "myFont", `#${colorR}${colorG}${colorB}`);    
                 await P.wait( )
             }
